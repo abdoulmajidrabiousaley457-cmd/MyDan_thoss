@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/app_strings.dart';
+import '../../providers/locale_provider.dart';
+import '../../widgets/language_selector.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       body: SafeArea(
@@ -30,9 +35,9 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Investor Pro',
-                      style: TextStyle(
+                    Text(
+                      t['investorPro'],
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -45,18 +50,18 @@ class ProfileScreen extends StatelessWidget {
                         color: AppColors.primaryGold,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.diamond,
                             color: Colors.black,
                             size: 16,
                           ),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Text(
-                            'Premium Member',
-                            style: TextStyle(
+                            t['premiumMember'],
+                            style: const TextStyle(
                               color: Colors.black,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -69,19 +74,19 @@ class ProfileScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildStatItem('Investment Days', '365'),
+                        _buildStatItem(t['investmentDays'], '365'),
                         Container(
                           width: 1,
                           height: 30,
                           color: Colors.white24,
                         ),
-                        _buildStatItem('Total Return', '+15.7%'),
+                        _buildStatItem(t['totalReturn'], '+15.7%'),
                         Container(
                           width: 1,
                           height: 30,
                           color: Colors.white24,
                         ),
-                        _buildStatItem('Win Rate', '68%'),
+                        _buildStatItem(t['winRateShort'], '68%'),
                       ],
                     ),
                   ],
@@ -97,7 +102,7 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My Services',
+                      t['myServices'],
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
@@ -115,38 +120,39 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Settings',
+                      t['settings'],
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
+                    _buildLanguageItem(context),
                     _buildSettingsItem(
                       Icons.person_outline,
-                      'Account Information',
+                      t['accountInfo'],
                       '',
                     ),
                     _buildSettingsItem(
                       Icons.security_outlined,
-                      'Security & Privacy',
+                      t['securityPrivacy'],
                       '',
                     ),
                     _buildSettingsItem(
                       Icons.palette_outlined,
-                      'Theme & Display',
-                      'Dark Mode',
+                      t['themeDisplay'],
+                      t['darkMode'],
                     ),
                     _buildSettingsItem(
                       Icons.notifications_outlined,
-                      'Notifications',
+                      t['notifications'],
                       '',
                     ),
                     _buildSettingsItem(
                       Icons.help_outline,
-                      'Help & Feedback',
+                      t['helpFeedback'],
                       '',
                     ),
                     _buildSettingsItem(
                       Icons.info_outline,
-                      'About MarketMind',
+                      '${t['about']} MyDan_thoss',
                       'v1.0.0',
                     ),
                   ],
@@ -164,9 +170,9 @@ class ProfileScreen extends StatelessWidget {
                     backgroundColor: AppColors.errorRed,
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text(
-                    'Logout',
-                    style: TextStyle(
+                  child: Text(
+                    t['logout'],
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -178,6 +184,48 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageItem(BuildContext context) {
+    final t = context.tr;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.translate, color: AppColors.primaryGold),
+        title: Text(
+          t['language'],
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.watch<LocaleProvider>().language.label,
+              style: const TextStyle(
+                color: AppColors.primaryGold,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textTertiary,
+              size: 20,
+            ),
+          ],
+        ),
+        onTap: () => LanguageSelectorSheet.show(context),
       ),
     );
   }
@@ -216,32 +264,32 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildServiceCard(
           Icons.diamond_outlined,
-          'Membership',
+          context.tr['membership'],
           AppColors.primaryGold,
         ),
         _buildServiceCard(
           Icons.assessment_outlined,
-          'Risk Profile',
+          context.tr['riskProfile'],
           AppColors.accentOrange,
         ),
         _buildServiceCard(
           Icons.school_outlined,
-          'Learning',
+          context.tr['learning'],
           AppColors.accentBlue,
         ),
         _buildServiceCard(
           Icons.edit_note,
-          'Trading Log',
+          context.tr['tradingLog'],
           AppColors.accentTeal,
         ),
         _buildServiceCard(
           Icons.emoji_events_outlined,
-          'Achievements',
+          context.tr['achievements'],
           AppColors.accentPurple,
         ),
         _buildServiceCard(
           Icons.forum_outlined,
-          'Community',
+          context.tr['community'],
           AppColors.successGreen,
         ),
       ],

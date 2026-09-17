@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/app_strings.dart';
+import '../../widgets/language_selector.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class PortfolioScreen extends StatelessWidget {
@@ -7,11 +9,16 @@ class PortfolioScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('Portfolio'),
+        title: Text(t['portfolio']),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.translate),
+            onPressed: () => LanguageSelectorSheet.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.visibility_outlined),
             onPressed: () {},
@@ -45,9 +52,9 @@ class PortfolioScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Total Assets',
-                      style: TextStyle(
+                    Text(
+                      t['totalAssets'],
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
@@ -64,9 +71,9 @@ class PortfolioScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        _buildAssetMetric('Today', '+¥2,345.60', '+0.83%', true),
+                        _buildAssetMetric(t['today'], '+¥2,345.60', '+0.83%', true),
                         const SizedBox(width: 24),
-                        _buildAssetMetric('Total P&L', '+¥15,450.50', '+5.71%', true),
+                        _buildAssetMetric(t['totalPnL'], '+¥15,450.50', '+5.71%', true),
                       ],
                     ),
                   ],
@@ -77,7 +84,7 @@ class PortfolioScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Asset Distribution',
+                  t['assetDistribution'],
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -140,11 +147,11 @@ class PortfolioScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLegendItem('Stocks', '65%', AppColors.accentBlue),
+                        _buildLegendItem(t['stocks'], '65%', AppColors.accentBlue),
                         const SizedBox(height: 8),
-                        _buildLegendItem('Cash', '25%', AppColors.accentPurple),
+                        _buildLegendItem(t['cash'], '25%', AppColors.accentPurple),
                         const SizedBox(height: 8),
-                        _buildLegendItem('Frozen', '10%', AppColors.primaryGold),
+                        _buildLegendItem(t['frozen'], '10%', AppColors.primaryGold),
                       ],
                     ),
                   ],
@@ -157,12 +164,13 @@ class PortfolioScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Current Holdings',
+                  t['currentHoldings'],
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
 
               _buildHoldingItem(
+                context,
                 code: '600519',
                 name: 'Kweichow Moutai',
                 shares: '100',
@@ -174,6 +182,7 @@ class PortfolioScreen extends StatelessWidget {
               ),
 
               _buildHoldingItem(
+                context,
                 code: '600036',
                 name: 'China Merchants Bank',
                 shares: '1,000',
@@ -185,6 +194,7 @@ class PortfolioScreen extends StatelessWidget {
               ),
 
               _buildHoldingItem(
+                context,
                 code: '000858',
                 name: 'Wuliangye Yibin',
                 shares: '200',
@@ -272,7 +282,8 @@ class PortfolioScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHoldingItem({
+  Widget _buildHoldingItem(
+    BuildContext context, {
     required String code,
     required String name,
     required String shares,
@@ -308,7 +319,7 @@ class PortfolioScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$code  •  $shares shares',
+                      '$code  •  $shares ${context.tr['shares']}',
                       style: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 12,
@@ -355,9 +366,9 @@ class PortfolioScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Cost',
-                      style: TextStyle(
+                    Text(
+                      context.tr['cost'],
+                      style: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 11,
                       ),
@@ -377,9 +388,9 @@ class PortfolioScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Current',
-                      style: TextStyle(
+                    Text(
+                      context.tr['current'],
+                      style: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 11,
                       ),

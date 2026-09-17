@@ -3,6 +3,8 @@ import '../../theme/app_colors.dart';
 import '../../services/mock_data_service.dart';
 import '../../models/stock_index.dart';
 import '../../models/stock.dart';
+import '../../l10n/app_strings.dart';
+import '../../widgets/language_selector.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       appBar: AppBar(
@@ -31,10 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 32,
             ),
             const SizedBox(width: 12),
-            const Text('MarketMind'),
+            Text(t['appName']),
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.translate),
+            onPressed: () => LanguageSelectorSheet.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {},
@@ -51,31 +58,31 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Market Indices
-              _buildSectionTitle('Market Overview'),
+              _buildSectionTitle(t['marketOverview']),
               _buildIndicesCarousel(),
               
               const SizedBox(height: 24),
               
               // Favorite Stocks
-              _buildSectionTitle('My Watchlist'),
+              _buildSectionTitle(t['watchlist']),
               _buildFavoriteStocks(),
               
               const SizedBox(height: 24),
               
               // AI Recommendations
-              _buildSectionTitle('AI Picks Today'),
+              _buildSectionTitle(t['aiPicksToday']),
               _buildAIRecommendations(),
               
               const SizedBox(height: 24),
               
               // Hot Sectors
-              _buildSectionTitle('Hot Sectors'),
+              _buildSectionTitle(t['hotSectors']),
               _buildHotSectors(),
               
               const SizedBox(height: 24),
               
               // Market News
-              _buildSectionTitle('Market News'),
+              _buildSectionTitle(t['marketNews']),
               _buildNews(),
               
               const SizedBox(height: 20),
@@ -98,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () {},
-            child: const Text('More'),
+            child: Text(context.tr['more']),
           ),
         ],
       ),
@@ -218,10 +225,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildDetailItem('Open', indexData.open.toStringAsFixed(2)),
-                _buildDetailItem('High', indexData.high.toStringAsFixed(2)),
-                _buildDetailItem('Low', indexData.low.toStringAsFixed(2)),
-                _buildDetailItem('Vol', indexData.volume),
+                _buildDetailItem(context.tr['open'], indexData.open.toStringAsFixed(2)),
+                _buildDetailItem(context.tr['high'], indexData.high.toStringAsFixed(2)),
+                _buildDetailItem(context.tr['low'], indexData.low.toStringAsFixed(2)),
+                _buildDetailItem(context.tr['volume'], indexData.volume),
               ],
             ),
           ],

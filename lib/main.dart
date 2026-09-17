@@ -1,26 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+
+import 'l10n/app_strings.dart';
+import 'providers/locale_provider.dart';
 import 'theme/app_theme.dart';
+import 'theme/app_colors.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
 import 'screens/strategy/strategy_screen.dart';
 import 'screens/portfolio/portfolio_screen.dart';
 import 'screens/profile/profile_screen.dart';
-import 'theme/app_colors.dart';
 
 void main() {
-  runApp(const MarketMindApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyDanThossApp());
 }
 
-class MarketMindApp extends StatelessWidget {
-  const MarketMindApp({super.key});
+class MyDanThossApp extends StatelessWidget {
+  const MyDanThossApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MarketMind',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: const MainScreen(),
+    return ChangeNotifierProvider(
+      create: (_) => LocaleProvider()..load(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, _) {
+          return MaterialApp(
+            title: 'MyDan_thoss',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.darkTheme,
+            locale: localeProvider.locale,
+            supportedLocales: AppLanguage.values
+                .map((l) => Locale(l.code))
+                .toList(),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const MainScreen(),
+          );
+        },
+      ),
     );
   }
 }
@@ -35,40 +57,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
+  static const List<Widget> _screens = [
     HomeScreen(),
     DiscoverScreen(),
     StrategyScreen(),
     PortfolioScreen(),
     ProfileScreen(),
-  ];
-
-  final List<NavigationDestination> _destinations = const [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Market',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.explore_outlined),
-      selectedIcon: Icon(Icons.explore),
-      label: 'Discover',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.show_chart),
-      selectedIcon: Icon(Icons.show_chart),
-      label: 'Strategy',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.pie_chart_outline),
-      selectedIcon: Icon(Icons.pie_chart),
-      label: 'Portfolio',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: 'Profile',
-    ),
   ];
 
   void _onItemTapped(int index) {
@@ -79,6 +73,35 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tr;
+    final destinations = [
+      NavigationDestination(
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: const Icon(Icons.home),
+        label: t['navMarket'],
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.explore_outlined),
+        selectedIcon: const Icon(Icons.explore),
+        label: t['navTools'],
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.show_chart),
+        selectedIcon: const Icon(Icons.show_chart),
+        label: t['navStrategy'],
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.pie_chart_outline),
+        selectedIcon: const Icon(Icons.pie_chart),
+        label: t['navPortfolio'],
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: const Icon(Icons.person),
+        label: t['navProfile'],
+      ),
+    ];
+
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
@@ -89,7 +112,7 @@ class _MainScreenState extends State<MainScreen> {
         onDestinationSelected: _onItemTapped,
         backgroundColor: AppColors.backgroundSecondary,
         indicatorColor: AppColors.primaryGold.withValues(alpha: 0.2),
-        destinations: _destinations,
+        destinations: destinations,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         height: 70,
         elevation: 8,

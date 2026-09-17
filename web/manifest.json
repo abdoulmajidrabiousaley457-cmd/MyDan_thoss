@@ -1,11 +1,11 @@
 {
-    "name": "flutter_app",
-    "short_name": "flutter_app",
+    "name": "MyDan_thoss",
+    "short_name": "MyDan_thoss",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "MarketMind - AI-powered investment decision platform for Chinese stock market",
+    "description": "MyDan_thoss - AI-powered global investment intelligence platform",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

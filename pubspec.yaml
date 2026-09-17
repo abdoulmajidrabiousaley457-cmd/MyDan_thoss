@@ -1,5 +1,5 @@
-name: marketmind
-description: "MarketMind - AI-powered investment decision platform for Chinese stock market"
+name: flutter_app
+description: "MyDan_thoss - AI-powered global investment intelligence platform with currency conversion, data analysis and tracking tools"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -9,6 +9,10 @@ environment:
 
 dependencies:
   flutter:
+    sdk: flutter
+
+  # Localization
+  flutter_localizations:
     sdk: flutter
 
   # UI & Icons

@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/app_strings.dart';
+import '../../widgets/language_selector.dart';
 
 class StrategyScreen extends StatelessWidget {
   const StrategyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('Strategy Backtest'),
+        title: Text(t['strategyBacktest']),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.translate),
+            onPressed: () => LanguageSelectorSheet.show(context),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -35,9 +44,9 @@ class StrategyScreen extends StatelessWidget {
                         size: 32,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Create New Strategy',
-                        style: TextStyle(
+                      Text(
+                        t['createStrategy'],
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -45,7 +54,7 @@ class StrategyScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Build and backtest your investment strategy',
+                        t['createStrategyDesc'],
                         style: TextStyle(
                           color: Colors.black.withValues(alpha: 0.7),
                           fontSize: 14,
@@ -58,7 +67,7 @@ class StrategyScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 
                 Text(
-                  'Popular Strategies',
+                  t['popularStrategies'],
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 
@@ -66,8 +75,8 @@ class StrategyScreen extends StatelessWidget {
                 
                 _buildStrategyCard(
                   context,
-                  name: 'Value Investing',
-                  description: 'Buy undervalued stocks based on fundamentals',
+                  name: t['valueInvesting'],
+                  description: t['valueInvestingDesc'],
                   returnRate: '+45.2%',
                   sharpe: '1.85',
                   drawdown: '-12.3%',
@@ -77,8 +86,8 @@ class StrategyScreen extends StatelessWidget {
                 
                 _buildStrategyCard(
                   context,
-                  name: 'Momentum Trading',
-                  description: 'Follow market trends and momentum signals',
+                  name: t['momentumTrading'],
+                  description: t['momentumTradingDesc'],
                   returnRate: '+38.7%',
                   sharpe: '1.62',
                   drawdown: '-18.5%',
@@ -88,8 +97,8 @@ class StrategyScreen extends StatelessWidget {
                 
                 _buildStrategyCard(
                   context,
-                  name: 'Mean Reversion',
-                  description: 'Profit from price deviations from average',
+                  name: t['meanReversion'],
+                  description: t['meanReversionDesc'],
                   returnRate: '+28.3%',
                   sharpe: '1.43',
                   drawdown: '-15.7%',
@@ -158,9 +167,9 @@ class StrategyScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildMetric('Sharpe', sharpe),
+              _buildMetric(context.tr['sharpeRatio'], sharpe),
               const SizedBox(width: 24),
-              _buildMetric('Max Drawdown', drawdown),
+              _buildMetric(context.tr['maxDrawdown'], drawdown),
             ],
           ),
         ],
