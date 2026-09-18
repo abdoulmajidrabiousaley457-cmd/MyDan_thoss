@@ -6,10 +6,9 @@ import 'l10n/app_strings.dart';
 import 'providers/locale_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
-import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
 import 'screens/strategy/strategy_screen.dart';
-import 'screens/portfolio/portfolio_screen.dart';
+import 'screens/portfolio/portfolio_pro_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
 void main() {
@@ -58,10 +57,9 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _screens = [
-    HomeScreen(),
     DiscoverScreen(),
     StrategyScreen(),
-    PortfolioScreen(),
+    PortfolioProScreen(),
     ProfileScreen(),
   ];
 
@@ -76,11 +74,6 @@ class _MainScreenState extends State<MainScreen> {
     final t = context.tr;
     final destinations = [
       NavigationDestination(
-        icon: const Icon(Icons.home_outlined),
-        selectedIcon: const Icon(Icons.home),
-        label: t['navMarket'],
-      ),
-      NavigationDestination(
         icon: const Icon(Icons.explore_outlined),
         selectedIcon: const Icon(Icons.explore),
         label: t['navTools'],
@@ -93,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
       NavigationDestination(
         icon: const Icon(Icons.pie_chart_outline),
         selectedIcon: const Icon(Icons.pie_chart),
-        label: t['navPortfolio'],
+        label: t['navMyPortfolio'],
       ),
       NavigationDestination(
         icon: const Icon(Icons.person_outline),

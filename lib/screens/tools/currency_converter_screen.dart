@@ -237,7 +237,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   }
 
   Widget _buildPopularRates(AppStrings t) {
-    const popular = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SAR', 'MAD'];
+    const popular = ['USD', 'EUR', 'XOF', 'NGN', 'GHS', 'GBP', 'CNY', 'AED'];
     return Container(
       decoration: BoxDecoration(
         color: AppColors.backgroundTertiary,
