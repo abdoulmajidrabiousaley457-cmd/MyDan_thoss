@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_strings.dart';
 import 'providers/locale_provider.dart';
+import 'providers/user_profile_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
+import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
-import 'screens/strategy/strategy_screen.dart';
+import 'screens/referral/referral_screen.dart';
 import 'screens/portfolio/portfolio_pro_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
@@ -21,14 +23,17 @@ class MyDanThossApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => LocaleProvider()..load(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..load()),
+        ChangeNotifierProvider(create: (_) => UserProfileProvider()..load()),
+      ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(
             title: 'MyDan_thoss',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             locale: localeProvider.locale,
             supportedLocales: AppLanguage.values
                 .map((l) => Locale(l.code))
@@ -57,8 +62,9 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _screens = [
+    HomeScreen(),
     DiscoverScreen(),
-    StrategyScreen(),
+    ReferralScreen(),
     PortfolioProScreen(),
     ProfileScreen(),
   ];
@@ -74,14 +80,19 @@ class _MainScreenState extends State<MainScreen> {
     final t = context.tr;
     final destinations = [
       NavigationDestination(
-        icon: const Icon(Icons.explore_outlined),
-        selectedIcon: const Icon(Icons.explore),
+        icon: const Icon(Icons.grid_view_outlined),
+        selectedIcon: const Icon(Icons.grid_view),
+        label: t['navHome'],
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.history_outlined),
+        selectedIcon: const Icon(Icons.history),
         label: t['navTools'],
       ),
       NavigationDestination(
-        icon: const Icon(Icons.show_chart),
-        selectedIcon: const Icon(Icons.show_chart),
-        label: t['navStrategy'],
+        icon: const Icon(Icons.card_giftcard_outlined),
+        selectedIcon: const Icon(Icons.card_giftcard),
+        label: t['navReferral'],
       ),
       NavigationDestination(
         icon: const Icon(Icons.pie_chart_outline),
@@ -103,11 +114,11 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        backgroundColor: AppColors.backgroundSecondary,
-        indicatorColor: AppColors.primaryGold.withValues(alpha: 0.2),
+        backgroundColor: AppColors.blueDark,
+        indicatorColor: Colors.white.withValues(alpha: 0.15),
         destinations: destinations,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        height: 70,
+        height: 72,
         elevation: 8,
       ),
     );
