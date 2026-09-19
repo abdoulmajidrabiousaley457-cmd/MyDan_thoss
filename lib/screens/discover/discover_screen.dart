@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/tool_catalog.dart';
+import '../../widgets/tool_logo.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
@@ -12,201 +14,69 @@ class DiscoverScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tr;
+    final tools = ToolCatalog.all(context);
+
+    // Dedicated screens keyed by catalog position.
+    final screens = <int, Widget>{
+      0: const CurrencyConverterScreen(),
+      1: const DataAnalysisScreen(),
+      2: const TrackingScreen(),
+    };
+
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       appBar: AppBar(title: Text(t['aiTools'])),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildToolCard(
-                  context,
-                  icon: Icons.currency_exchange,
-                  title: t['currencyConverter'],
-                  description: t['currencyConverterDesc'],
-                  color: AppColors.primaryGold,
-                  onOpen: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CurrencyConverterScreen(),
-                    ),
-                  ),
-                  options: [
-                    _Option(t['convConvert'], t['convConvertDesc'],
-                        Icons.swap_horiz, AppColors.primaryGold),
-                    _Option(t['convRates'], t['convRatesDesc'],
-                        Icons.table_chart_outlined, AppColors.accentBlue),
-                    _Option(t['convMulti'], t['convMultiDesc'],
-                        Icons.star_border, AppColors.accentPurple),
-                    _Option(t['convHistory'], t['convHistoryDesc'],
-                        Icons.show_chart, AppColors.accentTeal),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.insights,
-                  title: t['dataAnalysis'],
-                  description: t['dataAnalysisDesc'],
-                  color: AppColors.accentPurple,
-                  onOpen: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const DataAnalysisScreen(),
-                    ),
-                  ),
-                  options: [
-                    _Option(t['daStats'], t['daStatsDesc'], Icons.calculate,
-                        AppColors.accentPurple),
-                    _Option(t['daTrend'], t['daTrendDesc'],
-                        Icons.trending_up, AppColors.upColor),
-                    _Option(t['daOutliers'], t['daOutliersDesc'],
-                        Icons.warning_amber_outlined, AppColors.accentOrange),
-                    _Option(t['daDist'], t['daDistDesc'],
-                        Icons.bar_chart_outlined, AppColors.accentBlue),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.track_changes,
-                  title: t['trackingEval'],
-                  description: t['trackingEvalDesc'],
-                  color: AppColors.accentTeal,
-                  onOpen: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const TrackingScreen(),
-                    ),
-                  ),
-                  options: [
-                    _Option(t['trPerf'], t['trPerfDesc'], Icons.speed,
-                        AppColors.accentTeal),
-                    _Option(t['trEval'], t['trEvalDesc'],
-                        Icons.workspace_premium_outlined, AppColors.primaryGold),
-                    _Option(t['trBench'], t['trBenchDesc'],
-                        Icons.compare_arrows, AppColors.accentBlue),
-                    _Option(t['trHist'], t['trHistDesc'],
-                        Icons.history, AppColors.accentPurple),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.auto_awesome,
-                  title: t['aiStockScreener'],
-                  description: t['aiStockScreenerDesc'],
-                  color: AppColors.accentBlue,
-                  options: [
-                    _Option(t['scrValue'], t['scrValueDesc'],
-                        Icons.price_check, AppColors.primaryGold),
-                    _Option(t['scrGrowth'], t['scrGrowthDesc'],
-                        Icons.rocket_launch_outlined, AppColors.accentBlue),
-                    _Option(t['scrDividend'], t['scrDividendDesc'],
-                        Icons.savings_outlined, AppColors.successGreen),
-                    _Option(t['scrAI'], t['scrAIDesc'],
-                        Icons.auto_awesome, AppColors.accentPurple),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.analytics_outlined,
-                  title: t['financialReport'],
-                  description: t['financialReportDesc'],
-                  color: AppColors.accentPurple,
-                  options: [
-                    _Option(t['frIncome'], t['frIncomeDesc'],
-                        Icons.receipt_long_outlined, AppColors.accentPurple),
-                    _Option(t['frBalance'], t['frBalanceDesc'],
-                        Icons.balance, AppColors.accentBlue),
-                    _Option(t['frCash'], t['frCashDesc'],
-                        Icons.waterfall_chart, AppColors.accentTeal),
-                    _Option(t['frRatios'], t['frRatiosDesc'],
-                        Icons.percent, AppColors.accentOrange),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.calculate_outlined,
-                  title: t['valuationCalculator'],
-                  description: t['valuationCalculatorDesc'],
-                  color: AppColors.primaryGold,
-                  options: [
-                    _Option(t['valDCF'], t['valDCFDesc'],
-                        Icons.account_balance_wallet_outlined, AppColors.primaryGold),
-                    _Option(t['valPE'], t['valPEDesc'],
-                        Icons.attach_money, AppColors.accentBlue),
-                    _Option(t['valPB'], t['valPBDesc'],
-                        Icons.menu_book_outlined, AppColors.accentPurple),
-                    _Option(t['valDivi'], t['valDiviDesc'],
-                        Icons.card_giftcard, AppColors.successGreen),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildToolCard(
-                  context,
-                  icon: Icons.trending_up,
-                  title: t['capitalFlow'],
-                  description: t['capitalFlowDesc'],
-                  color: AppColors.accentTeal,
-                  options: [
-                    _Option(t['cfInst'], t['cfInstDesc'],
-                        Icons.account_balance, AppColors.accentBlue),
-                    _Option(t['cfSmart'], t['cfSmartDesc'],
-                        Icons.psychology_outlined, AppColors.accentPurple),
-                    _Option(t['cfSector'], t['cfSectorDesc'],
-                        Icons.donut_large, AppColors.accentOrange),
-                    _Option(t['cfNorth'], t['cfNorthDesc'],
-                        Icons.north_east, AppColors.accentTeal),
-                  ],
-                ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int i = 0; i < tools.length; i++) ...[
+                _buildToolCard(context, tools[i], screens[i]),
+                const SizedBox(height: 14),
               ],
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildToolCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-    required List<_Option> options,
-    VoidCallback? onOpen,
-  }) {
+  Widget _buildToolCard(BuildContext context, ToolDef tool, Widget? page) {
     final t = context.tr;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundTertiary,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: AppColors.backgroundSecondary,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          childrenPadding: const EdgeInsets.only(bottom: 8),
-          iconColor: color,
+          childrenPadding: const EdgeInsets.only(bottom: 10),
+          iconColor: AppColors.greenPrimary,
           collapsedIconColor: AppColors.textTertiary,
-          leading: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 26),
+          leading: ToolLogo(
+            icon: tool.icon,
+            gradient: tool.gradient,
+            size: 46,
+            iconSize: 22,
+            radius: 14,
           ),
-          title: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          title: Text(tool.title, style: Theme.of(context).textTheme.titleMedium),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              description,
+              tool.description,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -218,7 +88,7 @@ class DiscoverScreen extends StatelessWidget {
                   Text(
                     t['toolOptions'],
                     style: const TextStyle(
-                      color: AppColors.primaryGold,
+                      color: AppColors.greenPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -231,18 +101,23 @@ class DiscoverScreen extends StatelessWidget {
                 ],
               ),
             ),
-            ...options.map((o) => _buildOptionTile(o)),
-            if (onOpen != null)
+            ...tool.options.map((o) => _buildOptionTile(context, o)),
+            if (page != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: ElevatedButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(Icons.open_in_new, size: 16),
-                  label: Text(t['exploreFeatures']),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color,
-                    foregroundColor: Colors.black,
-                    minimumSize: const Size(double.infinity, 44),
+                child: Semantics(
+                  button: true,
+                  label: '${t['exploreFeatures']} — ${tool.title}',
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (_) => page)),
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: Text(t['exploreFeatures']),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.greenPrimary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 46),
+                    ),
                   ),
                 ),
               ),
@@ -252,44 +127,49 @@ class DiscoverScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionTile(_Option o) {
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: o.color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(9),
+  Widget _buildOptionTile(BuildContext context, ToolOption o) {
+    return Semantics(
+      button: true,
+      label: o.title,
+      hint: o.description,
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: o.color.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(o.icon, color: o.color, size: 18),
         ),
-        child: Icon(o.icon, color: o.color, size: 18),
-      ),
-      title: Text(
-        o.title,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 13.5,
-          fontWeight: FontWeight.w600,
+        title: Text(
+          o.title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-      subtitle: Text(
-        o.description,
-        style: const TextStyle(color: AppColors.textTertiary, fontSize: 11.5),
-      ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.textTertiary,
-        size: 18,
+        subtitle: Text(
+          o.description,
+          style: const TextStyle(color: AppColors.textTertiary, fontSize: 11.5),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: AppColors.textTertiary,
+          size: 18,
+        ),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(o.title),
+              backgroundColor: AppColors.greenPrimary,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        },
       ),
     );
   }
-}
-
-class _Option {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-
-  _Option(this.title, this.description, this.icon, this.color);
 }

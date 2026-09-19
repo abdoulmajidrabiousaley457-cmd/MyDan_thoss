@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 /// MyDan_thoss App Colors
-/// Mobile-money style palette (orange header + royal blue accents).
+/// Green mobile-money style palette (emerald green header + royal blue accents).
 class AppColors {
-  // ---------- Brand ----------
-  static const Color orangePrimary = Color(0xFFF4511E);      // Header orange
-  static const Color orangeDark = Color(0xFFE64A19);         // Orange pressed
-  static const Color orangeLight = Color(0xFFFF7043);        // Orange lighter
+  // ---------- Brand — GREEN ----------
+  static const Color greenPrimary = Color(0xFF16A34A);        // Header green
+  static const Color greenDark = Color(0xFF15803D);           // Green pressed / nav
+  static const Color greenLight = Color(0xFF22C55E);          // Green lighter
+  static const Color greenAccent = Color(0xFF4ADE80);         // Bright green accent
+
+  // Legacy aliases — kept so existing code keeps working (now GREEN).
+  static const Color orangePrimary = greenPrimary;
+  static const Color orangeDark = greenDark;
+  static const Color orangeLight = greenLight;
 
   static const Color bluePrimary = Color(0xFF0066B3);        // Balance card blue
   static const Color blueDark = Color(0xFF0052A3);           // Bottom nav blue
@@ -28,36 +34,37 @@ class AppColors {
   static const Color pastelIndigo = Color(0xFFE8EAF6);
   static const Color pastelMagenta = Color(0xFFFCE8F3);
   static const Color pastelOrange = Color(0xFFFFF3E0);
+  static const Color pastelGreen = Color(0xFFE7F8ED);
 
   // ---------- Accent (icon foreground) ----------
-  static const Color accentBlue = Color(0xFF3F51B5);         // Indigo
-  static const Color accentPurple = Color(0xFF7E57C2);       // Purple
-  static const Color accentOrange = Color(0xFFFF9F0A);       // Warning orange
-  static const Color accentTeal = Color(0xFF00ACC1);         // Teal
-  static const Color accentPink = Color(0xFFEC407A);         // Pink
+  static const Color accentBlue = Color(0xFF3F51B5);
+  static const Color accentPurple = Color(0xFF7E57C2);
+  static const Color accentOrange = Color(0xFFF59E0B);
+  static const Color accentTeal = Color(0xFF00ACC1);
+  static const Color accentPink = Color(0xFFEC407A);
 
   // ---------- Semantic ----------
-  static const Color upColor = Color(0xFFE53935);            // Red up
-  static const Color downColor = Color(0xFF43A047);          // Green down
+  static const Color upColor = Color(0xFFE53935);            // Red (market up)
+  static const Color downColor = Color(0xFF2E7D32);          // Green (market down)
   static const Color successGreen = Color(0xFF2E7D32);
   static const Color errorRed = Color(0xFFE53935);
   static const Color warningYellow = Color(0xFFF9A825);
   static const Color infoBlue = Color(0xFF1E88E5);
 
-  // Legacy aliases (kept for backward compatibility)
-  static const Color primaryGold = bluePrimary;
-  static const Color primaryGoldDark = blueDark;
-  static const Color primaryGoldLight = blueLight;
-  static const Color primaryGoldAlpha = Color(0x330066B3);
+  // Legacy aliases
+  static const Color primaryGold = greenPrimary;
+  static const Color primaryGoldDark = greenDark;
+  static const Color primaryGoldLight = greenLight;
+  static const Color primaryGoldAlpha = Color(0x3316A34A);
 
   // ---------- Text ----------
-  static const Color textPrimary = Color(0xFF1A1D26);        // Dark text
-  static const Color textSecondary = Color(0xFF5A6270);      // Secondary text
-  static const Color textTertiary = Color(0xFF98A0AC);       // Tertiary text
-  static const Color textDisabled = Color(0xFFBFC5CE);       // Disabled
-  static const Color textLink = Color(0xFF0066B3);           // Link
-  static const Color textOnDark = Color(0xFFFFFFFF);         // On colored bg
-  static const Color textOnDarkMuted = Color(0xCCFFFFFF);    // Muted on colored bg
+  static const Color textPrimary = Color(0xFF15251A);        // Dark ink
+  static const Color textSecondary = Color(0xFF52605A);      // Secondary
+  static const Color textTertiary = Color(0xFF8A968F);       // Tertiary
+  static const Color textDisabled = Color(0xFFBFC5C1);       // Disabled
+  static const Color textLink = Color(0xFF15803D);           // Link
+  static const Color textOnDark = Color(0xFFFFFFFF);
+  static const Color textOnDarkMuted = Color(0xCCFFFFFF);
 
   // ---------- Borders ----------
   static const Color borderPrimary = Color(0xFFE4E8EE);
@@ -66,7 +73,13 @@ class AppColors {
 
   // ---------- Gradients ----------
   static LinearGradient get goldGradient => const LinearGradient(
-    colors: [orangePrimary, orangeLight],
+    colors: [greenPrimary, greenLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient get greenGradient => const LinearGradient(
+    colors: [greenPrimary, greenDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -84,7 +97,7 @@ class AppColors {
   );
 
   static LinearGradient get orangeGradient => const LinearGradient(
-    colors: [orangePrimary, orangeDark],
+    colors: [greenPrimary, greenDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -93,5 +106,43 @@ class AppColors {
     colors: [Colors.transparent, Color(0x33000000)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
+  );
+
+  // ---------- Tool logo gradients (aesthetic & distinct) ----------
+  static const LinearGradient toolGreen = LinearGradient(
+    colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolTeal = LinearGradient(
+    colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolAmber = LinearGradient(
+    colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolViolet = LinearGradient(
+    colors: [Color(0xFFA78BFA), Color(0xFF7C3AED)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolBlue = LinearGradient(
+    colors: [Color(0xFF60A5FA), Color(0xFF2563EB)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolPink = LinearGradient(
+    colors: [Color(0xFFF472B6), Color(0xFFDB2777)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolEmerald = LinearGradient(
+    colors: [Color(0xFF34D399), Color(0xFF059669)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolSky = LinearGradient(
+    colors: [Color(0xFF38BDF8), Color(0xFF0284C7)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+  static const LinearGradient toolIndigo = LinearGradient(
+    colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
   );
 }

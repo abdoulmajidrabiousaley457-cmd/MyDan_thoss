@@ -74,7 +74,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.orangePrimary, AppColors.orangeDark],
+          colors: [AppColors.greenPrimary, AppColors.greenDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -209,7 +209,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
     final items = <List<Object>>[
       ['${stats['total']}', t['totalReferrals'], AppColors.accentBlue],
       ['${stats['active']}', t['activeReferrals'], AppColors.successGreen],
-      ['\$${(stats['earnings'] as double).toStringAsFixed(0)}', t['referralEarnings'], AppColors.orangePrimary],
+      ['\$${(stats['earnings'] as double).toStringAsFixed(0)}', t['referralEarnings'], AppColors.greenPrimary],
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -308,7 +308,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                   height: 22,
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(
-                    color: AppColors.orangePrimary,
+                    color: AppColors.greenPrimary,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -367,13 +367,13 @@ class _ReferralScreenState extends State<ReferralScreen> {
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor:
-                      r.active ? AppColors.pastelMint : AppColors.pastelPeach,
+                      r.active ? AppColors.pastelMint : AppColors.pastelGreen,
                   child: Text(
                     initials,
                     style: TextStyle(
                       color: r.active
                           ? AppColors.successGreen
-                          : AppColors.orangePrimary,
+                          : AppColors.greenPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -415,7 +415,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                       decoration: BoxDecoration(
                         color: r.active
                             ? AppColors.pastelMint
-                            : AppColors.pastelPeach,
+                            : AppColors.pastelGreen,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -423,7 +423,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                         style: TextStyle(
                           color: r.active
                               ? AppColors.successGreen
-                              : AppColors.orangePrimary,
+                              : AppColors.greenPrimary,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),

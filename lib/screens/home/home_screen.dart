@@ -5,12 +5,15 @@ import '../../l10n/app_strings.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/language_selector.dart';
+import '../../widgets/tool_catalog.dart';
+import '../../widgets/tool_logo.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
+import '../profile/profile_screen.dart';
 
-/// Home screen reproducing the mobile-money style interface:
-/// orange header + blue balance card + white services grid.
+/// Home screen — green mobile-money style:
+/// green header + blue balance card + white services grid with tool logos.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -18,7 +21,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tr;
     return Scaffold(
-      backgroundColor: AppColors.orangePrimary,
+      backgroundColor: AppColors.greenPrimary,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -29,15 +32,11 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: AppColors.backgroundPrimary,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-                ),
+                color: AppColors.backgroundPrimary,
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Balance card overlaps upward
                       Transform.translate(
                         offset: const Offset(0, -14),
                         child: _buildBalanceCard(context, t),
@@ -61,21 +60,25 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- Header (orange) ----------------
+  // ---------------- Header (green) ----------------
   Widget _buildHeader(BuildContext context, AppStrings t) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Menu button (white rounded square)
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+          // Menu button
+          Semantics(
+            button: true,
+            label: 'Menu',
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.menu, color: Colors.white, size: 22),
             ),
-            child: const Icon(Icons.menu, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           // Welcome text
@@ -99,35 +102,40 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          // Bell
-          _headerIcon(Icons.notifications_none, onTap: () {}),
-          const SizedBox(width: 6),
-          // Phone
-          _headerIcon(Icons.call, onTap: () {}),
+          // Quick access to profile (accessible to everyone)
+          _headerIcon(context, Icons.notifications_none, 'Notifications', () {}),
+          const SizedBox(width: 4),
+          _headerIcon(context, Icons.call, 'Support', () {}),
+          const SizedBox(width: 4),
+          _profileAvatar(context),
           const SizedBox(width: 6),
           // Language pill
-          GestureDetector(
-            onTap: () => LanguageSelectorSheet.show(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: AppColors.blueDark,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    context.tr.language.code,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+          Semantics(
+            button: true,
+            label: 'Language, ${context.tr.language.label}',
+            child: GestureDetector(
+              onTap: () => LanguageSelectorSheet.show(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      context.tr.language.code,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down,
-                      color: Colors.white, size: 16),
-                ],
+                    const SizedBox(width: 4),
+                    const Icon(Icons.keyboard_arrow_down,
+                        color: Colors.white, size: 16),
+                  ],
+                ),
               ),
             ),
           ),
@@ -136,13 +144,67 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _headerIcon(IconData icon, {required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Icon(icon, color: Colors.white, size: 24),
+  Widget _headerIcon(
+      BuildContext context, IconData icon, String label, VoidCallback onTap) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 22,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Icon(icon, color: Colors.white, size: 23),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Accessible profile avatar shortcut — always visible on the home header.
+  Widget _profileAvatar(BuildContext context) {
+    final profile = context.watch<UserProfileProvider>();
+    final initials = profile.hasProfile
+        ? profile.displayName
+            .split(' ')
+            .take(2)
+            .map((e) => e.isNotEmpty ? e[0] : '')
+            .join()
+        : '';
+    return Semantics(
+      button: true,
+      label: profile.hasProfile
+          ? 'Profile, ${profile.name}'
+          : 'Create your profile',
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const _ProfileShortcutPage()),
+        ),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.25),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+          ),
+          child: Center(
+            child: profile.hasProfile
+                ? Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : const Icon(Icons.person_add_alt_1,
+                    color: Colors.white, size: 18),
+          ),
+        ),
       ),
     );
   }
@@ -153,17 +215,32 @@ class HomeScreen extends StatelessWidget {
     final name = profile.hasProfile ? profile.displayName : t['myAccount'];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          name.toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.5,
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              label: 'Account holder, $name',
+              child: Text(
+                name.toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
           ),
-        ),
+          if (!profile.hasProfile)
+            TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const _ProfileShortcutPage()),
+              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
+              child: Text(t['createProfile'],
+                  style: const TextStyle(fontSize: 12)),
+            ),
+        ],
       ),
     );
   }
@@ -190,7 +267,6 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Decorative circles
           Positioned(
             right: -30,
             top: -30,
@@ -218,7 +294,6 @@ class HomeScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Label + refresh
               Row(
                 children: [
                   const Icon(Icons.account_balance_wallet_outlined,
@@ -233,48 +308,69 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        shape: BoxShape.circle,
+                  Semantics(
+                    button: true,
+                    label: t['refresh'],
+                    child: Tooltip(
+                      message: t['refresh'],
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.refresh,
+                              color: Colors.white, size: 18),
+                        ),
                       ),
-                      child: const Icon(Icons.refresh,
-                          color: Colors.white, size: 18),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              // Masked balance + eye
               Row(
                 children: [
-                  Text(
-                    profile.balanceHidden ? '••••••••' : '12,480.75',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
+                  Semantics(
+                    label: profile.balanceHidden
+                        ? t['hideBalance']
+                        : '${t['mainBalance']} 12,480.75',
+                    child: Text(
+                      profile.balanceHidden ? '••••••••' : '12,480.75',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => profile.toggleBalance(),
-                    child: Icon(
-                      profile.balanceHidden
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      color: Colors.white,
-                      size: 20,
+                  Semantics(
+                    button: true,
+                    label: profile.balanceHidden
+                        ? t['showBalance']
+                        : t['hideBalance'],
+                    child: Tooltip(
+                      message: profile.balanceHidden
+                          ? t['showBalance']
+                          : t['hideBalance'],
+                      child: InkResponse(
+                        onTap: () => profile.toggleBalance(),
+                        child: Icon(
+                          profile.balanceHidden
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              // Phone + QR
               Row(
                 children: [
                   Text(
@@ -286,16 +382,20 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(10),
+                  Semantics(
+                    button: true,
+                    label: 'QR code',
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.qr_code_2,
+                            color: Colors.white, size: 20),
                       ),
-                      child: const Icon(Icons.qr_code_2,
-                          color: Colors.white, size: 20),
                     ),
                   ),
                 ],
@@ -309,26 +409,14 @@ class HomeScreen extends StatelessWidget {
 
   // ---------------- White services grid ----------------
   Widget _buildServicesCard(BuildContext context, AppStrings t) {
-    final services = <_Service>[
-      _Service(Icons.send, t['currencyConverter'], AppColors.pastelLavender,
-          AppColors.accentBlue,
-          () => _open(context, const CurrencyConverterScreen())),
-      _Service(Icons.swap_horiz, t['aiStockScreener'], AppColors.pastelSky,
-          AppColors.accentTeal, null),
-      _Service(Icons.person_add_alt, t['navReferral'], AppColors.pastelPeach,
-          AppColors.orangePrimary, null),
-      _Service(Icons.savings_outlined, t['trackingEval'], AppColors.pastelPink,
-          AppColors.accentPink, () => _open(context, const TrackingScreen())),
-      _Service(Icons.insights, t['dataAnalysis'], AppColors.pastelMint,
-          AppColors.successGreen,
-          () => _open(context, const DataAnalysisScreen())),
-      _Service(Icons.confirmation_number_outlined, t['valuationCalculator'],
-          AppColors.pastelIndigo, AppColors.accentBlue, null),
-      _Service(Icons.account_balance_outlined, t['financialReport'],
-          AppColors.pastelMagenta, AppColors.accentPurple, null),
-      _Service(Icons.language, t['capitalFlow'], AppColors.pastelOrange,
-          AppColors.accentOrange, null),
-    ];
+    final tools = ToolCatalog.all(context);
+
+    // Landing pages for tools that have a dedicated screen.
+    final screens = <String, Widget>{
+      'currencyConverter': const CurrencyConverterScreen(),
+      'dataAnalysis': const DataAnalysisScreen(),
+      'trackingEval': const TrackingScreen(),
+    };
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -350,56 +438,100 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 4,
-          childAspectRatio: 0.82,
+          childAspectRatio: 0.80,
           crossAxisSpacing: 4,
-          mainAxisSpacing: 14,
+          mainAxisSpacing: 16,
         ),
-        itemCount: services.length,
-        itemBuilder: (context, i) => _buildServiceItem(context, services[i]),
+        itemCount: tools.length,
+        itemBuilder: (context, i) {
+          final tool = tools[i];
+          // Shorten long titles gracefully for the compact label.
+          return _buildServiceItem(
+            context,
+            tool,
+            onTap: () => _openTool(context, tool, i, screens),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildServiceItem(BuildContext context, _Service s) {
-    return InkWell(
-      onTap: s.onTap ?? () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(s.label),
-            backgroundColor: AppColors.bluePrimary,
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: s.bg,
-              borderRadius: BorderRadius.circular(16),
+  void _openTool(
+    BuildContext context,
+    ToolDef tool,
+    int index,
+    Map<String, Widget> screens,
+  ) {
+    // Map catalog index → dedicated screen when available.
+    final keys = [
+      'currencyConverter',
+      'dataAnalysis',
+      'trackingEval',
+      '', '', '', '',
+      '',
+      '',
+    ];
+    final key = index < keys.length ? keys[index] : '';
+    final page = screens[key];
+    if (page != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(tool.title),
+          backgroundColor: AppColors.greenPrimary,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  Widget _buildServiceItem(
+    BuildContext context,
+    ToolDef tool, {
+    required VoidCallback onTap,
+  }) {
+    return Semantics(
+      button: true,
+      label: tool.title,
+      hint: tool.description,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            ToolLogo(
+              icon: tool.icon,
+              gradient: tool.gradient,
+              size: 52,
+              iconSize: 24,
+              radius: 16,
             ),
-            child: Icon(s.icon, color: s.fg, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            s.label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.blueDark,
-              fontSize: 10.5,
-              height: 1.15,
-              fontWeight: FontWeight.w500,
+            const SizedBox(height: 8),
+            Text(
+              _shortLabel(tool.title),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.greenDark,
+                fontSize: 10.5,
+                height: 1.15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  String _shortLabel(String label) {
+    if (label.length <= 16) return label;
+    final words = label.split(' ');
+    if (words.length <= 2) return label;
+    return '${words[0]} ${words[1]}';
   }
 
   // ---------------- Quick tools ----------------
@@ -414,7 +546,7 @@ class HomeScreen extends StatelessWidget {
           Text(
             t['seeAll'],
             style: const TextStyle(
-              color: AppColors.bluePrimary,
+              color: AppColors.greenPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -425,19 +557,32 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildQuickTools(BuildContext context, AppStrings t) {
-    final items = <_Service>[
-      _Service(Icons.currency_exchange, t['currencyConverter'],
-          AppColors.pastelLavender, AppColors.accentBlue,
-          () => _open(context, const CurrencyConverterScreen())),
-      _Service(Icons.insights, t['dataAnalysis'], AppColors.pastelMint,
-          AppColors.successGreen, () => _open(context, const DataAnalysisScreen())),
-      _Service(Icons.track_changes, t['trackingEval'], AppColors.pastelSky,
-          AppColors.accentTeal, () => _open(context, const TrackingScreen())),
+    final items = <List<Object>>[
+      [
+        Icons.currency_exchange,
+        AppColors.toolGreen,
+        t['currencyConverter'],
+        const CurrencyConverterScreen(),
+      ],
+      [
+        Icons.insights,
+        AppColors.toolTeal,
+        t['dataAnalysis'],
+        const DataAnalysisScreen(),
+      ],
+      [
+        Icons.track_changes,
+        AppColors.toolAmber,
+        t['trackingEval'],
+        const TrackingScreen(),
+      ],
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: items.map((s) {
+          final title = s[2] as String;
+          final page = s[3] as Widget;
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
@@ -451,42 +596,42 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: ListTile(
-              onTap: s.onTap,
-              leading: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: s.bg,
-                  borderRadius: BorderRadius.circular(12),
+            child: Semantics(
+              button: true,
+              label: title,
+              child: ListTile(
+                onTap: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => page)),
+                leading: ToolLogo(
+                  icon: s[0] as IconData,
+                  gradient: s[1] as Gradient,
+                  size: 42,
+                  iconSize: 20,
+                  radius: 12,
                 ),
-                child: Icon(s.icon, color: s.fg, size: 20),
+                title: Text(title,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    )),
+                trailing: const Icon(Icons.chevron_right,
+                    color: AppColors.textTertiary),
               ),
-              title: Text(s.label,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  )),
-              trailing: const Icon(Icons.chevron_right,
-                  color: AppColors.textTertiary),
             ),
           );
         }).toList(),
       ),
     );
   }
-
-  void _open(BuildContext context, Widget page) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
-  }
 }
 
-class _Service {
-  final IconData icon;
-  final String label;
-  final Color bg;
-  final Color fg;
-  final VoidCallback? onTap;
-  _Service(this.icon, this.label, this.bg, this.fg, this.onTap);
+/// Lightweight shortcut that deep-links into the Profile screen.
+class _ProfileShortcutPage extends StatelessWidget {
+  const _ProfileShortcutPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ProfileScreen();
+  }
 }

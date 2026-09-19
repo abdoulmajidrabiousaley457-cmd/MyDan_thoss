@@ -114,8 +114,8 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        backgroundColor: AppColors.blueDark,
-        indicatorColor: Colors.white.withValues(alpha: 0.15),
+        backgroundColor: AppColors.greenDark,
+        indicatorColor: Colors.white.withValues(alpha: 0.18),
         destinations: destinations,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         height: 72,

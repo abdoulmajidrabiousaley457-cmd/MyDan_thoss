@@ -9,8 +9,8 @@ class AppTheme {
       brightness: Brightness.light,
 
       colorScheme: const ColorScheme.light(
-        primary: AppColors.bluePrimary,
-        secondary: AppColors.orangePrimary,
+        primary: AppColors.greenPrimary,
+        secondary: AppColors.greenDark,
         surface: AppColors.backgroundSecondary,
         error: AppColors.errorRed,
         onPrimary: Colors.white,
@@ -22,7 +22,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.backgroundPrimary,
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.orangePrimary,
+        backgroundColor: AppColors.greenPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
@@ -45,8 +45,8 @@ class AppTheme {
       ),
 
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.blueDark,
-        indicatorColor: Colors.white.withValues(alpha: 0.15),
+        backgroundColor: AppColors.greenDark,
+        indicatorColor: Colors.white.withValues(alpha: 0.18),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
@@ -76,7 +76,7 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.bluePrimary,
+          backgroundColor: AppColors.greenPrimary,
           foregroundColor: Colors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -89,7 +89,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.bluePrimary,
+          foregroundColor: AppColors.greenPrimary,
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),

@@ -203,60 +203,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.bluePrimary, AppColors.blueDeep],
+          colors: [AppColors.greenPrimary, AppColors.greenDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Column(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 46,
-                backgroundColor: Colors.white,
-                child: profile.hasProfile
-                    ? Text(
-                        profile.displayName
-                            .split(' ')
-                            .take(2)
-                            .map((e) => e.isNotEmpty ? e[0] : '')
-                            .join(),
-                        style: const TextStyle(
-                          color: AppColors.bluePrimary,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : const Icon(Icons.person,
-                        size: 50, color: AppColors.bluePrimary),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: () => _openEditSheet(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.orangePrimary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+          Semantics(
+            button: true,
+            label: profile.hasProfile ? t['editProfile'] : t['createProfile'],
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 46,
+                  backgroundColor: Colors.white,
+                  child: profile.hasProfile
+                      ? Text(
+                          profile.displayName
+                              .split(' ')
+                              .take(2)
+                              .map((e) => e.isNotEmpty ? e[0] : '')
+                              .join(),
+                          style: const TextStyle(
+                            color: AppColors.greenDark,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : const Icon(Icons.person,
+                          size: 50, color: AppColors.greenDark),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => _openEditSheet(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.bluePrimary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.edit,
+                          color: Colors.white, size: 14),
                     ),
-                    child: const Icon(Icons.edit,
-                        color: Colors.white, size: 14),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 14),
-          Text(
-            profile.hasProfile ? profile.name : t['notConnected'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          Semantics(
+            label: profile.hasProfile
+                ? '${t['myAccount']}, ${profile.name}'
+                : t['notConnected'],
+            child: Text(
+              profile.hasProfile ? profile.name : t['notConnected'],
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -265,6 +274,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               profile.phone,
               style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
+          const SizedBox(height: 14),
+          Semantics(
+            button: true,
+            label: profile.hasProfile ? t['editProfile'] : t['createProfile'],
+            child: ElevatedButton.icon(
+              onPressed: () => _openEditSheet(context),
+              icon: Icon(
+                profile.hasProfile ? Icons.edit : Icons.person_add_alt_1,
+                size: 18,
+              ),
+              label: Text(
+                profile.hasProfile ? t['editProfile'] : t['createProfile'],
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.greenDark,
+                minimumSize: const Size(200, 46),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -369,11 +398,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: AppColors.pastelOrange,
+              color: AppColors.pastelGreen,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(Icons.download_for_offline_outlined,
-                color: AppColors.orangePrimary, size: 26),
+                color: AppColors.greenPrimary, size: 26),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -406,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               : ElevatedButton(
                   onPressed: () => _installApp(context, t),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.orangePrimary,
+                    backgroundColor: AppColors.greenPrimary,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 12),
                   ),
