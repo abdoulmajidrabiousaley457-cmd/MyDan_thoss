@@ -4,6 +4,7 @@ import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
+import '../product/product_screen.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
@@ -16,11 +17,12 @@ class DiscoverScreen extends StatelessWidget {
     final t = context.tr;
     final tools = ToolCatalog.all(context);
 
-    // Dedicated screens keyed by catalog position.
-    final screens = <int, Widget>{
-      0: const CurrencyConverterScreen(),
-      1: const DataAnalysisScreen(),
-      2: const TrackingScreen(),
+    // Dedicated screens keyed by the stable tool key.
+    final screens = <String, Widget>{
+      'currencyConverter': const CurrencyConverterScreen(),
+      'dataAnalysis': const DataAnalysisScreen(),
+      'trackingEval': const TrackingScreen(),
+      'productCatalog': const ProductScreen(),
     };
 
     return Scaffold(
@@ -32,8 +34,8 @@ class DiscoverScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (int i = 0; i < tools.length; i++) ...[
-                _buildToolCard(context, tools[i], screens[i]),
+              for (final tool in tools) ...[
+                _buildToolCard(context, tool, screens[tool.key]),
                 const SizedBox(height: 14),
               ],
             ],
@@ -65,12 +67,13 @@ class DiscoverScreen extends StatelessWidget {
           childrenPadding: const EdgeInsets.only(bottom: 10),
           iconColor: AppColors.greenPrimary,
           collapsedIconColor: AppColors.textTertiary,
-          leading: ToolLogo(
-            icon: tool.icon,
+          leading: ToolLogoImage(
+            asset: tool.logoAsset,
+            remoteUrl: ToolLogos.remoteReferences[tool.key],
+            fallbackIcon: tool.icon,
             gradient: tool.gradient,
-            size: 46,
-            iconSize: 22,
-            radius: 14,
+            semanticLabel: tool.title,
+            size: 48,
           ),
           title: Text(tool.title, style: Theme.of(context).textTheme.titleMedium),
           subtitle: Padding(
@@ -81,30 +84,17 @@ class DiscoverScreen extends StatelessWidget {
             ),
           ),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(
-                children: [
-                  Text(
-                    t['toolOptions'],
-                    style: const TextStyle(
-                      color: AppColors.greenPrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(height: 1, color: AppColors.divider),
-                  ),
-                ],
-              ),
-            ),
+            // ---- Options ----
+            _sectionHeader(context, t['toolOptions']),
             ...tool.options.map((o) => _buildOptionTile(context, o)),
+            // ---- Example model templates ----
+            if (tool.examples.isNotEmpty) ...[
+              _sectionHeader(context, t['exampleTemplates']),
+              ...tool.examples.map((e) => _buildExampleTile(context, e, tool)),
+            ],
             if (page != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
                 child: Semantics(
                   button: true,
                   label: '${t['exploreFeatures']} — ${tool.title}',
@@ -122,6 +112,92 @@ class DiscoverScreen extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.greenPrimary,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Container(height: 1, color: AppColors.divider)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExampleTile(BuildContext context, String example, ToolDef tool) {
+    final t = context.tr;
+    return Semantics(
+      button: true,
+      label: '${t['viewExample']} — $example',
+      child: InkWell(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${t['exampleData']}: $example'),
+              backgroundColor: AppColors.greenDark,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: tool.gradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 15,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  example,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.greenPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  t['useTemplate'],
+                  style: const TextStyle(
+                    color: AppColors.greenPrimary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -10,6 +10,8 @@ import '../../widgets/tool_logo.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
+import '../product/product_screen.dart';
+import '../settings/notifications_screen.dart';
 import '../profile/profile_screen.dart';
 
 /// Home screen — green mobile-money style:
@@ -103,9 +105,17 @@ class HomeScreen extends StatelessWidget {
           ),
           const Spacer(),
           // Quick access to profile (accessible to everyone)
-          _headerIcon(context, Icons.notifications_none, 'Notifications', () {}),
+          _headerIcon(context, Icons.notifications_none, 'Notifications', () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+            );
+          }),
           const SizedBox(width: 4),
-          _headerIcon(context, Icons.call, 'Support', () {}),
+          _headerIcon(context, Icons.support_agent, 'Support', () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProductScreen()),
+            );
+          }),
           const SizedBox(width: 4),
           _profileAvatar(context),
           const SizedBox(width: 6),
@@ -416,6 +426,7 @@ class HomeScreen extends StatelessWidget {
       'currencyConverter': const CurrencyConverterScreen(),
       'dataAnalysis': const DataAnalysisScreen(),
       'trackingEval': const TrackingScreen(),
+      'productCatalog': const ProductScreen(),
     };
 
     return Container(
@@ -462,17 +473,7 @@ class HomeScreen extends StatelessWidget {
     int index,
     Map<String, Widget> screens,
   ) {
-    // Map catalog index → dedicated screen when available.
-    final keys = [
-      'currencyConverter',
-      'dataAnalysis',
-      'trackingEval',
-      '', '', '', '',
-      '',
-      '',
-    ];
-    final key = index < keys.length ? keys[index] : '';
-    final page = screens[key];
+    final page = screens[tool.key];
     if (page != null) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
     } else {
@@ -501,12 +502,13 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            ToolLogo(
-              icon: tool.icon,
+            ToolLogoImage(
+              asset: tool.logoAsset,
+              remoteUrl: ToolLogos.remoteReferences[tool.key],
+              fallbackIcon: tool.icon,
               gradient: tool.gradient,
+              semanticLabel: tool.title,
               size: 52,
-              iconSize: 24,
-              radius: 16,
             ),
             const SizedBox(height: 8),
             Text(
@@ -561,28 +563,34 @@ class HomeScreen extends StatelessWidget {
       [
         Icons.currency_exchange,
         AppColors.toolGreen,
+        ToolLogos.currency,
         t['currencyConverter'],
         const CurrencyConverterScreen(),
+        'currency',
       ],
       [
         Icons.insights,
         AppColors.toolTeal,
+        ToolLogos.data,
         t['dataAnalysis'],
         const DataAnalysisScreen(),
+        'data',
       ],
       [
         Icons.track_changes,
-        AppColors.toolAmber,
+        AppColors.toolViolet,
+        ToolLogos.tracking,
         t['trackingEval'],
         const TrackingScreen(),
+        'tracking',
       ],
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: items.map((s) {
-          final title = s[2] as String;
-          final page = s[3] as Widget;
+          final title = s[3] as String;
+          final page = s[4] as Widget;
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
@@ -602,12 +610,13 @@ class HomeScreen extends StatelessWidget {
               child: ListTile(
                 onTap: () => Navigator.of(context)
                     .push(MaterialPageRoute(builder: (_) => page)),
-                leading: ToolLogo(
-                  icon: s[0] as IconData,
+                leading: ToolLogoImage(
+                  asset: s[2] as String,
+                  remoteUrl: ToolLogos.remoteReferences[s[5]],
+                  fallbackIcon: s[0] as IconData,
                   gradient: s[1] as Gradient,
-                  size: 42,
-                  iconSize: 20,
-                  radius: 12,
+                  semanticLabel: title,
+                  size: 44,
                 ),
                 title: Text(title,
                     style: const TextStyle(

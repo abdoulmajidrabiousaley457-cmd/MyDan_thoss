@@ -2,22 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../theme/app_colors.dart';
+import '../widgets/tool_logo.dart';
 
-/// A single tool definition with its aesthetic logo gradient and sub-options.
+/// A single tool definition with its aesthetic logo and sub-options.
 class ToolDef {
+  final String key;
   final IconData icon;
+  final String logoAsset;
   final Gradient gradient;
   final String title;
   final String description;
   final List<ToolOption> options;
+
+  /// Example templates / models showcased inside the tool.
+  final List<String> examples;
   final Widget Function()? builder;
 
   const ToolDef({
+    required this.key,
     required this.icon,
+    required this.logoAsset,
     required this.gradient,
     required this.title,
     required this.description,
     required this.options,
+    this.examples = const [],
     this.builder,
   });
 }
@@ -30,16 +39,16 @@ class ToolOption {
   const ToolOption(this.icon, this.color, this.title, this.description);
 }
 
-/// Central catalog of all tools with consistent, aesthetic logos.
-///
-/// Each tool exposes a [Semantics]-friendly `title` used as its accessible
-/// label by [ToolLogo]/[ToolLogoButton].
+/// Central catalog of all tools with consistent, aesthetic logos and
+/// example model templates.
 class ToolCatalog {
   static List<ToolDef> all(BuildContext context) {
     final t = AppStrings.of(context);
     return [
       ToolDef(
+        key: 'currencyConverter',
         icon: Icons.currency_exchange,
+        logoAsset: ToolLogos.currency,
         gradient: AppColors.toolGreen,
         title: t['currencyConverter'],
         description: t['currencyConverterDesc'],
@@ -49,9 +58,12 @@ class ToolCatalog {
           ToolOption(Icons.star_border, AppColors.accentPurple, t['convMulti'], t['convMultiDesc']),
           ToolOption(Icons.show_chart, AppColors.accentTeal, t['convHistory'], t['convHistoryDesc']),
         ],
+        examples: [t['convExample1'], t['convExample2'], t['convExample3']],
       ),
       ToolDef(
+        key: 'dataAnalysis',
         icon: Icons.insights,
+        logoAsset: ToolLogos.data,
         gradient: AppColors.toolTeal,
         title: t['dataAnalysis'],
         description: t['dataAnalysisDesc'],
@@ -61,10 +73,13 @@ class ToolCatalog {
           ToolOption(Icons.warning_amber_outlined, AppColors.accentOrange, t['daOutliers'], t['daOutliersDesc']),
           ToolOption(Icons.bar_chart_outlined, AppColors.accentBlue, t['daDist'], t['daDistDesc']),
         ],
+        examples: [t['daExample1'], t['daExample2'], t['daExample3']],
       ),
       ToolDef(
+        key: 'trackingEval',
         icon: Icons.track_changes,
-        gradient: AppColors.toolAmber,
+        logoAsset: ToolLogos.tracking,
+        gradient: AppColors.toolViolet,
         title: t['trackingEval'],
         description: t['trackingEvalDesc'],
         options: [
@@ -73,10 +88,13 @@ class ToolCatalog {
           ToolOption(Icons.compare_arrows, AppColors.accentBlue, t['trBench'], t['trBenchDesc']),
           ToolOption(Icons.history, AppColors.accentPurple, t['trHist'], t['trHistDesc']),
         ],
+        examples: [t['trExample1'], t['trExample2'], t['trExample3']],
       ),
       ToolDef(
+        key: 'aiStockScreener',
         icon: Icons.filter_alt_outlined,
-        gradient: AppColors.toolViolet,
+        logoAsset: ToolLogos.screener,
+        gradient: AppColors.toolSky,
         title: t['aiStockScreener'],
         description: t['aiStockScreenerDesc'],
         options: [
@@ -85,9 +103,12 @@ class ToolCatalog {
           ToolOption(Icons.savings_outlined, AppColors.successGreen, t['scrDividend'], t['scrDividendDesc']),
           ToolOption(Icons.auto_awesome, AppColors.accentPurple, t['scrAI'], t['scrAIDesc']),
         ],
+        examples: [t['scrExample1'], t['scrExample2'], t['scrExample3']],
       ),
       ToolDef(
+        key: 'financialReport',
         icon: Icons.receipt_long_outlined,
+        logoAsset: ToolLogos.report,
         gradient: AppColors.toolBlue,
         title: t['financialReport'],
         description: t['financialReportDesc'],
@@ -97,10 +118,13 @@ class ToolCatalog {
           ToolOption(Icons.waterfall_chart, AppColors.accentTeal, t['frCash'], t['frCashDesc']),
           ToolOption(Icons.percent, AppColors.accentOrange, t['frRatios'], t['frRatiosDesc']),
         ],
+        examples: [t['frExample1'], t['frExample2'], t['frExample3']],
       ),
       ToolDef(
+        key: 'valuationCalculator',
         icon: Icons.calculate_outlined,
-        gradient: AppColors.toolEmerald,
+        logoAsset: ToolLogos.valuation,
+        gradient: AppColors.toolViolet,
         title: t['valuationCalculator'],
         description: t['valuationCalculatorDesc'],
         options: [
@@ -109,10 +133,13 @@ class ToolCatalog {
           ToolOption(Icons.menu_book_outlined, AppColors.accentPurple, t['valPB'], t['valPBDesc']),
           ToolOption(Icons.card_giftcard, AppColors.successGreen, t['valDivi'], t['valDiviDesc']),
         ],
+        examples: [t['valExample1'], t['valExample2'], t['valExample3']],
       ),
       ToolDef(
+        key: 'capitalFlow',
         icon: Icons.trending_up,
-        gradient: AppColors.toolSky,
+        logoAsset: ToolLogos.flow,
+        gradient: AppColors.toolAmber,
         title: t['capitalFlow'],
         description: t['capitalFlowDesc'],
         options: [
@@ -121,30 +148,22 @@ class ToolCatalog {
           ToolOption(Icons.donut_large, AppColors.accentOrange, t['cfSector'], t['cfSectorDesc']),
           ToolOption(Icons.north_east, AppColors.accentTeal, t['cfNorth'], t['cfNorthDesc']),
         ],
+        examples: [t['cfExample1'], t['cfExample2'], t['cfExample3']],
       ),
       ToolDef(
-        icon: Icons.card_giftcard,
+        key: 'productCatalog',
+        icon: Icons.storefront_outlined,
+        logoAsset: ToolLogos.product,
         gradient: AppColors.toolPink,
-        title: t['referralTitle'],
-        description: t['referralSubtitle'],
+        title: t['productTitle'],
+        description: t['productSubtitle'],
         options: [
-          ToolOption(Icons.share_outlined, AppColors.accentPink, t['shareInvite'], t['referralStep1']),
-          ToolOption(Icons.person_add_alt_1_outlined, AppColors.greenPrimary, t['inviteNow'], t['referralStep2']),
-          ToolOption(Icons.redeem_outlined, AppColors.accentOrange, t['referralEarnings'], t['referralStep3']),
-          ToolOption(Icons.group_outlined, AppColors.accentBlue, t['recentReferrals'], t['referralSubtitle']),
+          ToolOption(Icons.inventory_2_outlined, AppColors.accentPink, t['productModels'], t['productModelsDesc']),
+          ToolOption(Icons.shopping_bag_outlined, AppColors.greenPrimary, t['productProducts'], t['productProductsDesc']),
+          ToolOption(Icons.workspace_premium_outlined, AppColors.accentOrange, t['productPlans'], t['productPlansDesc']),
+          ToolOption(Icons.support_agent, AppColors.accentBlue, t['productContact'], t['productContactDesc']),
         ],
-      ),
-      ToolDef(
-        icon: Icons.workspace_premium_outlined,
-        gradient: AppColors.toolIndigo,
-        title: t['navMyPortfolio'],
-        description: t['portfolioProRole'],
-        options: [
-          ToolOption(Icons.badge_outlined, AppColors.accentBlue, t['portfolioSkills'], t['portfolioSkills']),
-          ToolOption(Icons.folder_open, AppColors.accentPurple, t['portfolioProjects'], t['portfolioProjects']),
-          ToolOption(Icons.timeline, AppColors.greenPrimary, t['portfolioExperience'], t['portfolioExperience']),
-          ToolOption(Icons.school_outlined, AppColors.accentTeal, t['portfolioEducation'], t['portfolioEducation']),
-        ],
+        examples: [t['prodExample1'], t['prodExample2'], t['prodExample3']],
       ),
     ];
   }

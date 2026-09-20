@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
@@ -6,6 +8,13 @@ import '../../theme/app_colors.dart';
 /// Data Scientist professional portfolio for Rabiou Saley Abdoul Majid.
 class PortfolioProScreen extends StatelessWidget {
   const PortfolioProScreen({super.key});
+
+  // ---- Direct contact details ----
+  static const String _email = 'contact@mydanthoss.com';
+  static const String _phone = '+22790000000';
+  static const String _whatsapp = '22790000000';
+  static const String _linkedin = 'https://www.linkedin.com/in/rabiou-saley';
+  static const String _github = 'https://github.com/rabiou-saley';
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +219,7 @@ class PortfolioProScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _scrollHint(context),
+                    onPressed: () => _launch(context, Uri.parse('mailto:$_email')),
                     icon: const Icon(Icons.mail_outline, size: 18),
                     label: Text(t['portfolioContactMe']),
                     style: OutlinedButton.styleFrom(
@@ -856,17 +865,56 @@ class PortfolioProScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          // ---- Direct contact channels (tap to open) ----
+          Text(
+            t['portfolioDirectContact'],
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _contactTile(
+            context,
+            icon: Icons.chat_bubble_outline,
+            label: t['portfolioWhatsapp'],
+            subtitle: 'WhatsApp',
+            onTap: () => _launch(
+              context,
+              Uri.parse('https://wa.me/$_whatsapp'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _contactTile(
+            context,
+            icon: Icons.call_outlined,
+            label: t['portfolioCall'],
+            subtitle: _phone,
+            onTap: () => _launch(context, Uri.parse('tel:$_phone')),
+          ),
+          const SizedBox(height: 10),
+          _contactTile(
+            context,
+            icon: Icons.business_center_outlined,
+            label: t['portfolioLinkedin'],
+            subtitle: 'linkedin.com/in/rabiou-saley',
+            onTap: () => _launch(context, Uri.parse(_linkedin)),
+          ),
+          const SizedBox(height: 10),
+          _contactTile(
+            context,
+            icon: Icons.code,
+            label: t['portfolioGithub'],
+            subtitle: 'github.com/rabiou-saley',
+            onTap: () => _launch(context, Uri.parse(_github)),
+          ),
+          const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Contact: rabiou.saley@example.com'),
-                  backgroundColor: AppColors.backgroundElevated,
-                ),
-              );
-            },
-            icon: const Icon(Icons.send, size: 18),
-            label: Text(t['portfolioSendMessage']),
+            onPressed: () => _copyEmail(context, t),
+            icon: const Icon(Icons.mail_outline, size: 18),
+            label: const Text(_email),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppColors.accentBlue,
@@ -874,6 +922,96 @@ class PortfolioProScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _contactTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Semantics(
+      button: true,
+      label: label,
+      hint: subtitle,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white54,
+                  size: 14,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launch(BuildContext context, Uri uri) async {
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        _showSnack(context, uri.toString());
+      }
+    } catch (_) {
+      if (context.mounted) _showSnack(context, uri.toString());
+    }
+  }
+
+  Future<void> _copyEmail(BuildContext context, AppStrings t) async {
+    await Clipboard.setData(const ClipboardData(text: _email));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${t['portfolioCopyEmail']}: $_email'),
+          backgroundColor: AppColors.backgroundElevated,
+        ),
+      );
+    }
+  }
+
+  void _showSnack(BuildContext context, String value) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(value),
+        backgroundColor: AppColors.backgroundElevated,
       ),
     );
   }

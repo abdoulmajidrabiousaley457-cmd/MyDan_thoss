@@ -9,7 +9,7 @@ import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
-import 'screens/referral/referral_screen.dart';
+import 'screens/product/product_screen.dart';
 import 'screens/portfolio/portfolio_pro_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
   static const List<Widget> _screens = [
     HomeScreen(),
     DiscoverScreen(),
-    ReferralScreen(),
+    ProductScreen(),
     PortfolioProScreen(),
     ProfileScreen(),
   ];
@@ -90,9 +90,9 @@ class _MainScreenState extends State<MainScreen> {
         label: t['navTools'],
       ),
       NavigationDestination(
-        icon: const Icon(Icons.card_giftcard_outlined),
-        selectedIcon: const Icon(Icons.card_giftcard),
-        label: t['navReferral'],
+        icon: const Icon(Icons.storefront_outlined),
+        selectedIcon: const Icon(Icons.storefront),
+        label: t['navProduct'],
       ),
       NavigationDestination(
         icon: const Icon(Icons.pie_chart_outline),

@@ -8,6 +8,8 @@ import '../../providers/locale_provider.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/language_selector.dart';
+import '../settings/notifications_screen.dart';
+import '../settings/security_privacy_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -483,14 +485,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.security_outlined,
             color: AppColors.successGreen,
             title: t['securityPrivacy'],
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const SecurityPrivacyScreen()),
+            ),
           ),
           const Divider(height: 1, color: AppColors.divider),
           _settingsTile(
             icon: Icons.notifications_outlined,
             color: AppColors.accentOrange,
             title: t['notifications'],
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const NotificationsScreen()),
+            ),
           ),
           const Divider(height: 1, color: AppColors.divider),
           _settingsTile(
