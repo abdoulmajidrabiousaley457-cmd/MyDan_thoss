@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
 import '../product/product_screen.dart';
+import '../library/library_screen.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
@@ -23,6 +24,7 @@ class DiscoverScreen extends StatelessWidget {
       'dataAnalysis': const DataAnalysisScreen(),
       'trackingEval': const TrackingScreen(),
       'productCatalog': const ProductScreen(),
+      'library': const LibraryScreen(),
     };
 
     return Scaffold(

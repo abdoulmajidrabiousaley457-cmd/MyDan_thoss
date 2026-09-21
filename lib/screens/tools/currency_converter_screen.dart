@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
+import '../../services/action_plan_service.dart';
 import '../../services/currency_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/stock_action_plan_card.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -71,6 +73,17 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildConverterCard(t),
+              const SizedBox(height: 20),
+              _buildQuickAmounts(t),
+              const SizedBox(height: 24),
+              Text(t['apExamplePlans'],
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              StockActionPlanCard(
+                plan: ActionPlanService.plans[
+                    (_from.codeUnits.fold(0, (p, e) => p + e)) %
+                        ActionPlanService.plans.length],
+              ),
               const SizedBox(height: 24),
               Text(t['popularCurrencies'], style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
@@ -233,6 +246,56 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildQuickAmounts(AppStrings t) {
+    const amounts = [10, 50, 100, 500, 1000, 5000];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(t['amount'],
+            style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: amounts.map((a) {
+            final selected = _amountController.text == a.toString();
+            return GestureDetector(
+              onTap: () {
+                _amountController.text = a.toString();
+                _convert();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.greenPrimary
+                      : AppColors.backgroundSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected
+                        ? AppColors.greenPrimary
+                        : AppColors.borderPrimary,
+                  ),
+                ),
+                child: Text(
+                  a.toString(),
+                  style: TextStyle(
+                    color:
+                        selected ? Colors.white : AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

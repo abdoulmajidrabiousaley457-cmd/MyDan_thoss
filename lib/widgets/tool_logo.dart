@@ -18,6 +18,7 @@ class ToolLogos {
   static const String valuation = 'assets/tool_logos/valuation.png';
   static const String flow = 'assets/tool_logos/flow.png';
   static const String product = 'assets/tool_logos/product.png';
+  static const String library = 'assets/tool_logos/library.png';
 
   /// Absolute references (the online sources these assets were curated from).
   static const Map<String, String> remoteReferences = {
@@ -29,6 +30,7 @@ class ToolLogos {
     'valuation': 'https://sspark.genspark.ai/i/b66yqtj8Hcgfb8dD',
     'flow': 'https://sspark.genspark.ai/i/IC0BWk6XAOiEVr6A',
     'product': 'https://sspark.genspark.ai/i/ULEI94DpdEqiqucz',
+    'library': 'https://sspark.genspark.ai/i/library-book-logo',
   };
 }
 

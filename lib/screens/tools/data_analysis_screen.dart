@@ -2,8 +2,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
+import '../../services/action_plan_service.dart';
 import '../../services/data_analysis_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/stock_action_plan_card.dart';
 
 class DataAnalysisScreen extends StatefulWidget {
   const DataAnalysisScreen({super.key});
@@ -64,6 +66,8 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildInputCard(t),
+              const SizedBox(height: 14),
+              _buildPresets(t),
               const SizedBox(height: 20),
               if (_error)
                 _buildError(t)
@@ -83,6 +87,11 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
                   const SizedBox(height: 12),
                   _buildOutliers(),
                 ],
+                const SizedBox(height: 24),
+                Text(t['apExamplePlans'],
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 12),
+                StockActionPlanCard(plan: ActionPlanService.plans[1]),
               ],
             ],
           ),
@@ -134,6 +143,39 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPresets(AppStrings t) {
+    final presets = <String, List<double>>{
+      t['trPerf']: const [120, 125, 118, 130, 128, 135, 140, 138, 145, 150],
+      t['daTrend']: const [50, 55, 62, 70, 79, 89, 100, 112, 125, 139],
+      t['daDist']: const [100, 100, 100, 100, 200, 100, 100, 50, 100, 100],
+      t['apPriceChart']: const [210.5, 218.2, 214.9, 222.6, 229.1, 225.4, 233.8],
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(t['exampleTemplates'], style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: presets.entries.map((e) {
+            return ActionChip(
+              avatar: const Icon(Icons.auto_awesome,
+                  size: 15, color: AppColors.greenPrimary),
+              label: Text(e.key, style: const TextStyle(fontSize: 12)),
+              backgroundColor: AppColors.backgroundSecondary,
+              side: const BorderSide(color: AppColors.borderPrimary),
+              onPressed: () {
+                _controller.text = e.value.join(', ');
+                _analyze();
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

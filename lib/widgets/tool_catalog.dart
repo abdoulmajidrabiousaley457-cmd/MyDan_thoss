@@ -165,6 +165,21 @@ class ToolCatalog {
         ],
         examples: [t['prodExample1'], t['prodExample2'], t['prodExample3']],
       ),
+      ToolDef(
+        key: 'library',
+        icon: Icons.library_books_outlined,
+        logoAsset: ToolLogos.library,
+        gradient: AppColors.toolIndigo,
+        title: t['libraryTitle'],
+        description: t['librarySubtitle'],
+        options: [
+          ToolOption(Icons.picture_as_pdf, AppColors.downColor, t['libraryBooks'], t['libraryDownload']),
+          ToolOption(Icons.download_outlined, AppColors.greenPrimary, t['libraryDownload'], t['librarySubtitle']),
+          ToolOption(Icons.open_in_new, AppColors.accentBlue, t['libraryOpen'], t['librarySubtitle']),
+          ToolOption(Icons.category_outlined, AppColors.accentPurple, t['libraryCatAll'], t['librarySubtitle']),
+        ],
+        examples: [t['libraryCatInvest'], t['libraryCatAnalysis'], t['libraryCatAI']],
+      ),
     ];
   }
 }

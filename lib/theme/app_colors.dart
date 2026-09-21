@@ -44,10 +44,14 @@ class AppColors {
   static const Color accentPink = Color(0xFFEC407A);
 
   // ---------- Semantic ----------
-  static const Color upColor = Color(0xFFE53935);            // Red (market up)
-  static const Color downColor = Color(0xFF2E7D32);          // Green (market down)
-  static const Color successGreen = Color(0xFF2E7D32);
-  static const Color errorRed = Color(0xFFE53935);
+  // Western convention: GREEN = up / gain, RED = down / loss.
+  static const Color upColor = Color(0xFF16A34A);            // Green (market up / gain)
+  static const Color downColor = Color(0xFFDC2626);          // Red (market down / loss)
+  static const Color rankGold = Color(0xFFF59E0B);           // 1st place
+  static const Color rankSilver = Color(0xFF9CA3AF);         // 2nd place
+  static const Color rankBronze = Color(0xFFB45309);         // 3rd place
+  static const Color successGreen = Color(0xFF16A34A);
+  static const Color errorRed = Color(0xFFDC2626);
   static const Color warningYellow = Color(0xFFF9A825);
   static const Color infoBlue = Color(0xFF1E88E5);
 

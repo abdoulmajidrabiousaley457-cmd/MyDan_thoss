@@ -2,8 +2,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
+import '../../services/action_plan_service.dart';
 import '../../services/tracking_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/stock_action_plan_card.dart';
 
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -17,6 +19,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   final EvaluationResult _eval =
       TrackingService.evaluate(TrackingService.sampleHistory());
   String _period = 'monthly';
+  int _position = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +34,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildRatingCard(t),
+              const SizedBox(height: 16),
+              _buildPositionSelector(t),
               const SizedBox(height: 20),
               _buildPeriodSelector(t),
               const SizedBox(height: 20),
@@ -46,6 +51,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
               Text(t['history'], style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               _buildHistory(),
+              const SizedBox(height: 24),
+              Text(t['apExamplePlans'],
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              StockActionPlanCard(plan: ActionPlanService.plans[_position]),
             ],
           ),
         ),
@@ -157,6 +167,59 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPositionSelector(AppStrings t) {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: ActionPlanService.plans.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final plan = ActionPlanService.plans[i];
+          final selected = _position == i;
+          return GestureDetector(
+            onTap: () => setState(() => _position = i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.greenPrimary
+                    : AppColors.backgroundSecondary,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected
+                      ? AppColors.greenPrimary
+                      : AppColors.borderPrimary,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    plan.symbol,
+                    style: TextStyle(
+                      color: selected ? Colors.white : AppColors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    plan.price.toStringAsFixed(1),
+                    style: TextStyle(
+                      color: selected ? Colors.white70 : AppColors.textTertiary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

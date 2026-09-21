@@ -11,10 +11,13 @@ class PortfolioProScreen extends StatelessWidget {
 
   // ---- Direct contact details ----
   static const String _email = 'contact@mydanthoss.com';
-  static const String _phone = '+22790000000';
-  static const String _whatsapp = '22790000000';
-  static const String _linkedin = 'https://www.linkedin.com/in/rabiou-saley';
-  static const String _github = 'https://github.com/rabiou-saley';
+  static const String _phone = '+22796499906';
+  static const String _whatsapp = '22796499906';
+  static const String _linkedin =
+      'https://www.linkedin.com/in/rabiou-saley-abdoul-majid-b1746b425';
+  static const String _github =
+      'https://github.com/abdoulmajidrabiousaley457-cmd';
+  static const String _twitter = 'https://x.com/RabiousaleyM';
 
   @override
   Widget build(BuildContext context) {
@@ -880,7 +883,7 @@ class PortfolioProScreen extends StatelessWidget {
             context,
             icon: Icons.chat_bubble_outline,
             label: t['portfolioWhatsapp'],
-            subtitle: 'WhatsApp',
+            subtitle: '+227 96 49 99 06',
             onTap: () => _launch(
               context,
               Uri.parse('https://wa.me/$_whatsapp'),
@@ -891,7 +894,7 @@ class PortfolioProScreen extends StatelessWidget {
             context,
             icon: Icons.call_outlined,
             label: t['portfolioCall'],
-            subtitle: _phone,
+            subtitle: '+227 96 49 99 06',
             onTap: () => _launch(context, Uri.parse('tel:$_phone')),
           ),
           const SizedBox(height: 10),
@@ -899,7 +902,7 @@ class PortfolioProScreen extends StatelessWidget {
             context,
             icon: Icons.business_center_outlined,
             label: t['portfolioLinkedin'],
-            subtitle: 'linkedin.com/in/rabiou-saley',
+            subtitle: 'in/rabiou-saley-abdoul-majid',
             onTap: () => _launch(context, Uri.parse(_linkedin)),
           ),
           const SizedBox(height: 10),
@@ -907,8 +910,16 @@ class PortfolioProScreen extends StatelessWidget {
             context,
             icon: Icons.code,
             label: t['portfolioGithub'],
-            subtitle: 'github.com/rabiou-saley',
+            subtitle: 'abdoulmajidrabiousaley457-cmd',
             onTap: () => _launch(context, Uri.parse(_github)),
+          ),
+          const SizedBox(height: 10),
+          _contactTile(
+            context,
+            icon: Icons.alternate_email,
+            label: t['portfolioTwitter'],
+            subtitle: '@RabiousaleyM',
+            onTap: () => _launch(context, Uri.parse(_twitter)),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(

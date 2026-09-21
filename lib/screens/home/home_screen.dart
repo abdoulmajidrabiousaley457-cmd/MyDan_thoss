@@ -12,6 +12,7 @@ import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
 import '../product/product_screen.dart';
 import '../settings/notifications_screen.dart';
+import '../library/library_screen.dart';
 import '../profile/profile_screen.dart';
 
 /// Home screen — green mobile-money style:
@@ -427,6 +428,7 @@ class HomeScreen extends StatelessWidget {
       'dataAnalysis': const DataAnalysisScreen(),
       'trackingEval': const TrackingScreen(),
       'productCatalog': const ProductScreen(),
+      'library': const LibraryScreen(),
     };
 
     return Container(

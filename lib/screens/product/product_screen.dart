@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/app_strings.dart';
+import '../../services/book_library_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
+import '../library/library_screen.dart';
 
 /// Product screen — replaces the former Referral tab.
 ///
@@ -57,6 +59,9 @@ class _ProductScreenState extends State<ProductScreen> {
               const SizedBox(height: 24),
               _sectionTitle(context, t['productProducts']),
               _buildProductCatalog(context, t),
+              const SizedBox(height: 24),
+              _sectionTitle(context, t['libraryTitle']),
+              _buildLibraryCard(context, t),
               const SizedBox(height: 24),
               _buildContactCard(context, t),
               const SizedBox(height: 28),
@@ -517,6 +522,131 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  // ---------------- Library (PDF books) ----------------
+  Widget _buildLibraryCard(BuildContext context, AppStrings t) {
+    final preview = BookLibraryService.books.take(3).toList();
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundSecondary,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  gradient: AppColors.toolIndigo,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(Icons.menu_book,
+                    color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t['libraryTitle'],
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      t['librarySubtitle'],
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.pastelIndigo,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${BookLibraryService.books.length} ${t['libraryBooks']}',
+                  style: const TextStyle(
+                    color: AppColors.accentPurple,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...preview.map(
+            (b) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.picture_as_pdf,
+                      size: 16, color: AppColors.downColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      b.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    b.author.split(' ').first,
+                    style: const TextStyle(
+                      color: AppColors.textTertiary,
+                      fontSize: 10.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LibraryScreen()),
+              ),
+              icon: const Icon(Icons.library_books, size: 18),
+              label: Text(t['libraryTitle']),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentPurple,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 46),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
