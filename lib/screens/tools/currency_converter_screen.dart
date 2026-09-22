@@ -210,25 +210,50 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   Widget _currencySelector({required bool isFrom, required AppStrings t}) {
     final value = isFrom ? _from : _to;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        // Solid white background so the text is always readable.
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          dropdownColor: AppColors.backgroundElevated,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-          style: const TextStyle(color: Colors.white, fontSize: 15),
+          // White menu with dark, high-contrast text.
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          icon: const Icon(Icons.keyboard_arrow_down,
+              color: AppColors.greenDark),
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
           items: CurrencyService.currencies
               .map(
                 (c) => DropdownMenuItem(
                   value: c.code,
-                  child: Text(
-                    '${c.code}  ${c.symbol}',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  child: Row(
+                    children: [
+                      Text(
+                        c.code,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        c.symbol,
+                        style: const TextStyle(
+                          color: AppColors.greenDark,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )

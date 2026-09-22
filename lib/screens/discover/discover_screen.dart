@@ -9,6 +9,10 @@ import '../library/library_screen.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
+import '../tools/ai_stock_screener_screen.dart';
+import '../tools/financial_report_screen.dart';
+import '../tools/valuation_calculator_screen.dart';
+import '../tools/capital_flow_screen.dart';
 
 class DiscoverScreen extends StatelessWidget {
   const DiscoverScreen({super.key});
@@ -23,6 +27,10 @@ class DiscoverScreen extends StatelessWidget {
       'currencyConverter': const CurrencyConverterScreen(),
       'dataAnalysis': const DataAnalysisScreen(),
       'trackingEval': const TrackingScreen(),
+      'aiStockScreener': const AiStockScreenerScreen(),
+      'financialReport': const FinancialReportScreen(),
+      'valuationCalculator': const ValuationCalculatorScreen(),
+      'capitalFlow': const CapitalFlowScreen(),
       'productCatalog': const ProductScreen(),
       'library': const LibraryScreen(),
     };

@@ -10,6 +10,10 @@ import '../../widgets/tool_logo.dart';
 import '../tools/currency_converter_screen.dart';
 import '../tools/data_analysis_screen.dart';
 import '../tools/tracking_screen.dart';
+import '../tools/ai_stock_screener_screen.dart';
+import '../tools/financial_report_screen.dart';
+import '../tools/valuation_calculator_screen.dart';
+import '../tools/capital_flow_screen.dart';
 import '../product/product_screen.dart';
 import '../settings/notifications_screen.dart';
 import '../library/library_screen.dart';
@@ -42,7 +46,7 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Transform.translate(
                         offset: const Offset(0, -14),
-                        child: _buildBalanceCard(context, t),
+                        child: _buildSubscriptionCard(context, t),
                       ),
                       Transform.translate(
                         offset: const Offset(0, -6),
@@ -256,12 +260,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- Blue balance card ----------------
-  Widget _buildBalanceCard(BuildContext context, AppStrings t) {
-    final profile = context.watch<UserProfileProvider>();
-    final phone = profile.hasProfile && profile.phone.isNotEmpty
-        ? profile.phone
-        : '+227 96 49 99 06';
+  // ---------------- Subscription (Pro) card ----------------
+  Widget _buildSubscriptionCard(BuildContext context, AppStrings t) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -307,11 +307,11 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.account_balance_wallet_outlined,
+                  const Icon(Icons.workspace_premium,
                       color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    t['mainBalance'],
+                    t['subTitle'],
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -319,102 +319,129 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Semantics(
-                    button: true,
-                    label: t['refresh'],
-                    child: Tooltip(
-                      message: t['refresh'],
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.refresh,
-                              color: Colors.white, size: 18),
-                        ),
-                      ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Semantics(
-                    label: profile.balanceHidden
-                        ? t['hideBalance']
-                        : '${t['mainBalance']} 12,480.75',
                     child: Text(
-                      profile.balanceHidden ? '••••••••' : '12,480.75',
+                      t['subPro'],
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Semantics(
-                    button: true,
-                    label: profile.balanceHidden
-                        ? t['showBalance']
-                        : t['hideBalance'],
-                    child: Tooltip(
-                      message: profile.balanceHidden
-                          ? t['showBalance']
-                          : t['hideBalance'],
-                      child: InkResponse(
-                        onTap: () => profile.toggleBalance(),
-                        child: Icon(
-                          profile.balanceHidden
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    phone,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                  Semantics(
+                    label: '${t['subPro']} — \$19 ${t['subPerMonth']}',
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          '\$19',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text(
+                            t['subPerMonth'],
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const Spacer(),
-                  Semantics(
-                    button: true,
-                    label: 'QR code',
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.qr_code_2,
-                            color: Colors.white, size: 20),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.pastelGreen,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      t['subSave'],
+                      style: const TextStyle(
+                        color: AppColors.greenDark,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                t['subProAvg'],
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              // Feature bullets
+              Wrap(
+                spacing: 14,
+                runSpacing: 6,
+                children: [
+                  _subFeature(Icons.check_circle, t['productModels']),
+                  _subFeature(Icons.check_circle, t['aiStockScreener']),
+                  _subFeature(Icons.check_circle, t['valuationCalculator']),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: Semantics(
+                  button: true,
+                  label: '${t['subSubscribe']} ${t['subPro']}',
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProductScreen()),
+                    ),
+                    icon: const Icon(Icons.arrow_forward, size: 18),
+                    label: Text(t['subSubscribe']),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.bluePrimary,
+                      minimumSize: const Size(double.infinity, 46),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _subFeature(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.white, size: 14),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 11.5),
+        ),
+      ],
     );
   }
 
@@ -427,6 +454,10 @@ class HomeScreen extends StatelessWidget {
       'currencyConverter': const CurrencyConverterScreen(),
       'dataAnalysis': const DataAnalysisScreen(),
       'trackingEval': const TrackingScreen(),
+      'aiStockScreener': const AiStockScreenerScreen(),
+      'financialReport': const FinancialReportScreen(),
+      'valuationCalculator': const ValuationCalculatorScreen(),
+      'capitalFlow': const CapitalFlowScreen(),
       'productCatalog': const ProductScreen(),
       'library': const LibraryScreen(),
     };

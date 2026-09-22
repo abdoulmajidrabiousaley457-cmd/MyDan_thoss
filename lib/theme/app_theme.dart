@@ -21,6 +21,19 @@ class AppTheme {
 
       scaffoldBackgroundColor: AppColors.backgroundPrimary,
 
+      // Ensure dropdown / popup menus are always light with readable text.
+      canvasColor: Colors.white,
+      popupMenuTheme: const PopupMenuThemeData(
+        color: Colors.white,
+        textStyle: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+      ),
+      dropdownMenuTheme: const DropdownMenuThemeData(
+        textStyle: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.white),
+        ),
+      ),
+
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.greenPrimary,
         foregroundColor: Colors.white,
