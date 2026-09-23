@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// MyDan_thoss App Theme — light, mobile-money style.
+/// My_danthoss App Theme — light, mobile-money style.
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(

@@ -1,11 +1,11 @@
 {
-    "name": "MyDan_thoss",
-    "short_name": "MyDan_thoss",
+    "name": "My_danthoss",
+    "short_name": "My_danthoss",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "MyDan_thoss - AI-powered global investment intelligence platform",
+    "description": "My_danthoss - AI-powered global investment intelligence platform",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

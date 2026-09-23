@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// MyDan_thoss App Colors
+/// My_danthoss App Colors
 /// Green mobile-money style palette (emerald green header + royal blue accents).
 class AppColors {
   // ---------- Brand — GREEN ----------

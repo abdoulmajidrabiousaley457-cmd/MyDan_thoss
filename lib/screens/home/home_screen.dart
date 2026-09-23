@@ -116,7 +116,7 @@ class HomeScreen extends StatelessWidget {
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const Text(
-                  'MyDan_thoss',
+                  'My_danthoss',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

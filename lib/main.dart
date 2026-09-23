@@ -34,7 +34,7 @@ class MyDanThossApp extends StatelessWidget {
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(
-            title: 'MyDan_thoss',
+            title: 'My_danthoss',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             locale: localeProvider.locale,

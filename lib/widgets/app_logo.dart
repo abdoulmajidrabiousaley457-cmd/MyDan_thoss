@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// The MyDan_thoss brand logo, rendered from the bundled app icon.
+/// The My_danthoss brand logo, rendered from the bundled app icon.
 ///
 /// Used on every AppBar / header so the branding is consistent across the whole
 /// app (tools, products, library, settings, portfolio, profile).
@@ -44,7 +44,7 @@ class AppLogo extends StatelessWidget {
 
     return Semantics(
       image: true,
-      label: 'MyDan_thoss',
+      label: 'My_danthoss',
       child: bare
           ? ClipRRect(borderRadius: BorderRadius.circular(radius), child: img)
           : Container(
@@ -167,7 +167,7 @@ class AppBarTitle extends StatelessWidget {
   }
 }
 
-/// A brand lockup for custom (non-AppBar) headers: shows the MyDan_thoss logo
+/// A brand lockup for custom (non-AppBar) headers: shows the My_danthoss logo
 /// followed by the app name and tagline. Used by the Product / Profile /
 /// Portfolio headers so they match the AppBar branding.
 class BrandLockup extends StatelessWidget {

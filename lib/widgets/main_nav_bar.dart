@@ -43,7 +43,7 @@ enum NavIndicator {
   squircle,
 }
 
-/// Custom bottom navigation bar for MyDan_thoss.
+/// Custom bottom navigation bar for My_danthoss.
 ///
 /// - Green brand gradient background.
 /// - Every tab has its **own accent colour** and a **specific indicator**

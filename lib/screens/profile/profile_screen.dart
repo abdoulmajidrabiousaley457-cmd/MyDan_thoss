@@ -239,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(width: 10),
               const Expanded(
                 child: Text(
-                  'MyDan_thoss',
+                  'My_danthoss',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -410,7 +410,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'MyDan_thoss',
+                  'My_danthoss',
                   style: TextStyle(
                     color: AppColors.accentBlue,
                     fontSize: 12,
@@ -586,7 +586,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _settingsTile(
             icon: Icons.info_outline,
             color: AppColors.textSecondary,
-            title: '${t['about']} MyDan_thoss',
+            title: '${t['about']} My_danthoss',
             trailing: 'v1.0.0',
             onTap: () {},
           ),

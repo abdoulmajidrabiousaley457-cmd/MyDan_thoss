@@ -45,7 +45,7 @@ extension AppLanguageX on AppLanguage {
   bool get isRtl => this == AppLanguage.ar;
 }
 
-/// Lightweight, dependency-free i18n table for MyDan_thoss.
+/// Lightweight, dependency-free i18n table for My_danthoss.
 ///
 /// Access via `AppStrings.of(language).<key>` or `context.tr.<key>`.
 class AppStrings {
@@ -55,7 +55,7 @@ class AppStrings {
   static const Map<AppLanguage, Map<String, String>> _values = {
     AppLanguage.en: {
       // App
-      'appName': 'MyDan_thoss',
+      'appName': 'My_danthoss',
       'tagline': 'AI-powered global investment intelligence',
       // Navigation
       'navMarket': 'Market',
@@ -336,7 +336,7 @@ class AppStrings {
       'profileSaved': 'Profile saved successfully',
       'completeProfileHint': 'Complete your profile to get started',
       'installApp': 'Install the application',
-      'installAppDesc': 'Add MyDan_thoss to your home screen for quick access',
+      'installAppDesc': 'Add My_danthoss to your home screen for quick access',
       'installNow': 'Install now',
       'appInstalled': 'Application installed',
       'installHint': 'Use your browser menu > "Add to home screen"',
@@ -499,7 +499,7 @@ class AppStrings {
       'cfRetail': 'Retail',
     },
     AppLanguage.fr: {
-      'appName': 'MyDan_thoss',
+      'appName': 'My_danthoss',
       'tagline': 'Intelligence d\'investissement mondiale propulsée par l\'IA',
       'navMarket': 'Marché',
       'navTools': 'Outils IA',
@@ -776,7 +776,7 @@ class AppStrings {
       'completeProfileHint': 'Complétez votre profil pour commencer',
       'installApp': 'Installer l\'application',
       'installAppDesc':
-          'Ajoutez MyDan_thoss à votre écran d\'accueil pour un accès rapide',
+          'Ajoutez My_danthoss à votre écran d\'accueil pour un accès rapide',
       'installNow': 'Installer maintenant',
       'appInstalled': 'Application installée',
       'installHint':
@@ -940,7 +940,7 @@ class AppStrings {
       'cfRetail': 'Particuliers',
     },
     AppLanguage.ar: {
-      'appName': 'MyDan_thoss',
+      'appName': 'My_danthoss',
       'tagline': 'ذكاء الاستثمار العالمي المدعوم بالذكاء الاصطناعي',
       'navMarket': 'السوق',
       'navTools': 'أدوات الذكاء',
@@ -1207,7 +1207,7 @@ class AppStrings {
       'profileSaved': 'تم حفظ الملف بنجاح',
       'completeProfileHint': 'أكمل ملفك الشخصي للبدء',
       'installApp': 'تثبيت التطبيق',
-      'installAppDesc': 'أضف MyDan_thoss إلى شاشتك الرئيسية للوصول السريع',
+      'installAppDesc': 'أضف My_danthoss إلى شاشتك الرئيسية للوصول السريع',
       'installNow': 'ثبّت الآن',
       'appInstalled': 'تم تثبيت التطبيق',
       'installHint': 'استخدم قائمة المتصفح > إضافة إلى الشاشة الرئيسية',

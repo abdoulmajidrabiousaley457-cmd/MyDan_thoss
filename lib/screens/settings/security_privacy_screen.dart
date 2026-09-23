@@ -76,7 +76,7 @@ class _SecurityPrivacyScreenState extends State<SecurityPrivacyScreen> {
             const SizedBox(height: 20),
             Center(
               child: Text(
-                'MyDan_thoss · v1.0.0',
+                'My_danthoss · v1.0.0',
                 style: const TextStyle(
                   color: AppColors.textTertiary,
                   fontSize: 12,
