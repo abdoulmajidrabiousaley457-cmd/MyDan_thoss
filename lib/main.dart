@@ -6,8 +6,8 @@ import 'l10n/app_strings.dart';
 import 'providers/locale_provider.dart';
 import 'providers/user_profile_provider.dart';
 import 'theme/app_theme.dart';
-import 'theme/app_colors.dart';
 import 'widgets/app_drawer.dart';
+import 'widgets/main_nav_bar.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
 import 'screens/product/product_screen.dart';
@@ -95,33 +95,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.tr;
-    final destinations = [
-      NavigationDestination(
-        icon: const Icon(Icons.grid_view_outlined),
-        selectedIcon: const Icon(Icons.grid_view),
-        label: t['navHome'],
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.history_outlined),
-        selectedIcon: const Icon(Icons.history),
-        label: t['navTools'],
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.storefront_outlined),
-        selectedIcon: const Icon(Icons.storefront),
-        label: t['navProduct'],
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.pie_chart_outline),
-        selectedIcon: const Icon(Icons.pie_chart),
-        label: t['navMyPortfolio'],
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.person_outline),
-        selectedIcon: const Icon(Icons.person),
-        label: t['navProfile'],
-      ),
-    ];
+    final items = buildNavItems(t);
 
     return Scaffold(
       key: appScaffoldKey,
@@ -143,15 +117,10 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: MainNavBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        backgroundColor: AppColors.greenDark,
-        indicatorColor: Colors.white.withValues(alpha: 0.18),
-        destinations: destinations,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        height: 72,
-        elevation: 8,
+        onSelected: _onItemTapped,
+        items: items,
       ),
     );
   }
