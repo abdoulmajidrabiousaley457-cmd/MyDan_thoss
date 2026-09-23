@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/project_case_study_card.dart';
+import '../../widgets/tool_logo.dart';
 
 /// A single stock result produced by the AI screener.
 class _ScreenedStock {
@@ -40,18 +42,138 @@ class AiStockScreenerScreen extends StatefulWidget {
 
 class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
   static const List<_ScreenedStock> _universe = [
-    _ScreenedStock(symbol: 'AAPL', company: 'Apple Inc.', sector: 'Technology', price: 214.75, pe: 33.2, growth: 8.5, dividend: 0.5, aiScore: 78, signal: 'hold'),
-    _ScreenedStock(symbol: 'NVDA', company: 'NVIDIA Corp.', sector: 'Semiconductors', price: 118.40, pe: 61.8, growth: 94.2, dividend: 0.03, aiScore: 91, signal: 'buy'),
-    _ScreenedStock(symbol: 'MSFT', company: 'Microsoft Corp.', sector: 'Technology', price: 428.10, pe: 36.4, growth: 16.8, dividend: 0.7, aiScore: 85, signal: 'buy'),
-    _ScreenedStock(symbol: 'KO', company: 'Coca-Cola Co.', sector: 'Consumer Staples', price: 63.85, pe: 24.1, growth: 4.2, dividend: 3.1, aiScore: 72, signal: 'hold'),
-    _ScreenedStock(symbol: 'JPM', company: 'JPMorgan Chase', sector: 'Financials', price: 198.20, pe: 11.8, growth: 9.4, dividend: 2.3, aiScore: 80, signal: 'buy'),
-    _ScreenedStock(symbol: 'XOM', company: 'Exxon Mobil', sector: 'Energy', price: 112.30, pe: 13.4, growth: 6.1, dividend: 3.4, aiScore: 68, signal: 'buy'),
-    _ScreenedStock(symbol: 'PEP', company: 'PepsiCo Inc.', sector: 'Consumer Staples', price: 172.45, pe: 22.6, growth: 3.8, dividend: 3.0, aiScore: 70, signal: 'hold'),
-    _ScreenedStock(symbol: 'AMD', company: 'Advanced Micro Devices', sector: 'Semiconductors', price: 156.20, pe: 48.9, growth: 32.5, dividend: 0.0, aiScore: 83, signal: 'buy'),
-    _ScreenedStock(symbol: 'TSLA', company: 'Tesla Inc.', sector: 'Automotive', price: 248.60, pe: 72.3, growth: 21.7, dividend: 0.0, aiScore: 74, signal: 'buy'),
-    _ScreenedStock(symbol: 'VZ', company: 'Verizon Communications', sector: 'Telecom', price: 41.20, pe: 9.1, growth: 1.9, dividend: 6.6, aiScore: 65, signal: 'hold'),
-    _ScreenedStock(symbol: 'PG', company: 'Procter & Gamble', sector: 'Consumer Staples', price: 168.90, pe: 26.8, growth: 5.4, dividend: 2.4, aiScore: 73, signal: 'hold'),
-    _ScreenedStock(symbol: 'META', company: 'Meta Platforms', sector: 'Technology', price: 512.30, pe: 28.7, growth: 24.3, dividend: 0.4, aiScore: 87, signal: 'buy'),
+    _ScreenedStock(
+      symbol: 'AAPL',
+      company: 'Apple Inc.',
+      sector: 'Technology',
+      price: 214.75,
+      pe: 33.2,
+      growth: 8.5,
+      dividend: 0.5,
+      aiScore: 78,
+      signal: 'hold',
+    ),
+    _ScreenedStock(
+      symbol: 'NVDA',
+      company: 'NVIDIA Corp.',
+      sector: 'Semiconductors',
+      price: 118.40,
+      pe: 61.8,
+      growth: 94.2,
+      dividend: 0.03,
+      aiScore: 91,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'MSFT',
+      company: 'Microsoft Corp.',
+      sector: 'Technology',
+      price: 428.10,
+      pe: 36.4,
+      growth: 16.8,
+      dividend: 0.7,
+      aiScore: 85,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'KO',
+      company: 'Coca-Cola Co.',
+      sector: 'Consumer Staples',
+      price: 63.85,
+      pe: 24.1,
+      growth: 4.2,
+      dividend: 3.1,
+      aiScore: 72,
+      signal: 'hold',
+    ),
+    _ScreenedStock(
+      symbol: 'JPM',
+      company: 'JPMorgan Chase',
+      sector: 'Financials',
+      price: 198.20,
+      pe: 11.8,
+      growth: 9.4,
+      dividend: 2.3,
+      aiScore: 80,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'XOM',
+      company: 'Exxon Mobil',
+      sector: 'Energy',
+      price: 112.30,
+      pe: 13.4,
+      growth: 6.1,
+      dividend: 3.4,
+      aiScore: 68,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'PEP',
+      company: 'PepsiCo Inc.',
+      sector: 'Consumer Staples',
+      price: 172.45,
+      pe: 22.6,
+      growth: 3.8,
+      dividend: 3.0,
+      aiScore: 70,
+      signal: 'hold',
+    ),
+    _ScreenedStock(
+      symbol: 'AMD',
+      company: 'Advanced Micro Devices',
+      sector: 'Semiconductors',
+      price: 156.20,
+      pe: 48.9,
+      growth: 32.5,
+      dividend: 0.0,
+      aiScore: 83,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'TSLA',
+      company: 'Tesla Inc.',
+      sector: 'Automotive',
+      price: 248.60,
+      pe: 72.3,
+      growth: 21.7,
+      dividend: 0.0,
+      aiScore: 74,
+      signal: 'buy',
+    ),
+    _ScreenedStock(
+      symbol: 'VZ',
+      company: 'Verizon Communications',
+      sector: 'Telecom',
+      price: 41.20,
+      pe: 9.1,
+      growth: 1.9,
+      dividend: 6.6,
+      aiScore: 65,
+      signal: 'hold',
+    ),
+    _ScreenedStock(
+      symbol: 'PG',
+      company: 'Procter & Gamble',
+      sector: 'Consumer Staples',
+      price: 168.90,
+      pe: 26.8,
+      growth: 5.4,
+      dividend: 2.4,
+      aiScore: 73,
+      signal: 'hold',
+    ),
+    _ScreenedStock(
+      symbol: 'META',
+      company: 'Meta Platforms',
+      sector: 'Technology',
+      price: 512.30,
+      pe: 28.7,
+      growth: 24.3,
+      dividend: 0.4,
+      aiScore: 87,
+      signal: 'buy',
+    ),
   ];
 
   // Filter state
@@ -91,8 +213,7 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
       if (s.aiScore < _minScore) return false;
       if (_signalFilter != 'all' && s.signal != _signalFilter) return false;
       return true;
-    }).toList()
-      ..sort((a, b) => b.aiScore.compareTo(a.aiScore));
+    }).toList()..sort((a, b) => b.aiScore.compareTo(a.aiScore));
   }
 
   void _reset() {
@@ -112,7 +233,14 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['aiStockScreener'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['aiStockScreener'],
+          logoAsset: ToolLogos.screener,
+          logoFallbackIcon: Icons.filter_alt_outlined,
+          logoGradient: AppColors.toolSky,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -123,8 +251,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
               const SizedBox(height: 18),
               Row(
                 children: [
-                  Text('${results.length} ${t['scrResults']}',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    '${results.length} ${t['scrResults']}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: _reset,
@@ -139,8 +269,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
               else
                 ...results.map((s) => _buildStockCard(context, t, s)),
               const SizedBox(height: 24),
-              Text(t['pcExample'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['pcExample'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               const ProjectCaseStudyCard(study: _caseStudy),
             ],
@@ -171,26 +303,54 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
             children: [
               const Icon(Icons.tune, color: AppColors.accentBlue, size: 20),
               const SizedBox(width: 8),
-              Text(t['scrFilters'],
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                t['scrFilters'],
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          _slider(t['scrMaxPe'], _maxPe, 5, 80, (v) => setState(() => _maxPe = v),
-              '${_maxPe.round()}x'),
-          _slider(t['scrMinGrowth'], _minGrowth, 0, 50,
-              (v) => setState(() => _minGrowth = v), '${_minGrowth.round()}%'),
-          _slider(t['scrMinDividend'], _minDividend, 0, 7,
-              (v) => setState(() => _minDividend = v),
-              '${_minDividend.toStringAsFixed(1)}%'),
-          _slider(t['scrMinScore'], _minScore, 0, 100,
-              (v) => setState(() => _minScore = v), '${_minScore.round()}/100'),
+          _slider(
+            t['scrMaxPe'],
+            _maxPe,
+            5,
+            80,
+            (v) => setState(() => _maxPe = v),
+            '${_maxPe.round()}x',
+          ),
+          _slider(
+            t['scrMinGrowth'],
+            _minGrowth,
+            0,
+            50,
+            (v) => setState(() => _minGrowth = v),
+            '${_minGrowth.round()}%',
+          ),
+          _slider(
+            t['scrMinDividend'],
+            _minDividend,
+            0,
+            7,
+            (v) => setState(() => _minDividend = v),
+            '${_minDividend.toStringAsFixed(1)}%',
+          ),
+          _slider(
+            t['scrMinScore'],
+            _minScore,
+            0,
+            100,
+            (v) => setState(() => _minScore = v),
+            '${_minScore.round()}/100',
+          ),
           const SizedBox(height: 4),
-          Text(t['apSignal'],
-              style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            t['apSignal'],
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -199,13 +359,15 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
               final label = sig == 'all'
                   ? t['scrAll']
                   : sig == 'buy'
-                      ? t['apBuy']
-                      : t['apHold'];
+                  ? t['apBuy']
+                  : t['apHold'];
               return GestureDetector(
                 onTap: () => setState(() => _signalFilter = sig),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: selected
                         ? AppColors.accentBlue
@@ -215,8 +377,7 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
                   child: Text(
                     label,
                     style: TextStyle(
-                      color:
-                          selected ? Colors.white : AppColors.textSecondary,
+                      color: selected ? Colors.white : AppColors.textSecondary,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                     ),
@@ -230,24 +391,36 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
     );
   }
 
-  Widget _slider(String label, double value, double min, double max,
-      ValueChanged<double> onChanged, String valueLabel) {
+  Widget _slider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+    String valueLabel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600)),
-            Text(valueLabel,
-                style: const TextStyle(
-                    color: AppColors.accentBlue,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              valueLabel,
+              style: const TextStyle(
+                color: AppColors.accentBlue,
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         SliderTheme(
@@ -257,12 +430,7 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
             inactiveTrackColor: AppColors.backgroundElevated,
             trackHeight: 4,
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
         ),
       ],
     );
@@ -280,8 +448,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
         children: [
           const Icon(Icons.search_off, size: 40, color: AppColors.textTertiary),
           const SizedBox(height: 10),
-          Text(t['scrNoResults'],
-              style: const TextStyle(color: AppColors.textSecondary)),
+          Text(
+            t['scrNoResults'],
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 8),
           TextButton(onPressed: _reset, child: Text(t['scrReset'])),
         ],
@@ -289,10 +459,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
     );
   }
 
-  Widget _buildStockCard(
-      BuildContext context, AppStrings t, _ScreenedStock s) {
-    final signalColor =
-        s.signal == 'buy' ? AppColors.upColor : AppColors.warningYellow;
+  Widget _buildStockCard(BuildContext context, AppStrings t, _ScreenedStock s) {
+    final signalColor = s.signal == 'buy'
+        ? AppColors.upColor
+        : AppColors.warningYellow;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -322,9 +492,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
                 child: Text(
                   s.symbol.substring(0, 2),
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -332,31 +503,43 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${s.symbol} · ${s.sector}',
-                        style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold)),
-                    Text(s.company,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textTertiary, fontSize: 11.5)),
+                    Text(
+                      '${s.symbol} · ${s.sector}',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      s.company,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11.5,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(s.price.toStringAsFixed(2),
-                      style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    s.price.toStringAsFixed(2),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Container(
                     margin: const EdgeInsets.only(top: 3),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: signalColor.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(8),
@@ -364,9 +547,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
                     child: Text(
                       t[s.signal == 'buy' ? 'apBuy' : 'apHold'],
                       style: TextStyle(
-                          color: signalColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700),
+                        color: signalColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -379,8 +563,7 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
               _stat(t['scrPe'], '${s.pe.toStringAsFixed(1)}x'),
               _stat(t['scrGrowthRate'], '+${s.growth.toStringAsFixed(1)}%'),
               _stat(t['scrDiv'], '${s.dividend.toStringAsFixed(1)}%'),
-              _stat(t['apScore'], '${s.aiScore}',
-                  highlight: true),
+              _stat(t['apScore'], '${s.aiScore}', highlight: true),
             ],
           ),
         ],
@@ -393,9 +576,10 @@ class _AiStockScreenerScreenState extends State<AiStockScreenerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  color: AppColors.textTertiary, fontSize: 10)),
+          Text(
+            label,
+            style: const TextStyle(color: AppColors.textTertiary, fontSize: 10),
+          ),
           const SizedBox(height: 3),
           Text(
             value,

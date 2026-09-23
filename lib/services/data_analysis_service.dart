@@ -50,7 +50,8 @@ class DataStatistics {
   }
 
   /// Coefficient of variation (relative dispersion).
-  double get coefficientOfVariation => mean == 0 ? 0 : (stdDev / mean.abs()) * 100;
+  double get coefficientOfVariation =>
+      mean == 0 ? 0 : (stdDev / mean.abs()) * 100;
 
   /// Outliers detected with the 1.5 * IQR rule.
   List<double> get outliers {
@@ -110,7 +111,8 @@ class DataAnalysisService {
     final sum = data.reduce((a, b) => a + b);
     final mean = sum / n;
     final variance = n > 1
-        ? data.map((v) => pow(v - mean, 2).toDouble()).reduce((a, b) => a + b) / (n - 1)
+        ? data.map((v) => pow(v - mean, 2).toDouble()).reduce((a, b) => a + b) /
+              (n - 1)
         : 0.0;
     final stdDev = sqrt(variance);
     final minV = sorted.first;
@@ -140,8 +142,35 @@ class DataAnalysisService {
 
   /// A realistic sample dataset for demonstration.
   static const List<double> sampleData = [
-    120, 125, 118, 130, 128, 135, 140, 138, 145, 150,
-    148, 155, 160, 158, 165, 172, 168, 175, 182, 190,
-    210, 185, 178, 188, 195, 200, 198, 205, 215, 220,
+    120,
+    125,
+    118,
+    130,
+    128,
+    135,
+    140,
+    138,
+    145,
+    150,
+    148,
+    155,
+    160,
+    158,
+    165,
+    172,
+    168,
+    175,
+    182,
+    190,
+    210,
+    185,
+    178,
+    188,
+    195,
+    200,
+    198,
+    205,
+    215,
+    220,
   ];
 }

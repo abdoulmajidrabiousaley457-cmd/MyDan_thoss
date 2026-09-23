@@ -35,8 +35,10 @@ class LanguageSelectorSheet extends StatelessWidget {
               children: [
                 const Icon(Icons.translate, color: AppColors.primaryGold),
                 const SizedBox(width: 10),
-                Text(t['language'],
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  t['language'],
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -75,17 +77,23 @@ class LanguageSelectorSheet extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    lang.code == 'ar' ? 'RTL • العربية' : lang.code.toUpperCase(),
+                    lang.code == 'ar'
+                        ? 'RTL • العربية'
+                        : lang.code.toUpperCase(),
                     style: const TextStyle(
                       color: AppColors.textTertiary,
                       fontSize: 12,
                     ),
                   ),
                   trailing: selected
-                      ? const Icon(Icons.check_circle,
-                          color: AppColors.primaryGold)
-                      : const Icon(Icons.circle_outlined,
-                          color: AppColors.textTertiary),
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: AppColors.primaryGold,
+                        )
+                      : const Icon(
+                          Icons.circle_outlined,
+                          color: AppColors.textTertiary,
+                        ),
                 ),
               );
             }),

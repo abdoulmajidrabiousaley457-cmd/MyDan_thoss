@@ -7,6 +7,7 @@ import '../../l10n/app_strings.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/language_selector.dart';
 import '../settings/notifications_screen.dart';
 import '../settings/security_privacy_screen.dart';
@@ -54,26 +55,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.person_outline,
-                          color: AppColors.bluePrimary),
+                      const Icon(
+                        Icons.person_outline,
+                        color: AppColors.bluePrimary,
+                      ),
                       const SizedBox(width: 10),
                       Text(
-                        profile.hasProfile ? t['editProfile'] : t['createProfile'],
+                        profile.hasProfile
+                            ? t['editProfile']
+                            : t['createProfile'],
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ],
                   ),
                   const SizedBox(height: 18),
-                  _field(nameCtrl, t['fullName'], Icons.badge_outlined,
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? t['requiredField']
-                          : null),
+                  _field(
+                    nameCtrl,
+                    t['fullName'],
+                    Icons.badge_outlined,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? t['requiredField']
+                        : null,
+                  ),
                   const SizedBox(height: 12),
-                  _field(phoneCtrl, t['phoneNumber'], Icons.phone_outlined,
-                      keyboard: TextInputType.phone),
+                  _field(
+                    phoneCtrl,
+                    t['phoneNumber'],
+                    Icons.phone_outlined,
+                    keyboard: TextInputType.phone,
+                  ),
                   const SizedBox(height: 12),
-                  _field(emailCtrl, t['email'], Icons.mail_outline,
-                      keyboard: TextInputType.emailAddress),
+                  _field(
+                    emailCtrl,
+                    t['email'],
+                    Icons.mail_outline,
+                    keyboard: TextInputType.emailAddress,
+                  ),
                   const SizedBox(height: 12),
                   _field(countryCtrl, t['country'], Icons.public),
                   const SizedBox(height: 20),
@@ -199,7 +216,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildHeader(
-      BuildContext context, AppStrings t, UserProfileProvider profile) {
+    BuildContext context,
+    AppStrings t,
+    UserProfileProvider profile,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
@@ -212,6 +232,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
+          // Brand top bar — matches the AppBar branding used everywhere else.
+          Row(
+            children: [
+              const AppLogo(size: 30),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'MyDan_thoss',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+              Semantics(
+                button: true,
+                label: 'Notifications',
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    color: Colors.white,
+                  ),
+                  tooltip: 'Notifications',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           Semantics(
             button: true,
             label: profile.hasProfile ? t['editProfile'] : t['createProfile'],
@@ -233,8 +290,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         )
-                      : const Icon(Icons.person,
-                          size: 50, color: AppColors.greenDark),
+                      : const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: AppColors.greenDark,
+                        ),
                 ),
                 Positioned(
                   bottom: 0,
@@ -248,8 +308,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
-                      child: const Icon(Icons.edit,
-                          color: Colors.white, size: 14),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -307,9 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  profile.hasProfile
-                      ? Icons.verified
-                      : Icons.info_outline,
+                  profile.hasProfile ? Icons.verified : Icons.info_outline,
                   color: Colors.white,
                   size: 14,
                 ),
@@ -341,8 +402,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: const [
-              Icon(Icons.person_add_alt_1,
-                  color: AppColors.accentBlue, size: 22),
+              Icon(
+                Icons.person_add_alt_1,
+                color: AppColors.accentBlue,
+                size: 22,
+              ),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -403,8 +467,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.pastelGreen,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.download_for_offline_outlined,
-                color: AppColors.greenPrimary, size: 26),
+            child: const Icon(
+              Icons.download_for_offline_outlined,
+              color: AppColors.greenPrimary,
+              size: 26,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -432,17 +499,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 8),
           _installDone
-              ? const Icon(Icons.check_circle,
-                  color: AppColors.successGreen, size: 30)
+              ? const Icon(
+                  Icons.check_circle,
+                  color: AppColors.successGreen,
+                  size: 30,
+                )
               : ElevatedButton(
                   onPressed: () => _installApp(context, t),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.greenPrimary,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                   ),
-                  child: Text(t['installNow'],
-                      style: const TextStyle(fontSize: 12)),
+                  child: Text(
+                    t['installNow'],
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
         ],
       ),
@@ -450,7 +524,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSettings(
-      BuildContext context, AppStrings t, LocaleProvider locale) {
+    BuildContext context,
+    AppStrings t,
+    LocaleProvider locale,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -486,8 +563,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppColors.successGreen,
             title: t['securityPrivacy'],
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (_) => const SecurityPrivacyScreen()),
+              MaterialPageRoute(builder: (_) => const SecurityPrivacyScreen()),
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
@@ -496,8 +572,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppColors.accentOrange,
             title: t['notifications'],
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (_) => const NotificationsScreen()),
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
@@ -558,8 +633,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           const SizedBox(width: 6),
-          const Icon(Icons.chevron_right,
-              color: AppColors.textTertiary, size: 20),
+          const Icon(
+            Icons.chevron_right,
+            color: AppColors.textTertiary,
+            size: 20,
+          ),
         ],
       ),
     );

@@ -71,6 +71,13 @@ class AppStrings {
       'search': 'Search',
       'language': 'Language',
       'settings': 'Settings',
+      // ---- Navigation drawer ----
+      'drawerTagline': 'AI investment intelligence',
+      'drawerMenu': 'Menu',
+      'drawerExplore': 'Explore',
+      'drawerPreferences': 'Preferences',
+      'drawerSupport': 'Support',
+      'drawerClose': 'Close menu',
       // Home
       'marketOverview': 'Market Overview',
       'watchlist': 'My Watchlist',
@@ -84,7 +91,8 @@ class AppStrings {
       // Tools
       'aiTools': 'AI Tools',
       'aiStockScreener': 'AI Stock Screener',
-      'aiStockScreenerDesc': 'Intelligent stock selection with AI-powered analysis',
+      'aiStockScreenerDesc':
+          'Intelligent stock selection with AI-powered analysis',
       'financialReport': 'Financial Report Analysis',
       'financialReportDesc': 'AI-driven insights from company financials',
       'valuationCalculator': 'Valuation Calculator',
@@ -92,9 +100,11 @@ class AppStrings {
       'capitalFlow': 'Capital Flow Tracker',
       'capitalFlowDesc': 'Track institutional and smart money movements',
       'currencyConverter': 'Global Currency Converter',
-      'currencyConverterDesc': 'Convert between 150+ world currencies in real time',
+      'currencyConverterDesc':
+          'Convert between 150+ world currencies in real time',
       'dataAnalysis': 'Data Analysis Suite',
-      'dataAnalysisDesc': 'Statistics, trends and anomaly detection for any dataset',
+      'dataAnalysisDesc':
+          'Statistics, trends and anomaly detection for any dataset',
       'trackingEval': 'Tracking & Evaluation',
       'trackingEvalDesc': 'Track performance and evaluate your investments',
       // Currency converter
@@ -108,7 +118,8 @@ class AppStrings {
       'popularCurrencies': 'Popular Currencies',
       'currencyConverterTitle': 'Currency Converter',
       'enterAmount': 'Enter amount',
-      'rateDisclaimer': 'Rates are indicative and based on sample reference data.',
+      'rateDisclaimer':
+          'Rates are indicative and based on sample reference data.',
       // Data analysis
       'dataAnalysisTitle': 'Data Analysis',
       'enterData': 'Enter data (comma separated)',
@@ -262,7 +273,8 @@ class AppStrings {
       // Professional portfolio
       'navMyPortfolio': 'Portfolio Pro',
       'portfolioProRole': 'Data Scientist',
-      'portfolioProHeadline': 'Niamey · Remote worldwide · French / English / Arabic',
+      'portfolioProHeadline':
+          'Niamey · Remote worldwide · French / English / Arabic',
       'portfolioAvailable': 'Available for new missions & consulting',
       'portfolioViewProjects': 'View my projects',
       'portfolioContactMe': 'Contact me',
@@ -501,6 +513,13 @@ class AppStrings {
       'search': 'Rechercher',
       'language': 'Langue',
       'settings': 'Paramètres',
+      // ---- Navigation drawer ----
+      'drawerTagline': 'Intelligence d\'investissement IA',
+      'drawerMenu': 'Menu',
+      'drawerExplore': 'Explorer',
+      'drawerPreferences': 'Préférences',
+      'drawerSupport': 'Assistance',
+      'drawerClose': 'Fermer le menu',
       'marketOverview': 'Aperçu du marché',
       'watchlist': 'Ma liste de suivi',
       'aiPicksToday': 'Sélections IA du jour',
@@ -518,13 +537,16 @@ class AppStrings {
       'valuationCalculator': 'Calculateur de valorisation',
       'valuationCalculatorDesc': 'Modèles de valorisation DCF, PER, PBR',
       'capitalFlow': 'Suivi des flux de capitaux',
-      'capitalFlowDesc': 'Suivez les mouvements des institutionnels et smart money',
+      'capitalFlowDesc':
+          'Suivez les mouvements des institutionnels et smart money',
       'currencyConverter': 'Convertisseur de devises mondial',
-      'currencyConverterDesc': 'Convertissez plus de 150 devises mondiales en temps réel',
+      'currencyConverterDesc':
+          'Convertissez plus de 150 devises mondiales en temps réel',
       'dataAnalysis': 'Suite d\'analyse de données',
       'dataAnalysisDesc': 'Statistiques, tendances et détection d\'anomalies',
       'trackingEval': 'Suivi et évaluation',
-      'trackingEvalDesc': 'Suivez les performances et évaluez vos investissements',
+      'trackingEvalDesc':
+          'Suivez les performances et évaluez vos investissements',
       'amount': 'Montant',
       'from': 'De',
       'to': 'Vers',
@@ -535,7 +557,8 @@ class AppStrings {
       'popularCurrencies': 'Devises populaires',
       'currencyConverterTitle': 'Convertisseur de devises',
       'enterAmount': 'Saisir le montant',
-      'rateDisclaimer': 'Les taux sont indicatifs et basés sur des données de référence.',
+      'rateDisclaimer':
+          'Les taux sont indicatifs et basés sur des données de référence.',
       'dataAnalysisTitle': 'Analyse de données',
       'enterData': 'Saisir les données (séparées par des virgules)',
       'analyze': 'Analyser',
@@ -555,7 +578,8 @@ class AppStrings {
       'anomalies': 'Valeurs aberrantes détectées',
       'distribution': 'Distribution',
       'sampleData': 'Charger des données exemples',
-      'invalidData': 'Veuillez saisir des nombres valides séparés par des virgules',
+      'invalidData':
+          'Veuillez saisir des nombres valides séparés par des virgules',
       'metrics': 'Indicateurs',
       'trackingTitle': 'Suivi et évaluation',
       'performanceTracking': 'Suivi des performances',
@@ -614,14 +638,17 @@ class AppStrings {
       'logout': 'Déconnexion',
       'strategyBacktest': 'Backtest de stratégie',
       'createStrategy': 'Créer une nouvelle stratégie',
-      'createStrategyDesc': 'Concevez et testez votre stratégie d\'investissement',
+      'createStrategyDesc':
+          'Concevez et testez votre stratégie d\'investissement',
       'popularStrategies': 'Stratégies populaires',
       'valueInvesting': 'Investissement en valeur',
-      'valueInvestingDesc': 'Acheter des actions sous-évaluées selon les fondamentaux',
+      'valueInvestingDesc':
+          'Acheter des actions sous-évaluées selon les fondamentaux',
       'momentumTrading': 'Trading de momentum',
       'momentumTradingDesc': 'Suivre les tendances et signaux de momentum',
       'meanReversion': 'Retour à la moyenne',
-      'meanReversionDesc': 'Profiter des écarts de prix par rapport à la moyenne',
+      'meanReversionDesc':
+          'Profiter des écarts de prix par rapport à la moyenne',
       // Tool sub-options
       'toolOptions': 'Options',
       'exploreFeatures': 'Découvrez les fonctionnalités de cet outil',
@@ -642,7 +669,8 @@ class AppStrings {
       'daDist': 'Distribution',
       'daDistDesc': 'Histogramme et vue de la distribution des données',
       'trPerf': 'Suivi des performances',
-      'trPerfDesc': 'Suivez les performances de votre portefeuille dans le temps',
+      'trPerfDesc':
+          'Suivez les performances de votre portefeuille dans le temps',
       'trEval': 'Score d\'évaluation',
       'trEvalDesc': 'Note de performance composite de 0 à 100',
       'trBench': 'Comparaison au benchmark',
@@ -701,7 +729,8 @@ class AppStrings {
       'portfolioLang': 'Langues',
       'portfolioMasterTitle': 'Master Big Data & Intelligence Artificielle',
       'portfolioMasterSchool': 'Université LUCAS / NIAMEY — ACRA',
-      'portfolioCertTitle': 'Certifications Officielles Google & DeepLearning.AI',
+      'portfolioCertTitle':
+          'Certifications Officielles Google & DeepLearning.AI',
       'portfolioSendMessage': 'Envoyer un message',
       // Home (money app style)
       'welcomeOn': 'Bienvenue sur',
@@ -746,10 +775,12 @@ class AppStrings {
       'profileSaved': 'Profil enregistré avec succès',
       'completeProfileHint': 'Complétez votre profil pour commencer',
       'installApp': 'Installer l\'application',
-      'installAppDesc': 'Ajoutez MyDan_thoss à votre écran d\'accueil pour un accès rapide',
+      'installAppDesc':
+          'Ajoutez MyDan_thoss à votre écran d\'accueil pour un accès rapide',
       'installNow': 'Installer maintenant',
       'appInstalled': 'Application installée',
-      'installHint': 'Utilisez le menu de votre navigateur > « Ajouter à l\'écran d\'accueil »',
+      'installHint':
+          'Utilisez le menu de votre navigateur > « Ajouter à l\'écran d\'accueil »',
       'myAccount': 'Mon compte',
       'notConnected': 'Non connecté',
       'verifiedProfile': 'Profil vérifié',
@@ -783,7 +814,8 @@ class AppStrings {
       'productTitle': 'Produits & Modèles',
       'productSubtitle': 'Modèles IA et catalogue de produits',
       'productModels': 'Modèles IA',
-      'productModelsDesc': 'Modèles de prévision et d\'analyse prêts à l\'emploi',
+      'productModelsDesc':
+          'Modèles de prévision et d\'analyse prêts à l\'emploi',
       'productProducts': 'Catalogue de produits',
       'productProductsDesc': 'Parcourez et commandez nos produits',
       'productPlans': 'Formules d\'abonnement',
@@ -807,7 +839,8 @@ class AppStrings {
       'subSave': 'Économisez 20 %',
       'securityTitle': 'Sécurité & Confidentialité',
       'securityEncryption': 'Chiffrement de bout en bout',
-      'securityEncryptionDesc': 'Vos données sont chiffrées en transit et au repos',
+      'securityEncryptionDesc':
+          'Vos données sont chiffrées en transit et au repos',
       'securityAuth': 'Authentification à deux facteurs',
       'securityAuthDesc': 'Protégez votre compte avec la 2FA',
       'securityData': 'Protection des données',
@@ -921,6 +954,13 @@ class AppStrings {
       'search': 'بحث',
       'language': 'اللغة',
       'settings': 'الإعدادات',
+      // ---- Navigation drawer ----
+      'drawerTagline': 'ذكاء الاستثمار بالذكاء الاصطناعي',
+      'drawerMenu': 'القائمة',
+      'drawerExplore': 'استكشاف',
+      'drawerPreferences': 'التفضيلات',
+      'drawerSupport': 'الدعم',
+      'drawerClose': 'إغلاق القائمة',
       'marketOverview': 'نظرة عامة على السوق',
       'watchlist': 'قائمة المتابعة',
       'aiPicksToday': 'اختيارات الذكاء اليوم',
@@ -940,7 +980,8 @@ class AppStrings {
       'capitalFlow': 'متتبع تدفقات رأس المال',
       'capitalFlowDesc': 'تتبع تحركات المؤسسات والأموال الذكية',
       'currencyConverter': 'محول العملات العالمي',
-      'currencyConverterDesc': 'حوّل بين أكثر من 150 عملة عالمية في الوقت الفعلي',
+      'currencyConverterDesc':
+          'حوّل بين أكثر من 150 عملة عالمية في الوقت الفعلي',
       'dataAnalysis': 'مجموعة تحليل البيانات',
       'dataAnalysisDesc': 'إحصاءات واتجاهات وكشف الشذوذ لأي مجموعة بيانات',
       'trackingEval': 'التتبع والتقييم',

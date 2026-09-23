@@ -17,14 +17,14 @@ class TrackingEntry {
 
 /// Aggregated evaluation of a tracking series.
 class EvaluationResult {
-  final double totalReturn;      // %
-  final double benchmarkReturn;  // %
-  final double alpha;            // relative performance vs benchmark (%)
-  final double winRate;          // %
+  final double totalReturn; // %
+  final double benchmarkReturn; // %
+  final double alpha; // relative performance vs benchmark (%)
+  final double winRate; // %
   final double sharpe;
-  final double maxDrawdown;      // % (positive number)
-  final double volatility;       // %
-  final double rating;           // 0..100
+  final double maxDrawdown; // % (positive number)
+  final double volatility; // %
+  final double rating; // 0..100
   final int wins;
   final int losses;
 
@@ -94,19 +94,17 @@ class TrackingService {
         : returns.reduce((a, b) => a + b) / returns.length;
     final variance = returns.length > 1
         ? returns
-                .map((r) => pow(r - meanRet, 2).toDouble())
-                .reduce((a, b) => a + b) /
-            (returns.length - 1)
+                  .map((r) => pow(r - meanRet, 2).toDouble())
+                  .reduce((a, b) => a + b) /
+              (returns.length - 1)
         : 0.0;
     final stdDev = sqrt(variance);
     final volatility = stdDev * sqrt(12) * 100; // annualised
 
     // Sharpe ratio (risk-free ≈ 2%).
     const riskFree = 0.02;
-    final annualReturn = (pow(
-      (last / first),
-      12 / (values.length - 1),
-    ).toDouble()) - 1;
+    final annualReturn =
+        (pow((last / first), 12 / (values.length - 1)).toDouble()) - 1;
     final sharpe = stdDev == 0
         ? 0.0
         : (annualReturn - riskFree) / (stdDev * sqrt(12));
@@ -147,12 +145,32 @@ class TrackingService {
   /// Realistic sample tracking history (12 months) for demonstration.
   static List<TrackingEntry> sampleHistory() {
     const portfolio = [
-      100000, 102500, 101200, 104800, 108300, 107100,
-      111500, 115200, 113900, 118600, 123400, 129800,
+      100000,
+      102500,
+      101200,
+      104800,
+      108300,
+      107100,
+      111500,
+      115200,
+      113900,
+      118600,
+      123400,
+      129800,
     ];
     const benchmark = [
-      100000, 101300, 100800, 102100, 103400, 102900,
-      104200, 105600, 105100, 106800, 108200, 109500,
+      100000,
+      101300,
+      100800,
+      102100,
+      103400,
+      102900,
+      104200,
+      105600,
+      105100,
+      106800,
+      108200,
+      109500,
     ];
     final now = DateTime.now();
     return List.generate(12, (i) {

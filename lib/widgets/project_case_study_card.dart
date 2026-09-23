@@ -70,14 +70,26 @@ class ProjectCaseStudyCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBlock(t['pcChallenge'], study.challenge,
-                    Icons.help_outline, AppColors.warningYellow),
+                _buildBlock(
+                  t['pcChallenge'],
+                  study.challenge,
+                  Icons.help_outline,
+                  AppColors.warningYellow,
+                ),
                 const SizedBox(height: 10),
-                _buildBlock(t['pcSolution'], study.solution,
-                    Icons.lightbulb_outline, AppColors.infoBlue),
+                _buildBlock(
+                  t['pcSolution'],
+                  study.solution,
+                  Icons.lightbulb_outline,
+                  AppColors.infoBlue,
+                ),
                 const SizedBox(height: 10),
-                _buildBlock(t['pcResult'], study.result,
-                    Icons.emoji_events_outlined, AppColors.upColor),
+                _buildBlock(
+                  t['pcResult'],
+                  study.result,
+                  Icons.emoji_events_outlined,
+                  AppColors.upColor,
+                ),
               ],
             ),
           ),
@@ -124,8 +136,11 @@ class ProjectCaseStudyCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.check_circle,
-                        color: Colors.white, size: 13),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 13,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       t['pcDelivered'],
@@ -159,8 +174,7 @@ class ProjectCaseStudyCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBlock(
-      String label, String text, IconData icon, Color color) {
+  Widget _buildBlock(String label, String text, IconData icon, Color color) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

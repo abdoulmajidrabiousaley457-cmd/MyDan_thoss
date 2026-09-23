@@ -5,7 +5,9 @@ import '../../l10n/app_strings.dart';
 import '../../services/action_plan_service.dart';
 import '../../services/tracking_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/stock_action_plan_card.dart';
+import '../../widgets/tool_logo.dart';
 
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -16,8 +18,9 @@ class TrackingScreen extends StatefulWidget {
 
 class _TrackingScreenState extends State<TrackingScreen> {
   final List<TrackingEntry> _history = TrackingService.sampleHistory();
-  final EvaluationResult _eval =
-      TrackingService.evaluate(TrackingService.sampleHistory());
+  final EvaluationResult _eval = TrackingService.evaluate(
+    TrackingService.sampleHistory(),
+  );
   String _period = 'monthly';
   int _position = 0;
 
@@ -26,7 +29,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
     final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['trackingTitle'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['trackingTitle'],
+          logoAsset: ToolLogos.tracking,
+          logoFallbackIcon: Icons.track_changes,
+          logoGradient: AppColors.toolViolet,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -39,12 +49,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
               const SizedBox(height: 20),
               _buildPeriodSelector(t),
               const SizedBox(height: 20),
-              Text(t['performanceTracking'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['performanceTracking'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               _buildLineChart(),
               const SizedBox(height: 20),
-              Text(t['evaluation'], style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['evaluation'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               _buildEvaluationGrid(t),
               const SizedBox(height: 20),
@@ -52,8 +67,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
               const SizedBox(height: 12),
               _buildHistory(),
               const SizedBox(height: 24),
-              Text(t['apExamplePlans'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['apExamplePlans'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               StockActionPlanCard(plan: ActionPlanService.plans[_position]),
             ],
@@ -68,17 +85,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
     final ratingLabel = e.rating >= 75
         ? t['excellent']
         : e.rating >= 50
-            ? t['good']
-            : e.rating >= 30
-                ? t['average']
-                : t['poor'];
+        ? t['good']
+        : e.rating >= 30
+        ? t['average']
+        : t['poor'];
     final ratingColor = e.rating >= 75
         ? AppColors.successGreen
         : e.rating >= 50
-            ? AppColors.primaryGold
-            : e.rating >= 30
-                ? AppColors.accentOrange
-                : AppColors.errorRed;
+        ? AppColors.primaryGold
+        : e.rating >= 30
+        ? AppColors.accentOrange
+        : AppColors.errorRed;
 
     return Container(
       width: double.infinity,
@@ -123,8 +140,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text('/100',
-                        style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                    Text(
+                      '/100',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -135,8 +157,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t['rating'],
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(
+                  t['rating'],
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   ratingLabel,
@@ -150,15 +174,24 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 Row(
                   children: [
                     Icon(
-                      e.outperforming ? Icons.arrow_upward : Icons.arrow_downward,
-                      color: e.outperforming ? AppColors.successGreen : AppColors.errorRed,
+                      e.outperforming
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      color: e.outperforming
+                          ? AppColors.successGreen
+                          : AppColors.errorRed,
                       size: 16,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        e.outperforming ? t['outperforming'] : t['underperforming'],
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        e.outperforming
+                            ? t['outperforming']
+                            : t['underperforming'],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -284,26 +317,28 @@ class _TrackingScreenState extends State<TrackingScreen> {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: (maxY - minY) / 4,
-            getDrawingHorizontalLine: (v) => const FlLine(
-              color: AppColors.divider,
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (v) =>
+                const FlLine(color: AppColors.divider, strokeWidth: 1),
           ),
           titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
           lineTouchData: const LineTouchData(enabled: true),
           lineBarsData: [
             LineChartBarData(
-              spots: List.generate(values.length,
-                  (i) => FlSpot(i.toDouble(), values[i])),
+              spots: List.generate(
+                values.length,
+                (i) => FlSpot(i.toDouble(), values[i]),
+              ),
               isCurved: true,
               color: AppColors.primaryGold,
               barWidth: 3,
               dotData: const FlDotData(show: false),
             ),
             LineChartBarData(
-              spots:
-                  List.generate(bench.length, (i) => FlSpot(i.toDouble(), bench[i])),
+              spots: List.generate(
+                bench.length,
+                (i) => FlSpot(i.toDouble(), bench[i]),
+              ),
               isCurved: true,
               color: AppColors.accentBlue,
               barWidth: 2,
@@ -319,14 +354,26 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Widget _buildEvaluationGrid(AppStrings t) {
     final e = _eval;
     final items = <List<Object>>[
-      [t['totalReturn'], '+${e.totalReturn.toStringAsFixed(2)}%', e.totalReturn >= 0],
+      [
+        t['totalReturn'],
+        '+${e.totalReturn.toStringAsFixed(2)}%',
+        e.totalReturn >= 0,
+      ],
       [t['benchmark'], '+${e.benchmarkReturn.toStringAsFixed(2)}%', true],
-      [t['vsBenchmark'], '${e.alpha >= 0 ? '+' : ''}${e.alpha.toStringAsFixed(2)}%', e.alpha >= 0],
+      [
+        t['vsBenchmark'],
+        '${e.alpha >= 0 ? '+' : ''}${e.alpha.toStringAsFixed(2)}%',
+        e.alpha >= 0,
+      ],
       [t['winRate'], '${e.winRate.toStringAsFixed(1)}%', e.winRate >= 50],
       [t['sharpeRatio'], e.sharpe.toStringAsFixed(2), e.sharpe >= 1],
       [t['maxDrawdown'], '-${e.maxDrawdown.toStringAsFixed(2)}%', false],
       [t['volatility'], '${e.volatility.toStringAsFixed(2)}%', true],
-      ['${e.wins}W / ${e.losses}L', '${e.wins}/${e.losses}', e.wins >= e.losses],
+      [
+        '${e.wins}W / ${e.losses}L',
+        '${e.wins}/${e.losses}',
+        e.wins >= e.losses,
+      ],
     ];
     return GridView.builder(
       shrinkWrap: true,
@@ -353,7 +400,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
             children: [
               Text(
                 item[0] as String,
-                style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                style: const TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 11,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -386,7 +436,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
           final entry = _history[i];
           double change = 0;
           if (i > 0) {
-            change = ((entry.value - _history[i - 1].value) /
+            change =
+                ((entry.value - _history[i - 1].value) /
                     _history[i - 1].value) *
                 100;
           }
@@ -394,15 +445,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(entry.label,
-                              style: Theme.of(context).textTheme.titleSmall),
+                          Text(
+                            entry.label,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                           Text(
                             '${entry.value.toStringAsFixed(0)}  •  ${entry.benchmarkValue.toStringAsFixed(0)}',
                             style: Theme.of(context).textTheme.bodySmall,
@@ -411,7 +467,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: isUp ? AppColors.upColor : AppColors.downColor,
                         borderRadius: BorderRadius.circular(8),

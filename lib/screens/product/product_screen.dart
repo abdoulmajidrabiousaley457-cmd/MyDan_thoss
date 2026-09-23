@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import '../../l10n/app_strings.dart';
 import '../../services/book_library_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
 import '../library/library_screen.dart';
@@ -75,7 +77,12 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget _buildHeader(BuildContext context, AppStrings t) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+      padding: EdgeInsets.fromLTRB(
+        context.pagePadding,
+        22,
+        context.pagePadding,
+        24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.greenPrimary, AppColors.greenDark],
@@ -85,13 +92,27 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
       child: Row(
         children: [
+          // Brand logo (consistent with the other headers).
+          const AppLogo(size: 44, radius: 12),
+          const SizedBox(width: 12),
+          // Product tool logo chip.
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: const Icon(Icons.storefront, color: Colors.white, size: 24),
+            child: Image.asset(
+              ToolLogos.product,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.storefront,
+                color: AppColors.greenDark,
+                size: 22,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -100,6 +121,8 @@ class _ProductScreenState extends State<ProductScreen> {
               children: [
                 Text(
                   t['productTitle'],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 19,
@@ -109,6 +132,8 @@ class _ProductScreenState extends State<ProductScreen> {
                 const SizedBox(height: 2),
                 Text(
                   t['productSubtitle'],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -128,7 +153,10 @@ class _ProductScreenState extends State<ProductScreen> {
 
   // ---------------- AI model templates with examples ----------------
   Widget _buildModelTemplates(
-      BuildContext context, AppStrings t, List<ToolDef> tools) {
+    BuildContext context,
+    AppStrings t,
+    List<ToolDef> tools,
+  ) {
     // Show the first tools that expose examples.
     final withExamples = tools.where((e) => e.examples.isNotEmpty).toList();
     return SizedBox(
@@ -200,7 +228,9 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          ...tool.examples.take(3).map(
+          ...tool.examples
+              .take(3)
+              .map(
                 (ex) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
@@ -208,8 +238,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 5),
-                        child: Icon(Icons.auto_awesome,
-                            size: 12, color: AppColors.greenPrimary),
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 12,
+                          color: AppColors.greenPrimary,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -238,8 +271,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 side: const BorderSide(color: AppColors.greenPrimary),
                 padding: const EdgeInsets.symmetric(vertical: 8),
               ),
-              child: Text(t['useTemplate'],
-                  style: const TextStyle(fontSize: 12)),
+              child: Text(
+                t['useTemplate'],
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
           ),
         ],
@@ -254,9 +289,17 @@ class _ProductScreenState extends State<ProductScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _toggleBtn(t['subMonthly'], !_yearly, () => setState(() => _yearly = false)),
+          _toggleBtn(
+            t['subMonthly'],
+            !_yearly,
+            () => setState(() => _yearly = false),
+          ),
           const SizedBox(width: 8),
-          _toggleBtn(t['subYearly'], _yearly, () => setState(() => _yearly = true)),
+          _toggleBtn(
+            t['subYearly'],
+            _yearly,
+            () => setState(() => _yearly = true),
+          ),
           if (_yearly) ...[
             const SizedBox(width: 10),
             Container(
@@ -287,7 +330,9 @@ class _ProductScreenState extends State<ProductScreen> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
         decoration: BoxDecoration(
-          color: active ? AppColors.greenPrimary : AppColors.backgroundSecondary,
+          color: active
+              ? AppColors.greenPrimary
+              : AppColors.backgroundSecondary,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: active ? AppColors.greenPrimary : AppColors.borderPrimary,
@@ -312,7 +357,12 @@ class _ProductScreenState extends State<ProductScreen> {
     final names = [t['subFree'], t['subPro'], t['subEnterprise']];
     final features = [
       [t['productModels'], t['dataAnalysis'], t['currencyConverter']],
-      [t['productModels'], t['aiStockScreener'], t['trackingEval'], t['financialReport']],
+      [
+        t['productModels'],
+        t['aiStockScreener'],
+        t['trackingEval'],
+        t['financialReport'],
+      ],
       [
         t['productModels'],
         t['aiStockScreener'],
@@ -339,7 +389,9 @@ class _ProductScreenState extends State<ProductScreen> {
                 color: AppColors.backgroundSecondary,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: selected ? AppColors.greenPrimary : AppColors.borderPrimary,
+                  color: selected
+                      ? AppColors.greenPrimary
+                      : AppColors.borderPrimary,
                   width: selected ? 2 : 1,
                 ),
                 boxShadow: [
@@ -367,7 +419,9 @@ class _ProductScreenState extends State<ProductScreen> {
                       if (isPopular)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.greenPrimary,
                             borderRadius: BorderRadius.circular(10),
@@ -405,8 +459,11 @@ class _ProductScreenState extends State<ProductScreen> {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.check_circle,
-                              size: 14, color: AppColors.greenPrimary),
+                          const Icon(
+                            Icons.check_circle,
+                            size: 14,
+                            color: AppColors.greenPrimary,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -453,9 +510,19 @@ class _ProductScreenState extends State<ProductScreen> {
   // ---------------- Product catalog ----------------
   Widget _buildProductCatalog(BuildContext context, AppStrings t) {
     final products = [
-      [Icons.smart_toy_outlined, AppColors.accentPurple, t['prodExample1'], '\$149'],
+      [
+        Icons.smart_toy_outlined,
+        AppColors.accentPurple,
+        t['prodExample1'],
+        '\$149',
+      ],
       [Icons.trending_up, AppColors.greenPrimary, t['prodExample2'], '\$199'],
-      [Icons.sentiment_satisfied_alt, AppColors.accentTeal, t['prodExample3'], '\$129'],
+      [
+        Icons.sentiment_satisfied_alt,
+        AppColors.accentTeal,
+        t['prodExample3'],
+        '\$129',
+      ],
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -514,8 +581,10 @@ class _ProductScreenState extends State<ProductScreen> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right,
-                      color: AppColors.textTertiary),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textTertiary,
+                  ),
                 ],
               ),
               onTap: () => _subscribe(p[2] as String),
@@ -554,8 +623,11 @@ class _ProductScreenState extends State<ProductScreen> {
                   gradient: AppColors.toolIndigo,
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(Icons.menu_book,
-                    color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.menu_book,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -581,8 +653,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.pastelIndigo,
                   borderRadius: BorderRadius.circular(10),
@@ -604,8 +675,11 @@ class _ProductScreenState extends State<ProductScreen> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.picture_as_pdf,
-                      size: 16, color: AppColors.downColor),
+                  const Icon(
+                    Icons.picture_as_pdf,
+                    size: 16,
+                    color: AppColors.downColor,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -634,9 +708,9 @@ class _ProductScreenState extends State<ProductScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LibraryScreen()),
-              ),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const LibraryScreen())),
               icon: const Icon(Icons.library_books, size: 18),
               label: Text(t['libraryTitle']),
               style: ElevatedButton.styleFrom(
@@ -696,7 +770,12 @@ class _ProductScreenState extends State<ProductScreen> {
                     );
                   },
                   icon: const Icon(Icons.mail_outline, size: 18),
-                  label: Text(_contactEmail),
+                  label: Text(
+                    _contactEmail,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12.5),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.bluePrimary,

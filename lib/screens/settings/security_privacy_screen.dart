@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 
 /// Security & Privacy screen.
 class SecurityPrivacyScreen extends StatefulWidget {
@@ -21,7 +22,12 @@ class _SecurityPrivacyScreenState extends State<SecurityPrivacyScreen> {
     final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['securityTitle'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['securityTitle'],
+          logoFallbackIcon: Icons.security,
+        ),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -180,10 +186,7 @@ class _SecurityPrivacyScreenState extends State<SecurityPrivacyScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 11.5,
-          ),
+          style: const TextStyle(color: AppColors.textTertiary, fontSize: 11.5),
         ),
       ),
     );
@@ -208,8 +211,11 @@ class _SecurityPrivacyScreenState extends State<SecurityPrivacyScreen> {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: const Icon(Icons.open_in_new,
-          color: AppColors.textTertiary, size: 18),
+      trailing: const Icon(
+        Icons.open_in_new,
+        color: AppColors.textTertiary,
+        size: 18,
+      ),
     );
   }
 }

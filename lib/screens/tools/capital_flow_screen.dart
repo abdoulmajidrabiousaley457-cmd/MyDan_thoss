@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/project_case_study_card.dart';
+import '../../widgets/tool_logo.dart';
 
 /// A capital-flow row: sector with its net inflow/outflow ($B).
 class _Flow {
@@ -38,10 +40,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
 
   // Institutional vs retail vs smart-money flows (per period)
   Map<String, double> get _summary => switch (_period) {
-        'month' => {'inst': 42.6, 'smart': 28.1, 'retail': -12.4},
-        'quarter' => {'inst': 128.3, 'smart': 86.5, 'retail': -34.7},
-        _ => {'inst': 14.8, 'smart': 9.3, 'retail': -4.1},
-      };
+    'month' => {'inst': 42.6, 'smart': 28.1, 'retail': -12.4},
+    'quarter' => {'inst': 128.3, 'smart': 86.5, 'retail': -34.7},
+    _ => {'inst': 14.8, 'smart': 9.3, 'retail': -4.1},
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +51,14 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['capitalFlow'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['capitalFlow'],
+          logoAsset: ToolLogos.flow,
+          logoFallbackIcon: Icons.trending_up,
+          logoGradient: AppColors.toolAmber,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -60,18 +69,24 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
               const SizedBox(height: 16),
               _buildSummary(context, t),
               const SizedBox(height: 20),
-              Text(t['cfSectorHeatmap'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['cfSectorHeatmap'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               _buildHeatmap(context, t),
               const SizedBox(height: 20),
-              Text(t['cfSectorDetail'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['cfSectorDetail'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               _buildSectorList(context, t),
               const SizedBox(height: 24),
-              Text(t['pcExample'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['pcExample'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               const ProjectCaseStudyCard(study: _caseStudy),
             ],
@@ -170,11 +185,14 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
             children: [
               const Icon(Icons.waterfall_chart, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text(t['cfNetFlows'],
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600)),
+              Text(
+                t['cfNetFlows'],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -188,8 +206,11 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(it[2] as IconData,
-                            color: Colors.white70, size: 14),
+                        Icon(
+                          it[2] as IconData,
+                          color: Colors.white70,
+                          size: 14,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -197,7 +218,9 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                color: Colors.white70, fontSize: 11),
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],
@@ -206,9 +229,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                     Text(
                       '${positive ? '+' : ''}\$${net.toStringAsFixed(1)}B',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -255,9 +279,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -266,9 +291,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
               Text(
                 '${positive ? '+' : ''}\$${s.net.toStringAsFixed(2)}B',
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -292,8 +318,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
           return Column(
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Text(s.icon, style: const TextStyle(fontSize: 16)),
@@ -302,9 +330,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                       child: Text(
                         s.name,
                         style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Column(
@@ -313,9 +342,10 @@ class _CapitalFlowScreenState extends State<CapitalFlowScreen> {
                         Text(
                           '${positive ? '+' : ''}\$${s.net.toStringAsFixed(2)}B',
                           style: TextStyle(
-                              color: color,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold),
+                            color: color,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
                           '${positive ? '+' : ''}${s.change.toStringAsFixed(1)}%',

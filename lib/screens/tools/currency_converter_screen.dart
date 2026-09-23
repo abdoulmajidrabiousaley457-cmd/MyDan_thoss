@@ -4,7 +4,9 @@ import '../../l10n/app_strings.dart';
 import '../../services/action_plan_service.dart';
 import '../../services/currency_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/stock_action_plan_card.dart';
+import '../../widgets/tool_logo.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -15,8 +17,9 @@ class CurrencyConverterScreen extends StatefulWidget {
 }
 
 class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
-  final TextEditingController _amountController =
-      TextEditingController(text: '1000');
+  final TextEditingController _amountController = TextEditingController(
+    text: '1000',
+  );
   String _from = 'USD';
   String _to = 'EUR';
   ConversionResult? _result;
@@ -52,10 +55,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
   String _fmt(double v) {
     if (v.abs() >= 1000) {
-      return v.toStringAsFixed(2).replaceAllMapped(
-            RegExp(r'(\d)(?=(\d{3})+\.)'),
-            (m) => '${m[1]},',
-          );
+      return v
+          .toStringAsFixed(2)
+          .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+\.)'), (m) => '${m[1]},');
     }
     return v.toStringAsFixed(v.abs() >= 1 ? 2 : 4);
   }
@@ -65,7 +67,14 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['currencyConverterTitle'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['currencyConverterTitle'],
+          logoAsset: ToolLogos.currency,
+          logoFallbackIcon: Icons.currency_exchange,
+          logoGradient: AppColors.toolGreen,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -76,27 +85,42 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               const SizedBox(height: 20),
               _buildQuickAmounts(t),
               const SizedBox(height: 24),
-              Text(t['apExamplePlans'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['apExamplePlans'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               StockActionPlanCard(
-                plan: ActionPlanService.plans[
-                    (_from.codeUnits.fold(0, (p, e) => p + e)) %
+                plan:
+                    ActionPlanService.plans[(_from.codeUnits.fold(
+                          0,
+                          (p, e) => p + e,
+                        )) %
                         ActionPlanService.plans.length],
               ),
               const SizedBox(height: 24),
-              Text(t['popularCurrencies'], style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['popularCurrencies'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               _buildPopularRates(t),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 14, color: AppColors.textTertiary),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: AppColors.textTertiary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       t['rateDisclaimer'],
-                      style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
@@ -163,7 +187,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                   onTap: _swap,
                   child: const Padding(
                     padding: EdgeInsets.all(10),
-                    child: Icon(Icons.swap_horiz, color: Colors.white, size: 22),
+                    child: Icon(
+                      Icons.swap_horiz,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
@@ -223,8 +251,10 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           // White menu with dark, high-contrast text.
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          icon: const Icon(Icons.keyboard_arrow_down,
-              color: AppColors.greenDark),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.greenDark,
+          ),
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 15,
@@ -279,8 +309,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(t['amount'],
-            style: Theme.of(context).textTheme.titleSmall),
+        Text(t['amount'], style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -294,8 +323,10 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 9,
+                ),
                 decoration: BoxDecoration(
                   color: selected
                       ? AppColors.greenPrimary
@@ -310,8 +341,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 child: Text(
                   a.toString(),
                   style: TextStyle(
-                    color:
-                        selected ? Colors.white : AppColors.textSecondary,
+                    color: selected ? Colors.white : AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -338,7 +368,10 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -362,10 +395,14 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(c.code,
-                              style: Theme.of(context).textTheme.titleSmall),
-                          Text(c.name,
-                              style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            c.code,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          Text(
+                            c.name,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ],
                       ),
                     ),

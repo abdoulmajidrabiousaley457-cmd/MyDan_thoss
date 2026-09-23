@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_strings.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/language_selector.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
 import '../tools/currency_converter_screen.dart';
@@ -69,98 +72,130 @@ class HomeScreen extends StatelessWidget {
 
   // ---------------- Header (green) ----------------
   Widget _buildHeader(BuildContext context, AppStrings t) {
+    final compact = Breakpoints.isCompact(context.screenWidth);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: EdgeInsets.fromLTRB(compact ? 12 : 16, 8, compact ? 12 : 16, 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Menu button
+          // Menu button — opens the app navigation drawer.
           Semantics(
             button: true,
-            label: 'Menu',
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
+            label: t['drawerMenu'],
+            hint: t['drawerMenu'],
+            child: Tooltip(
+              message: t['drawerMenu'],
+              child: Material(
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () => appScaffoldKey.currentState?.openDrawer(),
+                  borderRadius: BorderRadius.circular(12),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(Icons.menu, color: Colors.white, size: 24),
+                  ),
+                ),
               ),
-              child: const Icon(Icons.menu, color: Colors.white, size: 22),
             ),
           ),
           const SizedBox(width: 12),
-          // Welcome text
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                t['welcomeOn'],
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const Text(
-                'MyDan_thoss',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.italic,
+          // Brand logo + welcome text
+          const AppLogo(size: 36),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  t['welcomeOn'],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
-              ),
-            ],
+                const Text(
+                  'MyDan_thoss',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
           const Spacer(),
-          // Quick access to profile (accessible to everyone)
+          // Quick access to notifications (always visible)
           _headerIcon(context, Icons.notifications_none, 'Notifications', () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             );
           }),
-          const SizedBox(width: 4),
-          _headerIcon(context, Icons.support_agent, 'Support', () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProductScreen()),
-            );
-          }),
+          if (!compact) ...[
+            const SizedBox(width: 4),
+            _headerIcon(context, Icons.support_agent, 'Support', () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ProductScreen()));
+            }),
+          ],
           const SizedBox(width: 4),
           _profileAvatar(context),
-          const SizedBox(width: 6),
-          // Language pill
-          Semantics(
-            button: true,
-            label: 'Language, ${context.tr.language.label}',
-            child: GestureDetector(
-              onTap: () => LanguageSelectorSheet.show(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      context.tr.language.code,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+          if (!compact) ...[
+            const SizedBox(width: 6),
+            // Language pill
+            Semantics(
+              button: true,
+              label: 'Language, ${context.tr.language.label}',
+              child: GestureDetector(
+                onTap: () => LanguageSelectorSheet.show(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        context.tr.language.code,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.keyboard_arrow_down,
-                        color: Colors.white, size: 16),
-                  ],
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   Widget _headerIcon(
-      BuildContext context, IconData icon, String label, VoidCallback onTap) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
     return Semantics(
       button: true,
       label: label,
@@ -184,10 +219,10 @@ class HomeScreen extends StatelessWidget {
     final profile = context.watch<UserProfileProvider>();
     final initials = profile.hasProfile
         ? profile.displayName
-            .split(' ')
-            .take(2)
-            .map((e) => e.isNotEmpty ? e[0] : '')
-            .join()
+              .split(' ')
+              .take(2)
+              .map((e) => e.isNotEmpty ? e[0] : '')
+              .join()
         : '';
     return Semantics(
       button: true,
@@ -195,9 +230,9 @@ class HomeScreen extends StatelessWidget {
           ? 'Profile, ${profile.name}'
           : 'Create your profile',
       child: GestureDetector(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const _ProfileShortcutPage()),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const _ProfileShortcutPage())),
         child: Container(
           width: 36,
           height: 36,
@@ -216,8 +251,11 @@ class HomeScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   )
-                : const Icon(Icons.person_add_alt_1,
-                    color: Colors.white, size: 18),
+                : const Icon(
+                    Icons.person_add_alt_1,
+                    color: Colors.white,
+                    size: 18,
+                  ),
           ),
         ),
       ),
@@ -252,8 +290,10 @@ class HomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const _ProfileShortcutPage()),
               ),
               style: TextButton.styleFrom(foregroundColor: Colors.white),
-              child: Text(t['createProfile'],
-                  style: const TextStyle(fontSize: 12)),
+              child: Text(
+                t['createProfile'],
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
         ],
       ),
@@ -307,8 +347,11 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.workspace_premium,
-                      color: Colors.white, size: 20),
+                  const Icon(
+                    Icons.workspace_premium,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     t['subTitle'],
@@ -320,8 +363,10 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.22),
                       borderRadius: BorderRadius.circular(20),
@@ -371,8 +416,10 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.pastelGreen,
                       borderRadius: BorderRadius.circular(12),
@@ -480,8 +527,8 @@ class HomeScreen extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 4),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: context.serviceGridColumns,
           childAspectRatio: 0.80,
           crossAxisSpacing: 4,
           mainAxisSpacing: 16,
@@ -576,8 +623,10 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(t['homeQuickTools'],
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            t['homeQuickTools'],
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           Text(
             t['seeAll'],
             style: const TextStyle(
@@ -641,8 +690,9 @@ class HomeScreen extends StatelessWidget {
               button: true,
               label: title,
               child: ListTile(
-                onTap: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => page)),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => page)),
                 leading: ToolLogoImage(
                   asset: s[2] as String,
                   remoteUrl: ToolLogos.remoteReferences[s[5]],
@@ -651,14 +701,18 @@ class HomeScreen extends StatelessWidget {
                   semanticLabel: title,
                   size: 44,
                 ),
-                title: Text(title,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    )),
-                trailing: const Icon(Icons.chevron_right,
-                    color: AppColors.textTertiary),
+                title: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
           );

@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_strings.dart';
 import '../../services/book_library_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
+import '../../widgets/tool_logo.dart';
 
 /// In-app Library — a searchable, downloadable catalogue of free PDF books.
 class LibraryScreen extends StatefulWidget {
@@ -32,28 +34,32 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   String _catLabel(String c, AppStrings t) => switch (c) {
-        'invest' => t['libraryCatInvest'],
-        'analysis' => t['libraryCatAnalysis'],
-        'ai' => t['libraryCatAI'],
-        'mindset' => t['libraryCatMindset'],
-        _ => t['libraryCatAll'],
-      };
+    'invest' => t['libraryCatInvest'],
+    'analysis' => t['libraryCatAnalysis'],
+    'ai' => t['libraryCatAI'],
+    'mindset' => t['libraryCatMindset'],
+    _ => t['libraryCatAll'],
+  };
 
   List<BookItem> get _filtered {
     final byCat = BookLibraryService.byCategory(_category);
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return byCat;
     return byCat
-        .where((b) =>
-            b.title.toLowerCase().contains(q) ||
-            b.author.toLowerCase().contains(q))
+        .where(
+          (b) =>
+              b.title.toLowerCase().contains(q) ||
+              b.author.toLowerCase().contains(q),
+        )
         .toList();
   }
 
   Future<void> _open(BuildContext context, String url, String label) async {
     try {
-      final ok =
-          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
       if (!ok && context.mounted) _snack(context, url);
     } catch (_) {
       if (context.mounted) _snack(context, url);
@@ -76,7 +82,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['libraryTitle'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['libraryTitle'],
+          logoAsset: ToolLogos.library,
+          logoFallbackIcon: Icons.library_books_outlined,
+          logoGradient: AppColors.toolIndigo,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -114,8 +127,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child:
-                    const Icon(Icons.menu_book, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.menu_book,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -132,15 +148,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                     Text(
                       t['librarySubtitle'],
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 11.5),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11.5,
+                      ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -200,8 +220,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     : AppColors.backgroundSecondary,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color:
-                      selected ? AppColors.greenPrimary : AppColors.borderPrimary,
+                  color: selected
+                      ? AppColors.greenPrimary
+                      : AppColors.borderPrimary,
                 ),
               ),
               child: Text(
@@ -226,8 +247,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
         children: [
           const Icon(Icons.search_off, size: 48, color: AppColors.textTertiary),
           const SizedBox(height: 12),
-          Text(t['libraryEmpty'],
-              style: const TextStyle(color: AppColors.textSecondary)),
+          Text(
+            t['libraryEmpty'],
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
         ],
       ),
     );
@@ -277,8 +300,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.menu_book,
-                      color: Colors.white, size: 22),
+                  const Icon(Icons.menu_book, color: Colors.white, size: 22),
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -352,10 +374,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         onPressed: () =>
                             _open(context, b.pdfUrl, t['libraryDownload']),
                         icon: const Icon(Icons.download, size: 16),
-                        label: Text(t['libraryDownload'],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 11.5)),
+                        label: Text(
+                          t['libraryDownload'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11.5),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.greenPrimary,
                           foregroundColor: Colors.white,
@@ -369,13 +393,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       onPressed: () =>
                           _open(context, b.pdfUrl, t['libraryOpen']),
                       icon: const Icon(Icons.open_in_new, size: 15),
-                      label: Text(t['libraryOpen'],
-                          style: const TextStyle(fontSize: 11.5)),
+                      label: Text(
+                        t['libraryOpen'],
+                        style: const TextStyle(fontSize: 11.5),
+                      ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.greenPrimary,
                         side: const BorderSide(color: AppColors.greenPrimary),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         minimumSize: const Size(0, 40),
                       ),
                     ),
@@ -398,7 +426,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

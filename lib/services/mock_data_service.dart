@@ -181,7 +181,8 @@ class MockDataService {
       {
         'code': '300750',
         'name': 'Contemporary Amperex',
-        'reason': 'Strong earnings growth, expanding market share in EV batteries',
+        'reason':
+            'Strong earnings growth, expanding market share in EV batteries',
         'score': 92,
         'tags': ['Growth', 'Tech'],
       },
@@ -237,12 +238,12 @@ class MockDataService {
     final List<double> data = [];
     final step = (end - start) / count;
     double current = start;
-    
+
     for (int i = 0; i < count; i++) {
       current += step + (_random.nextDouble() - 0.5) * step * 0.5;
       data.add(current);
     }
-    
+
     return data;
   }
 }

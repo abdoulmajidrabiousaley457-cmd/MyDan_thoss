@@ -50,7 +50,8 @@ class StockActionPlanCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Semantics(
                 image: true,
-                label: '${plan.company} ${t['apPriceChart']}: '
+                label:
+                    '${plan.company} ${t['apPriceChart']}: '
                     '${plan.price}, ${t['apTarget']} ${plan.target}',
                 child: _buildChart(),
               ),
@@ -252,20 +253,16 @@ class StockActionPlanCard extends StatelessWidget {
       [t['apEntry'], plan.entry.toStringAsFixed(2), AppColors.bluePrimary],
       [t['apTarget'], plan.target.toStringAsFixed(2), AppColors.upColor],
       [t['apStopLoss'], plan.stopLoss.toStringAsFixed(2), AppColors.downColor],
-      [
-        t['apUpside'],
-        '+${plan.upside.toStringAsFixed(1)}%',
-        AppColors.upColor
-      ],
+      [t['apUpside'], '+${plan.upside.toStringAsFixed(1)}%', AppColors.upColor],
       [
         t['apDownside'],
         '-${plan.downside.toStringAsFixed(1)}%',
-        AppColors.downColor
+        AppColors.downColor,
       ],
       [
         t['apRewardRisk'],
         '${plan.rewardRisk.toStringAsFixed(2)} : 1',
-        AppColors.textPrimary
+        AppColors.textPrimary,
       ],
       [t['apHorizon'], t[_horizonKey(plan.horizon)], AppColors.textPrimary],
       [t['apRisk'], t[_riskKey(plan.risk)], _riskColor(plan.risk)],
@@ -316,32 +313,32 @@ class StockActionPlanCard extends StatelessWidget {
 
   // ---------------- Helpers ----------------
   String _signalKey(String s) => switch (s) {
-        'buy' => 'apBuy',
-        'sell' => 'apSell',
-        _ => 'apHold',
-      };
+    'buy' => 'apBuy',
+    'sell' => 'apSell',
+    _ => 'apHold',
+  };
 
   String _riskKey(String r) => switch (r) {
-        'low' => 'apLow',
-        'high' => 'apHigh',
-        _ => 'apMedium',
-      };
+    'low' => 'apLow',
+    'high' => 'apHigh',
+    _ => 'apMedium',
+  };
 
   String _horizonKey(String h) => switch (h) {
-        'short' => 'apShort',
-        'long' => 'apLong',
-        _ => 'apMediumTerm',
-      };
+    'short' => 'apShort',
+    'long' => 'apLong',
+    _ => 'apMediumTerm',
+  };
 
   Color _signalColor(String s) => switch (s) {
-        'buy' => AppColors.upColor,
-        'sell' => AppColors.downColor,
-        _ => AppColors.warningYellow,
-      };
+    'buy' => AppColors.upColor,
+    'sell' => AppColors.downColor,
+    _ => AppColors.warningYellow,
+  };
 
   Color _riskColor(String r) => switch (r) {
-        'low' => AppColors.upColor,
-        'high' => AppColors.downColor,
-        _ => AppColors.warningYellow,
-      };
+    'low' => AppColors.upColor,
+    'high' => AppColors.downColor,
+    _ => AppColors.warningYellow,
+  };
 }

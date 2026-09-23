@@ -57,15 +57,15 @@ class BookLibraryService {
           'The foundational text on fundamental analysis of securities.',
       category: 'analysis',
       pages: 770,
-      pdfUrl: 'https://archive.org/download/securityanalysis00grahuoft/securityanalysis00grahuoft.pdf',
+      pdfUrl:
+          'https://archive.org/download/securityanalysis00grahuoft/securityanalysis00grahuoft.pdf',
       accent: 1,
     ),
     BookItem(
       id: 'common-stocks',
       title: 'Common Stocks and Uncommon Profits',
       author: 'Philip A. Fisher',
-      description:
-          'Growth-investing classic on qualitative company analysis.',
+      description: 'Growth-investing classic on qualitative company analysis.',
       category: 'invest',
       pages: 220,
       pdfUrl:
@@ -76,8 +76,7 @@ class BookLibraryService {
       id: 'psychology-of-money',
       title: 'The Psychology of Money',
       author: 'Morgan Housel',
-      description:
-          'Timeless lessons on wealth, greed and happiness.',
+      description: 'Timeless lessons on wealth, greed and happiness.',
       category: 'mindset',
       pages: 250,
       pdfUrl:
@@ -88,8 +87,7 @@ class BookLibraryService {
       id: 'handbook-ml',
       title: 'An Introduction to Statistical Learning',
       author: 'James, Witten, Hastie, Tibshirani',
-      description:
-          'Practical machine-learning methods for data analysis.',
+      description: 'Practical machine-learning methods for data analysis.',
       category: 'ai',
       pages: 607,
       pdfUrl: 'https://www.statlearning.com/s/ISLRSeventhPrinting.pdf',
@@ -110,8 +108,7 @@ class BookLibraryService {
       id: 'technical-analysis',
       title: 'Technical Analysis of the Financial Markets',
       author: 'John J. Murphy',
-      description:
-          'A complete guide to trading methods and market indicators.',
+      description: 'A complete guide to trading methods and market indicators.',
       category: 'analysis',
       pages: 576,
       pdfUrl:
@@ -146,8 +143,7 @@ class BookLibraryService {
       id: 'python-data-science',
       title: 'Python for Data Analysis',
       author: 'Wes McKinney',
-      description:
-          'Data wrangling with pandas, NumPy and Jupyter.',
+      description: 'Data wrangling with pandas, NumPy and Jupyter.',
       category: 'ai',
       pages: 550,
       pdfUrl:
@@ -158,8 +154,7 @@ class BookLibraryService {
       id: 'black-swan',
       title: 'The Black Swan',
       author: 'Nassim Nicholas Taleb',
-      description:
-          'The impact of the highly improbable on markets and life.',
+      description: 'The impact of the highly improbable on markets and life.',
       category: 'mindset',
       pages: 444,
       pdfUrl:
@@ -170,8 +165,7 @@ class BookLibraryService {
       id: 'one-up-wall-street',
       title: 'One Up On Wall Street',
       author: 'Peter Lynch',
-      description:
-          'How everyday investors can beat the professionals.',
+      description: 'How everyday investors can beat the professionals.',
       category: 'invest',
       pages: 304,
       pdfUrl:
@@ -191,9 +185,11 @@ class BookLibraryService {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return books;
     return books
-        .where((b) =>
-            b.title.toLowerCase().contains(q) ||
-            b.author.toLowerCase().contains(q))
+        .where(
+          (b) =>
+              b.title.toLowerCase().contains(q) ||
+              b.author.toLowerCase().contains(q),
+        )
         .toList();
   }
 }

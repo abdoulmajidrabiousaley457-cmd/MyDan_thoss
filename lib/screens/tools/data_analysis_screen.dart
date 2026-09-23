@@ -5,7 +5,9 @@ import '../../l10n/app_strings.dart';
 import '../../services/action_plan_service.dart';
 import '../../services/data_analysis_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/stock_action_plan_card.dart';
+import '../../widgets/tool_logo.dart';
 
 class DataAnalysisScreen extends StatefulWidget {
   const DataAnalysisScreen({super.key});
@@ -58,7 +60,14 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
     final t = context.tr;
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['dataAnalysisTitle'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['dataAnalysisTitle'],
+          logoAsset: ToolLogos.data,
+          logoFallbackIcon: Icons.insights,
+          logoGradient: AppColors.toolTeal,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -74,22 +83,33 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
               else if (_stats != null) ...[
                 _buildTrendCard(t),
                 const SizedBox(height: 20),
-                Text(t['metrics'], style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  t['metrics'],
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 _buildMetricsGrid(t),
                 const SizedBox(height: 20),
-                Text(t['distribution'], style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  t['distribution'],
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 _buildHistogram(),
                 if (_stats!.outliers.isNotEmpty) ...[
                   const SizedBox(height: 20),
-                  Text(t['anomalies'], style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    t['anomalies'],
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   _buildOutliers(),
                 ],
                 const SizedBox(height: 24),
-                Text(t['apExamplePlans'],
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  t['apExamplePlans'],
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 StockActionPlanCard(plan: ActionPlanService.plans[1]),
               ],
@@ -117,7 +137,9 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
             maxLines: 3,
             keyboardType: TextInputType.multiline,
             style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
-            decoration: const InputDecoration(hintText: '120, 125, 118, 130 ...'),
+            decoration: const InputDecoration(
+              hintText: '120, 125, 118, 130 ...',
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -135,7 +157,10 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primaryGold,
                   side: const BorderSide(color: AppColors.primaryGold),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
                 ),
                 child: const Icon(Icons.refresh, size: 18),
               ),
@@ -151,20 +176,34 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
       t['trPerf']: const [120, 125, 118, 130, 128, 135, 140, 138, 145, 150],
       t['daTrend']: const [50, 55, 62, 70, 79, 89, 100, 112, 125, 139],
       t['daDist']: const [100, 100, 100, 100, 200, 100, 100, 50, 100, 100],
-      t['apPriceChart']: const [210.5, 218.2, 214.9, 222.6, 229.1, 225.4, 233.8],
+      t['apPriceChart']: const [
+        210.5,
+        218.2,
+        214.9,
+        222.6,
+        229.1,
+        225.4,
+        233.8,
+      ],
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(t['exampleTemplates'], style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          t['exampleTemplates'],
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: presets.entries.map((e) {
             return ActionChip(
-              avatar: const Icon(Icons.auto_awesome,
-                  size: 15, color: AppColors.greenPrimary),
+              avatar: const Icon(
+                Icons.auto_awesome,
+                size: 15,
+                color: AppColors.greenPrimary,
+              ),
               label: Text(e.key, style: const TextStyle(fontSize: 12)),
               backgroundColor: AppColors.backgroundSecondary,
               side: const BorderSide(color: AppColors.borderPrimary),
@@ -218,10 +257,15 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(t['trend'],
-                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text(
+                t['trend'],
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
@@ -232,14 +276,16 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
                       s.trendStrength > 0.15
                           ? Icons.trending_up
                           : s.trendStrength < -0.15
-                              ? Icons.trending_down
-                              : Icons.trending_flat,
+                          ? Icons.trending_down
+                          : Icons.trending_flat,
                       color: Colors.white,
                       size: 16,
                     ),
                     const SizedBox(width: 4),
-                    Text(t[_trendKey],
-                        style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    Text(
+                      t[_trendKey],
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
@@ -301,7 +347,10 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
             children: [
               Text(
                 item[0],
-                style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                style: const TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 11,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -383,7 +432,9 @@ class _DataAnalysisScreenState extends State<DataAnalysisScreen> {
       decoration: BoxDecoration(
         color: AppColors.accentOrange.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accentOrange.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: AppColors.accentOrange.withValues(alpha: 0.4),
+        ),
       ),
       child: Wrap(
         spacing: 8,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 
 class _Notif {
   final IconData icon;
@@ -90,13 +91,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
       appBar: AppBar(
-        title: Text(t['notifTitle']),
+        title: AppBarTitle(
+          t['notifTitle'],
+          logoFallbackIcon: Icons.notifications_none,
+        ),
         actions: [
           TextButton(
             onPressed: _markAllRead,
             style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: Text(t['notifMarkAllRead'],
-                style: const TextStyle(fontSize: 12)),
+            child: Text(
+              t['notifMarkAllRead'],
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -113,8 +119,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 padding: const EdgeInsets.only(top: 80),
                 child: Column(
                   children: [
-                    const Icon(Icons.notifications_none,
-                        size: 56, color: AppColors.textTertiary),
+                    const Icon(
+                      Icons.notifications_none,
+                      size: 56,
+                      color: AppColors.textTertiary,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       t['notifEmpty'],
@@ -156,7 +165,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             : AppColors.pastelGreen.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: n.read ? AppColors.borderPrimary : AppColors.greenPrimary.withValues(alpha: 0.4),
+          color: n.read
+              ? AppColors.borderPrimary
+              : AppColors.greenPrimary.withValues(alpha: 0.4),
         ),
       ),
       child: ListTile(
@@ -187,10 +198,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         trailing: Text(
           n.time,
-          style: const TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 10.5,
-          ),
+          style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
         ),
       ),
     );

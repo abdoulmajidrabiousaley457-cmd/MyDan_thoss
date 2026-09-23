@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/project_case_study_card.dart';
+import '../../widgets/tool_logo.dart';
 
 /// One line item of a financial statement.
 class _Line {
@@ -124,7 +126,14 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['financialReport'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['financialReport'],
+          logoAsset: ToolLogos.report,
+          logoFallbackIcon: Icons.receipt_long_outlined,
+          logoGradient: AppColors.toolBlue,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -146,7 +155,10 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
               const SizedBox(height: 18),
               _buildSummary(context, t, c),
               const SizedBox(height: 24),
-              Text(t['pcExample'], style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['pcExample'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               const ProjectCaseStudyCard(study: _caseStudy),
             ],
@@ -242,20 +254,25 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                 child: Text(
                   c.name,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(c.sector,
-                    style: const TextStyle(color: Colors.white, fontSize: 10.5)),
+                child: Text(
+                  c.sector,
+                  style: const TextStyle(color: Colors.white, fontSize: 10.5),
+                ),
               ),
             ],
           ),
@@ -329,9 +346,15 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
           gridData: const FlGridData(show: false),
           maxY: maxY,
           titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -340,7 +363,9 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                   child: Text(
                     c.years[v.toInt()],
                     style: const TextStyle(
-                        color: AppColors.textTertiary, fontSize: 11),
+                      color: AppColors.textTertiary,
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               ),
@@ -356,14 +381,16 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                   color: AppColors.accentPurple,
                   width: 16,
                   borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(4)),
+                    top: Radius.circular(4),
+                  ),
                 ),
                 BarChartRodData(
                   toY: net[i],
                   color: AppColors.greenPrimary,
                   width: 16,
                   borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(4)),
+                    top: Radius.circular(4),
+                  ),
                 ),
               ],
             );
@@ -389,19 +416,21 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
               children: [
                 const Expanded(
                   flex: 3,
-                  child: Text('',
-                      style: TextStyle(fontSize: 12)),
+                  child: Text('', style: TextStyle(fontSize: 12)),
                 ),
-                ...c.years.map((y) => Expanded(
-                      child: Text(
-                        y,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700),
+                ...c.years.map(
+                  (y) => Expanded(
+                    child: Text(
+                      y,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
                       ),
-                    )),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -415,19 +444,24 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
                     child: Text(
                       line.label,
                       style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600),
+                        color: AppColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                  ...line.values.map((v) => Expanded(
-                        child: Text(
-                          '\$${v.toStringAsFixed(1)}B',
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 12),
+                  ...line.values.map(
+                    (v) => Expanded(
+                      child: Text(
+                        '\$${v.toStringAsFixed(1)}B',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -457,17 +491,24 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(e.key,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: AppColors.textTertiary, fontSize: 11)),
+              Text(
+                e.key,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 11,
+                ),
+              ),
               const SizedBox(height: 5),
-              Text(e.value,
-                  style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                e.value,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         );
@@ -483,27 +524,38 @@ class _FinancialReportScreenState extends State<FinancialReportScreen> {
         color: AppColors.pastelIndigo,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-            color: AppColors.accentPurple.withValues(alpha: 0.3)),
+          color: AppColors.accentPurple.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.insights, color: AppColors.accentPurple, size: 18),
+              const Icon(
+                Icons.insights,
+                color: AppColors.accentPurple,
+                size: 18,
+              ),
               const SizedBox(width: 8),
-              Text(t['frAIInsight'],
-                  style: const TextStyle(
-                      color: AppColors.accentPurple,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                t['frAIInsight'],
+                style: const TextStyle(
+                  color: AppColors.accentPurple,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             c.summary,
             style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 12.5, height: 1.4),
+              color: AppColors.textSecondary,
+              fontSize: 12.5,
+              height: 1.4,
+            ),
           ),
         ],
       ),

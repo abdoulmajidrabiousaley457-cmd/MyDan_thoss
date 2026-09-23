@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/tool_catalog.dart';
 import '../../widgets/tool_logo.dart';
 import '../product/product_screen.dart';
@@ -37,10 +39,10 @@ class DiscoverScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['aiTools'])),
+      appBar: AppBar(title: AppBarTitle(t['aiTools'], subtitle: t['tagline'])),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(context.pagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -85,7 +87,10 @@ class DiscoverScreen extends StatelessWidget {
             semanticLabel: tool.title,
             size: 48,
           ),
-          title: Text(tool.title, style: Theme.of(context).textTheme.titleMedium),
+          title: Text(
+            tool.title,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
@@ -109,8 +114,9 @@ class DiscoverScreen extends StatelessWidget {
                   button: true,
                   label: '${t['exploreFeatures']} — ${tool.title}',
                   child: ElevatedButton.icon(
-                    onPressed: () => Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (_) => page)),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => page)),
                     icon: const Icon(Icons.open_in_new, size: 16),
                     label: Text(t['exploreFeatures']),
                     style: ElevatedButton.styleFrom(
@@ -191,8 +197,7 @@ class DiscoverScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.greenPrimary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),

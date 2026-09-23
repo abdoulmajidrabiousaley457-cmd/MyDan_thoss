@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/project_case_study_card.dart';
+import '../../widgets/tool_logo.dart';
 
 /// Valuation Calculator — an interactive DCF + multiple model with a worked
 /// "realised project" example.
@@ -14,8 +16,7 @@ class ValuationCalculatorScreen extends StatefulWidget {
       _ValuationCalculatorScreenState();
 }
 
-class _ValuationCalculatorScreenState
-    extends State<ValuationCalculatorScreen> {
+class _ValuationCalculatorScreenState extends State<ValuationCalculatorScreen> {
   // DCF inputs
   double _fcf = 5.0; // current free cash flow ($B)
   double _growth = 12; // annual FCF growth %
@@ -83,7 +84,14 @@ class _ValuationCalculatorScreenState
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPrimary,
-      appBar: AppBar(title: Text(t['valuationCalculator'])),
+      appBar: AppBar(
+        title: AppBarTitle(
+          t['valuationCalculator'],
+          logoAsset: ToolLogos.valuation,
+          logoFallbackIcon: Icons.calculate_outlined,
+          logoGradient: AppColors.toolViolet,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -96,8 +104,10 @@ class _ValuationCalculatorScreenState
               const SizedBox(height: 16),
               _buildInputs(context, t),
               const SizedBox(height: 24),
-              Text(t['pcExample'],
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                t['pcExample'],
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               const ProjectCaseStudyCard(study: _caseStudy),
             ],
@@ -195,9 +205,10 @@ class _ValuationCalculatorScreenState
               Text(
                 '${t['valIntrinsic']} · $_symbol',
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600),
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -205,9 +216,10 @@ class _ValuationCalculatorScreenState
           Text(
             '\$${iv.toStringAsFixed(2)}',
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 38,
-                fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 38,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -234,9 +246,10 @@ class _ValuationCalculatorScreenState
                   '${up >= 0 ? '+' : ''}${up.toStringAsFixed(1)}% '
                   '${up >= 0 ? t['valUndervalued'] : t['valOvervalued']}',
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -267,46 +280,88 @@ class _ValuationCalculatorScreenState
             children: [
               const Icon(Icons.tune, color: AppColors.accentTeal, size: 20),
               const SizedBox(width: 8),
-              Text(t['valAssumptions'],
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                t['valAssumptions'],
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ],
           ),
           const SizedBox(height: 8),
-          _slider(t['valFcf'], _fcf, 1, 150, (v) => setState(() => _fcf = v),
-              '\$${_fcf.toStringAsFixed(1)}B'),
-          _slider(t['valGrowth'], _growth, 0, 40,
-              (v) => setState(() => _growth = v), '${_growth.round()}%'),
-          _slider(t['valDiscount'], _discount, 5, 20,
-              (v) => setState(() => _discount = v),
-              '${_discount.toStringAsFixed(1)}%'),
-          _slider(t['valTerminal'], _terminal, 0, 6,
-              (v) => setState(() => _terminal = v),
-              '${_terminal.toStringAsFixed(1)}%'),
-          _slider(t['valYears'], _years.toDouble(), 3, 10,
-              (v) => setState(() => _years = v.round()), '$_years'),
+          _slider(
+            t['valFcf'],
+            _fcf,
+            1,
+            150,
+            (v) => setState(() => _fcf = v),
+            '\$${_fcf.toStringAsFixed(1)}B',
+          ),
+          _slider(
+            t['valGrowth'],
+            _growth,
+            0,
+            40,
+            (v) => setState(() => _growth = v),
+            '${_growth.round()}%',
+          ),
+          _slider(
+            t['valDiscount'],
+            _discount,
+            5,
+            20,
+            (v) => setState(() => _discount = v),
+            '${_discount.toStringAsFixed(1)}%',
+          ),
+          _slider(
+            t['valTerminal'],
+            _terminal,
+            0,
+            6,
+            (v) => setState(() => _terminal = v),
+            '${_terminal.toStringAsFixed(1)}%',
+          ),
+          _slider(
+            t['valYears'],
+            _years.toDouble(),
+            3,
+            10,
+            (v) => setState(() => _years = v.round()),
+            '$_years',
+          ),
         ],
       ),
     );
   }
 
-  Widget _slider(String label, double value, double min, double max,
-      ValueChanged<double> onChanged, String valueLabel) {
+  Widget _slider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+    String valueLabel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600)),
-            Text(valueLabel,
-                style: const TextStyle(
-                    color: AppColors.accentTeal,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              valueLabel,
+              style: const TextStyle(
+                color: AppColors.accentTeal,
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         SliderTheme(

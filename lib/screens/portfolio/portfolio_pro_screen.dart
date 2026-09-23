@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_logo.dart';
 
 /// Data Scientist professional portfolio for Rabiou Saley Abdoul Majid.
 class PortfolioProScreen extends StatelessWidget {
@@ -95,7 +96,7 @@ class PortfolioProScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
               children: [
-                const Icon(Icons.code, color: AppColors.primaryGold, size: 20),
+                const AppLogo(size: 30),
                 const SizedBox(width: 8),
                 const Text(
                   'RSAM · Portfolio',
@@ -107,7 +108,10 @@ class PortfolioProScreen extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.successGreen.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -222,7 +226,8 @@ class PortfolioProScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _launch(context, Uri.parse('mailto:$_email')),
+                    onPressed: () =>
+                        _launch(context, Uri.parse('mailto:$_email')),
                     icon: const Icon(Icons.mail_outline, size: 18),
                     label: Text(t['portfolioContactMe']),
                     style: OutlinedButton.styleFrom(
@@ -365,7 +370,10 @@ class PortfolioProScreen extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
@@ -420,10 +428,9 @@ class PortfolioProScreen extends StatelessWidget {
                 ),
               ),
             ),
-            ...entry.value.map((s) => _buildSkillBar(
-                  s[0] as String,
-                  s[1] as double,
-                )),
+            ...entry.value.map(
+              (s) => _buildSkillBar(s[0] as String, s[1] as double),
+            ),
             const SizedBox(height: 10),
           ];
         }).toList(),
@@ -582,8 +589,10 @@ class PortfolioProScreen extends StatelessWidget {
                 runSpacing: 6,
                 children: (p['tags'] as List<String>).map((tag) {
                   return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
@@ -884,10 +893,8 @@ class PortfolioProScreen extends StatelessWidget {
             icon: Icons.chat_bubble_outline,
             label: t['portfolioWhatsapp'],
             subtitle: '+227 96 49 99 06',
-            onTap: () => _launch(
-              context,
-              Uri.parse('https://wa.me/$_whatsapp'),
-            ),
+            onTap: () =>
+                _launch(context, Uri.parse('https://wa.me/$_whatsapp')),
           ),
           const SizedBox(height: 10),
           _contactTile(
