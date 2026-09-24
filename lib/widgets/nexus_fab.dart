@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import '../screens/ai_agent/ai_agent_screen.dart';
+import '../screens/ai_agent/nexus_chat_screen.dart';
 import '../theme/app_colors.dart';
 
 /// Nexus AI — interactive floating action button.
@@ -49,7 +49,7 @@ class _NexusFabState extends State<NexusFab>
     Navigator.of(
       context,
       rootNavigator: true,
-    ).push(MaterialPageRoute(builder: (_) => const AiAgentScreen()));
+    ).push(MaterialPageRoute(builder: (_) => const NexusChatScreen()));
   }
 
   @override
