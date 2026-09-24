@@ -86,6 +86,7 @@ class AppStrings {
       'aiAgentError': 'The AI agent could not be loaded here.',
       'aiAgentOpenBrowser': 'Open in browser',
       'aiAgentRetry': 'Retry',
+      'nexusAi': 'Nexus AI',
       // Home
       'marketOverview': 'Market Overview',
       'watchlist': 'My Watchlist',
@@ -537,6 +538,7 @@ class AppStrings {
       'aiAgentError': 'L\'agent IA n\'a pas pu être chargé ici.',
       'aiAgentOpenBrowser': 'Ouvrir dans le navigateur',
       'aiAgentRetry': 'Réessayer',
+      'nexusAi': 'Nexus AI',
       'marketOverview': 'Aperçu du marché',
       'watchlist': 'Ma liste de suivi',
       'aiPicksToday': 'Sélections IA du jour',
@@ -986,6 +988,7 @@ class AppStrings {
       'aiAgentError': 'تعذّر تحميل وكيل الذكاء الاصطناعي هنا.',
       'aiAgentOpenBrowser': 'فتح في المتصفح',
       'aiAgentRetry': 'إعادة المحاولة',
+      'nexusAi': 'Nexus AI',
       'marketOverview': 'نظرة عامة على السوق',
       'watchlist': 'قائمة المتابعة',
       'aiPicksToday': 'اختيارات الذكاء اليوم',

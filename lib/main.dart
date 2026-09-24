@@ -8,6 +8,7 @@ import 'providers/user_profile_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/app_drawer.dart';
 import 'widgets/main_nav_bar.dart';
+import 'widgets/nexus_fab.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/discover/discover_screen.dart';
 import 'screens/product/product_screen.dart';
@@ -123,7 +124,13 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+      body: Stack(
+        children: [
+          IndexedStack(index: _selectedIndex, children: _screens),
+          // Nexus AI — interactive floating button (bottom-right).
+          const NexusFab(bottomInset: 84),
+        ],
+      ),
       bottomNavigationBar: MainNavBar(
         selectedIndex: _selectedIndex,
         onSelected: _onItemTapped,
