@@ -1,5 +1,6 @@
-package com.marketmind.invest.flutter_app
+package com.globalinvestai.investment
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
