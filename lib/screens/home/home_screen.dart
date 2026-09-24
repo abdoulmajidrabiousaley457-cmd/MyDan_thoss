@@ -17,6 +17,7 @@ import '../tools/ai_stock_screener_screen.dart';
 import '../tools/financial_report_screen.dart';
 import '../tools/valuation_calculator_screen.dart';
 import '../tools/capital_flow_screen.dart';
+import '../ai_agent/ai_agent_screen.dart';
 import '../product/product_screen.dart';
 import '../settings/notifications_screen.dart';
 import '../library/library_screen.dart';
@@ -505,6 +506,7 @@ class HomeScreen extends StatelessWidget {
       'financialReport': const FinancialReportScreen(),
       'valuationCalculator': const ValuationCalculatorScreen(),
       'capitalFlow': const CapitalFlowScreen(),
+      'aiAgent': const AiAgentScreen(),
       'productCatalog': const ProductScreen(),
       'library': const LibraryScreen(),
     };
@@ -642,6 +644,14 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildQuickTools(BuildContext context, AppStrings t) {
     final items = <List<Object>>[
+      [
+        Icons.smart_toy_outlined,
+        AppColors.toolSky,
+        ToolLogos.aiAgent,
+        t['aiAgent'],
+        const AiAgentScreen(),
+        'aiAgent',
+      ],
       [
         Icons.currency_exchange,
         AppColors.toolGreen,

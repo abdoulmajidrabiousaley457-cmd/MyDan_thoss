@@ -15,6 +15,7 @@ import 'screens/portfolio/portfolio_pro_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/library/library_screen.dart';
 import 'screens/settings/security_privacy_screen.dart';
+import 'screens/ai_agent/ai_agent_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,6 +104,12 @@ class _MainScreenState extends State<MainScreen> {
         selectedIndex: _selectedIndex,
         onSelectTab: _onItemTapped,
         extras: [
+          DrawerDestination(
+            icon: Icons.smart_toy_outlined,
+            label: t['aiAgent'],
+            subtitle: t['aiAgentDesc'],
+            builder: () => const AiAgentScreen(),
+          ),
           DrawerDestination(
             icon: Icons.library_books,
             label: t['libraryTitle'],

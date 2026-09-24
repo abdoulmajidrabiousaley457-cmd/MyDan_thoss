@@ -326,6 +326,41 @@ class ToolCatalog {
         examples: [t['prodExample1'], t['prodExample2'], t['prodExample3']],
       ),
       ToolDef(
+        key: 'aiAgent',
+        icon: Icons.smart_toy_outlined,
+        logoAsset: ToolLogos.aiAgent,
+        gradient: AppColors.toolSky,
+        title: t['aiAgent'],
+        description: t['aiAgentDesc'],
+        options: [
+          ToolOption(
+            Icons.chat_bubble_outline,
+            AppColors.accentBlue,
+            t['aiAgentOpen'],
+            t['aiAgentDesc'],
+          ),
+          ToolOption(
+            Icons.auto_awesome,
+            AppColors.accentPurple,
+            t['scrAI'],
+            t['aiAgentDesc'],
+          ),
+          ToolOption(
+            Icons.insights,
+            AppColors.greenPrimary,
+            t['dataAnalysis'],
+            t['aiAgentDesc'],
+          ),
+          ToolOption(
+            Icons.open_in_new,
+            AppColors.accentTeal,
+            t['aiAgentOpenBrowser'],
+            t['aiAgentDesc'],
+          ),
+        ],
+        examples: [t['aiAgentDesc'], t['tagline'], t['aiAgentOpen']],
+      ),
+      ToolDef(
         key: 'library',
         icon: Icons.library_books_outlined,
         logoAsset: ToolLogos.library,

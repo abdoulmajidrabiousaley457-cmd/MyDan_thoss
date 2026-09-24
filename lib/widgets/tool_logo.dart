@@ -19,6 +19,7 @@ class ToolLogos {
   static const String flow = 'assets/tool_logos/flow.png';
   static const String product = 'assets/tool_logos/product.png';
   static const String library = 'assets/tool_logos/library.png';
+  static const String aiAgent = 'assets/tool_logos/ai_agent.png';
 
   /// Absolute references (the online sources these assets were curated from).
   static const Map<String, String> remoteReferences = {

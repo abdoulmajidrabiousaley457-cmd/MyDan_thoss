@@ -38,6 +38,9 @@ dependencies:
   # Deep links (tel / mailto / whatsapp / social) for direct contact
   url_launcher: 6.3.1
 
+  # Embedded AI agent web app (WebView on Android/iOS)
+  webview_flutter: 4.13.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

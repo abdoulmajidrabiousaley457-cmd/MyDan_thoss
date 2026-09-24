@@ -15,6 +15,7 @@ import '../tools/ai_stock_screener_screen.dart';
 import '../tools/financial_report_screen.dart';
 import '../tools/valuation_calculator_screen.dart';
 import '../tools/capital_flow_screen.dart';
+import '../ai_agent/ai_agent_screen.dart';
 
 class DiscoverScreen extends StatelessWidget {
   const DiscoverScreen({super.key});
@@ -33,6 +34,7 @@ class DiscoverScreen extends StatelessWidget {
       'financialReport': const FinancialReportScreen(),
       'valuationCalculator': const ValuationCalculatorScreen(),
       'capitalFlow': const CapitalFlowScreen(),
+      'aiAgent': const AiAgentScreen(),
       'productCatalog': const ProductScreen(),
       'library': const LibraryScreen(),
     };
