@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -5,20 +6,37 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/responsive.dart';
 
-/// Data Scientist professional portfolio for Rabiou Saley Abdoul Majid.
+/// My_danthoss — private investment cabinet portfolio.
+///
+/// Turns the personal CV-style portfolio into the **firm's** portfolio:
+/// strategic allocation, investment pillars, governance limits, an equity
+/// curve and the cabinet's mandates / contact channels.
 class PortfolioProScreen extends StatelessWidget {
   const PortfolioProScreen({super.key});
 
-  // ---- Direct contact details ----
+  // ---- Cabinet contact details ----
   static const String _email = 'contact@mydanthoss.com';
   static const String _phone = '+22796499906';
   static const String _whatsapp = '22796499906';
-  static const String _linkedin =
-      'https://www.linkedin.com/in/rabiou-saley-abdoul-majid-b1746b425';
-  static const String _github =
-      'https://github.com/abdoulmajidrabiousaley457-cmd';
-  static const String _twitter = 'https://x.com/RabiousaleyM';
+  static const String _linkedin = 'https://www.linkedin.com/company/mydanthoss';
+  static const String _github = 'https://github.com/abdoulmajidrabiousaley457-cmd';
+  static const String _x = 'https://x.com/RabiousaleyM';
+
+  // ---- Strategic allocation (matches the agent's treasury model) ----
+  static const List<_AllocSlice> _allocation = [
+    _AllocSlice('pfPilCore', 0.525, Color(0xFF16A34A)),
+    _AllocSlice('pfPilTreasury', 0.272, Color(0xFF0284C7)),
+    _AllocSlice('pfPilFx', 0.109, Color(0xFFF59E0B)),
+    _AllocSlice('pfPilGrowth', 0.094, Color(0xFF7C3AED)),
+  ];
+
+  // ---- 12-month equity curve (normalised index, base 100) ----
+  static const List<double> _equity = [
+    100, 101.4, 100.2, 103.6, 105.1, 104.2,
+    107.8, 110.3, 109.1, 112.6, 115.4, 118.9,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -27,93 +45,102 @@ class PortfolioProScreen extends StatelessWidget {
       backgroundColor: AppColors.backgroundPrimary,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHero(context, t),
-              const SizedBox(height: 20),
-              _buildStats(context, t),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioAbout']),
-              _buildAbout(context),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioSkills']),
-              _buildSkills(context),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioProjects']),
-              _buildProjects(context),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioExperience']),
-              _buildExperience(context),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioEducation']),
-              _buildEducation(context, t),
-              const SizedBox(height: 24),
-              _buildSectionTitle(context, t['portfolioContact']),
-              _buildContact(context, t),
-              const SizedBox(height: 32),
-            ],
+          child: ResponsiveCenter(
+            maxWidth: 760,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHero(context, t),
+                const SizedBox(height: 20),
+                _buildStats(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfPerformance']),
+                _buildEquityChart(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfAllocation']),
+                _buildAllocation(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfPillars']),
+                _buildPillars(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfServices']),
+                _buildServices(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfGovernance']),
+                _buildGovernance(context, t),
+                const SizedBox(height: 24),
+                _sectionTitle(context, t['pfContactTitle']),
+                _buildContact(context, t),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  // ---------------------------------------------------------------- section
+
+  Widget _sectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: EdgeInsets.fromLTRB(context.pagePadding, 0, context.pagePadding, 12),
       child: Row(
         children: [
           Container(
             width: 4,
             height: 20,
             decoration: BoxDecoration(
-              gradient: AppColors.goldGradient,
+              gradient: AppColors.greenGradient,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(width: 10),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+          ),
         ],
       ),
     );
   }
+
+  // ------------------------------------------------------------------- hero
 
   Widget _buildHero(BuildContext context, AppStrings t) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1F2937), Color(0xFF111827)],
+          colors: [Color(0xFF0F2A1D), Color(0xFF123B27), Color(0xFF0B1F16)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Column(
         children: [
-          // Top bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
               children: [
                 const AppLogo(size: 30),
                 const SizedBox(width: 8),
-                const Text(
-                  'RSAM · Portfolio',
-                  style: TextStyle(
-                    color: AppColors.primaryGold,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                Flexible(
+                  child: Text(
+                    t['appName'].toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      letterSpacing: 1.2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: AppColors.successGreen.withValues(alpha: 0.2),
+                    color: AppColors.successGreen.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: AppColors.successGreen.withValues(alpha: 0.5),
@@ -125,17 +152,17 @@ class PortfolioProScreen extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: AppColors.successGreen,
+                          color: AppColors.greenAccent,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 6),
                       const Text(
-                        'Available',
+                        'AUM 16.4M\u20AC',
                         style: TextStyle(
-                          color: AppColors.successGreen,
+                          color: AppColors.greenAccent,
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -144,54 +171,43 @@ class PortfolioProScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          // Avatar
+          const SizedBox(height: 22),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: AppColors.goldGradient,
+              gradient: AppColors.greenGradient,
             ),
             child: const CircleAvatar(
-              radius: 52,
-              backgroundColor: AppColors.backgroundTertiary,
-              child: Text(
-                'RS',
-                style: TextStyle(
-                  color: AppColors.primaryGold,
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
+              radius: 48,
+              backgroundColor: Color(0xFF0F2A1D),
+              child: Icon(
+                Icons.account_balance_rounded,
+                color: AppColors.greenAccent,
+                size: 42,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Rabiou Saley Abdoul Majid',
+          Text(
+            t['pfCabinet'],
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 23,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            t['portfolioProRole'],
-            style: const TextStyle(
-              color: AppColors.primaryGold,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              t['pfSubtitle'],
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white60, fontSize: 12.5),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            t['portfolioProHeadline'],
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white60, fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-          // Tech badges
+          const SizedBox(height: 14),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
@@ -199,37 +215,30 @@ class PortfolioProScreen extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                'Python',
-                'TensorFlow',
-                'PyTorch',
-                'Scikit-learn',
-                'SQL',
-                'Power BI',
-                'RAG & LLM',
-                'Docker',
+                '${t['pfFounded']} 2021',
+                '${t['pfHq']}: Niamey · Genève',
+                'FR · EN · AR',
               ].map((s) => _badge(s)).toList(),
             ),
           ),
           const SizedBox(height: 20),
-          // Buttons
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _scrollHint(context),
-                    icon: const Icon(Icons.folder_open, size: 18),
-                    label: Text(t['portfolioViewProjects']),
+                    onPressed: () => _scrollHint(context, t['pfViewAllocation']),
+                    icon: const Icon(Icons.pie_chart_outline, size: 18),
+                    label: Text(t['pfViewAllocation']),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () =>
-                        _launch(context, Uri.parse('mailto:$_email')),
+                    onPressed: () => _launch(context, Uri.parse('mailto:$_email')),
                     icon: const Icon(Icons.mail_outline, size: 18),
-                    label: Text(t['portfolioContactMe']),
+                    label: Text(t['pfTalkAdvisors']),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white38),
@@ -264,25 +273,27 @@ class PortfolioProScreen extends StatelessWidget {
     );
   }
 
+  // ------------------------------------------------------------------ stats
+
   Widget _buildStats(BuildContext context, AppStrings t) {
     final stats = [
-      ['5+', t['portfolioYearsExp']],
-      ['12+', t['portfolioModels']],
-      ['96%', t['portfolioAccuracy']],
-      ['8+', t['portfolioCompanies']],
+      ['16.4M\u20AC', t['pfNav']],
+      ['+18.9%', t['pfYtd']],
+      ['1.92', t['pfSharpe']],
+      ['34', t['pfMandates']],
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
       child: GridView.count(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
+        crossAxisCount: context.screenWidth < 360 ? 2 : 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 2.4,
+        childAspectRatio: context.screenWidth < 360 ? 1.9 : 1.15,
         children: stats.map((s) {
           return Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.backgroundTertiary,
               borderRadius: BorderRadius.circular(14),
@@ -292,22 +303,26 @@ class PortfolioProScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  s[0],
-                  style: const TextStyle(
-                    color: AppColors.primaryGold,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    s[0],
+                    style: const TextStyle(
+                      color: AppColors.greenPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   s[1],
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 11,
+                    fontSize: 10.5,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -318,478 +333,257 @@ class PortfolioProScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAbout(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundTertiary,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Data Scientist basé à Niamey, Niger, avec plus de 5 ans '
-            'd\'expérience en Machine Learning, NLP et Data Visualisation. '
-            'Passionné par la conception de modèles prédictifs fiables et '
-            'd\'agents intelligents créateurs de valeur.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _chip(Icons.school_outlined, 'Master Big Data & IA'),
-              _chip(Icons.workspace_premium_outlined, 'Google Certified'),
-              _chip(Icons.public, 'Niamey, Niger'),
-              _chip(Icons.laptop_mac, 'Remote worldwide'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // ----------------------------------------------------------- equity chart
 
-  Widget _chip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundElevated,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: AppColors.primaryGold, size: 14),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSkills(BuildContext context) {
-    final groups = <String, List<List<Object>>>{
-      'Langages & Données': [
-        ['Python (NumPy, Pandas, SciPy)', 0.96],
-        ['SQL (PostgreSQL, BigQuery)', 0.92],
-        ['R & Statistiques Appliquées', 0.80],
-      ],
-      'Machine Learning & Deep Learning': [
-        ['Scikit-learn, XGBoost, LightGBM', 0.95],
-        ['TensorFlow & Keras (Google)', 0.88],
-        ['PyTorch & Deep Neural Networks', 0.82],
-        ['NLP, Transformers & RAG (BERT)', 0.90],
-      ],
-      'Data Visualisation & BI': [
-        ['Power BI (DAX, Power Query)', 0.90],
-        ['Matplotlib, Seaborn, Plotly', 0.94],
-        ['D3.js & Dashboards Web', 0.75],
-      ],
-      'Data Engineering & MLOps': [
-        ['Docker & Containerisation', 0.85],
-        ['Kafka & Airflow', 0.80],
-        ['Google Cloud Platform', 0.86],
-        ['Git, CI/CD & MLOps (MLflow)', 0.88],
-      ],
-    };
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundTertiary,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: groups.entries.expand((entry) {
-          return [
-            Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 10),
-              child: Text(
-                entry.key,
-                style: const TextStyle(
-                  color: AppColors.primaryGold,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            ...entry.value.map(
-              (s) => _buildSkillBar(s[0] as String, s[1] as double),
-            ),
-            const SizedBox(height: 10),
-          ];
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildSkillBar(String label, double value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '${(value * 100).round()}%',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: value,
-              minHeight: 6,
-              backgroundColor: AppColors.backgroundElevated,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.primaryGold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProjects(BuildContext context) {
-    final projects = [
-      {
-        'icon': Icons.person_remove_outlined,
-        'title': 'Prédiction du Churn Client',
-        'desc':
-            'Modèle de classification (Random Forest & XGBoost) prédisant la résiliation client avec 96% de précision pour un opérateur télécom.',
-        'tags': ['Python', 'Scikit-learn', 'XGBoost'],
-        'color': AppColors.accentBlue,
-      },
-      {
-        'icon': Icons.timeline,
-        'title': 'Prévision des Ventes (Séries Temporelles)',
-        'desc':
-            'Modèle Prophet & LSTM pour anticiper la demande produit sur 12 mois, réduisant les ruptures de stock de 30%.',
-        'tags': ['Prophet', 'LSTM', 'PyTorch'],
-        'color': AppColors.accentPurple,
-      },
-      {
-        'icon': Icons.sentiment_satisfied_alt,
-        'title': 'Analyse de Sentiment — Avis Clients',
-        'desc':
-            'Pipeline NLP basé sur BERT pour classifier automatiquement des milliers d\'avis clients et détecter les signaux négatifs.',
-        'tags': ['BERT', 'NLP', 'HuggingFace'],
-        'color': AppColors.accentTeal,
-      },
-      {
-        'icon': Icons.dashboard_outlined,
-        'title': 'Dashboard Interactif COVID-19',
-        'desc':
-            'Tableau de bord Power BI en temps réel suivant la propagation et l\'impact sanitaire à l\'échelle régionale.',
-        'tags': ['Power BI', 'SQL', 'DAX'],
-        'color': AppColors.accentOrange,
-      },
-      {
-        'icon': Icons.gpp_maybe_outlined,
-        'title': 'Détection de Fraude Bancaire',
-        'desc':
-            'Système de détection d\'anomalies en temps réel combinant Isolation Forest et réseaux de neurones.',
-        'tags': ['Isolation Forest', 'Keras', 'Kafka'],
-        'color': AppColors.upColor,
-      },
-      {
-        'icon': Icons.smart_toy_outlined,
-        'title': 'Chatbot Support Client (LLM + RAG)',
-        'desc':
-            'Assistant conversationnel basé sur des modèles de langage et le RAG pour automatiser 60% des requêtes support.',
-        'tags': ['LLM', 'RAG', 'LangChain', 'FastAPI'],
-        'color': AppColors.primaryGold,
-      },
+  Widget _buildEquityChart(BuildContext context, AppStrings t) {
+    final spots = <FlSpot>[
+      for (int i = 0; i < _equity.length; i++) FlSpot(i.toDouble(), _equity[i]),
     ];
-
-    return Column(
-      children: projects.map((p) {
-        final color = p['color'] as Color;
-        return Container(
-          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.backgroundTertiary,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withValues(alpha: 0.25)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: context.pagePadding),
+      padding: const EdgeInsets.fromLTRB(8, 18, 18, 8),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderPrimary),
+      ),
+      child: SizedBox(
+        height: 190,
+        child: LineChart(
+          LineChartData(
+            minY: 96,
+            maxY: 122,
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: 6,
+              getDrawingHorizontalLine: (v) =>
+                  const FlLine(color: AppColors.divider, strokeWidth: 1),
+            ),
+            titlesData: FlTitlesData(
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 34,
+                  interval: 6,
+                  getTitlesWidget: (v, meta) => Text(
+                    v.toInt().toString(),
+                    style: const TextStyle(
+                      color: AppColors.textTertiary,
+                      fontSize: 10,
                     ),
-                    child: Icon(p['icon'] as IconData, color: color, size: 22),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      p['title'] as String,
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  interval: 2,
+                  getTitlesWidget: (v, meta) {
+                    const labels = [
+                      'J', 'F', 'M', 'A', 'M', 'J',
+                      'J', 'A', 'S', 'O', 'N', 'D',
+                    ];
+                    final i = v.toInt();
+                    if (i < 0 || i >= labels.length) return const SizedBox();
+                    return Text(
+                      labels[i],
                       style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 10,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            lineTouchData: const LineTouchData(enabled: false),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                color: AppColors.greenPrimary,
+                barWidth: 3,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.greenPrimary.withValues(alpha: 0.28),
+                      AppColors.greenPrimary.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // -------------------------------------------------------- allocation pie
+
+  Widget _buildAllocation(BuildContext context, AppStrings t) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: context.pagePadding),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderPrimary),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth > 420;
+          final chart = SizedBox(
+            width: 150,
+            height: 150,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 2,
+                    centerSpaceRadius: 42,
+                    startDegreeOffset: -90,
+                    sections: _allocation
+                        .map(
+                          (s) => PieChartSectionData(
+                            value: s.weight * 100,
+                            color: s.color,
+                            radius: 22,
+                            showTitle: false,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '100%',
+                      style: TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 14.5,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                p['desc'] as String,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12.5,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: (p['tags'] as List<String>).map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
+                    Text(
+                      t['pfDeployed'],
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 9.5,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildExperience(BuildContext context) {
-    final jobs = [
-      {
-        'period': '2022 — Présent',
-        'company': 'NexaData Analytics',
-        'role': 'Data Scientist Senior',
-        'points': [
-          'Système de détection de fraude : 300 000 €/an économisés.',
-          'Encadrement de 3 data analysts + pratiques MLOps.',
-          'Modèle de prévision des ventes : -30% de ruptures de stock.',
-        ],
-      },
-      {
-        'period': '2020 — 2022',
-        'company': 'FinTech Solutions',
-        'role': 'Data Analyst',
-        'points': [
-          'Dashboards Power BI de suivi financier en temps réel.',
-          'Automatisation des reportings : -70% de temps de traitement.',
-          'Segmentation clients (K-Means) et optimisation des KPIs.',
-        ],
-      },
-      {
-        'period': '2019 — 2020',
-        'company': 'RetailPlus',
-        'role': 'Stagiaire Data Analyst',
-        'points': [
-          'Segmentation clientèle RFM (Récence, Fréquence, Montant).',
-          'Prototype de prévision de la demande saisonnière.',
-        ],
-      },
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: List.generate(jobs.length, (i) {
-          final job = jobs[i];
-          final isLast = i == jobs.length - 1;
-          return IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Timeline
-                Column(
-                  children: [
-                    Container(
-                      width: 14,
-                      height: 14,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryGold,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    if (!isLast)
-                      Expanded(
-                        child: Container(
-                          width: 2,
-                          color: AppColors.borderPrimary,
-                        ),
-                      ),
                   ],
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          job['period'] as String,
-                          style: const TextStyle(
-                            color: AppColors.primaryGold,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          job['role'] as String,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          job['company'] as String,
-                          style: const TextStyle(
-                            color: AppColors.accentBlue,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ...(job['points'] as List<String>).map(
-                          (pt) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.only(top: 6),
-                                  child: Icon(
-                                    Icons.circle,
-                                    size: 4,
-                                    color: AppColors.textTertiary,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    pt,
-                                    style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12.5,
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),
           );
-        }),
+          final legend = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: _allocation
+                .map((s) => _legendRow(t, s))
+                .toList(),
+          );
+          if (!wide) {
+            return Column(
+              children: [
+                chart,
+                const SizedBox(height: 16),
+                legend,
+              ],
+            );
+          }
+          return Row(
+            children: [
+              chart,
+              const SizedBox(width: 24),
+              Expanded(child: legend),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildEducation(BuildContext context, AppStrings t) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
+  Widget _legendRow(AppStrings t, _AllocSlice s) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
         children: [
-          _buildEduCard(
-            icon: Icons.school_outlined,
-            period: '2018 — 2020',
-            title: t['portfolioMasterTitle'],
-            subtitle: t['portfolioMasterSchool'],
-            color: AppColors.accentPurple,
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: s.color,
+              borderRadius: BorderRadius.circular(3),
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildEduCard(
-            icon: Icons.workspace_premium_outlined,
-            period: '2021 — 2022',
-            title: t['portfolioCertTitle'],
-            subtitle:
-                'TensorFlow Developer · GCP Professional Data Engineer · DeepLearning.AI',
-            color: AppColors.primaryGold,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              t[s.key],
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            '${(s.weight * 100).toStringAsFixed(1)}%',
+            style: TextStyle(
+              color: s.color,
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEduCard({
-    required IconData icon,
-    required String period,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
+  // ---------------------------------------------------------------- pillars
+
+  Widget _buildPillars(BuildContext context, AppStrings t) {
+    final pillars = [
+      _Pillar('pfPilCore', 'pfPilCoreD', Icons.trending_up, _allocation[0].color, '52.5%'),
+      _Pillar('pfPilTreasury', 'pfPilTreasuryD', Icons.account_balance,
+          _allocation[1].color, '27.2%'),
+      _Pillar('pfPilFx', 'pfPilFxD', Icons.currency_exchange,
+          _allocation[2].color, '10.9%'),
+      _Pillar('pfPilGrowth', 'pfPilGrowthD', Icons.rocket_launch,
+          _allocation[3].color, '9.4%'),
+    ];
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+      child: Column(
+        children: pillars.map((p) => _pillarCard(t, p)).toList(),
+      ),
+    );
+  }
+
+  Widget _pillarCard(AppStrings t, _Pillar p) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.backgroundTertiary,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: p.color.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -797,39 +591,45 @@ class PortfolioProScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: p.color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(p.icon, color: p.color, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  period,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t[p.titleKey],
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      p.weight,
+                      style: TextStyle(
+                        color: p.color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
+                  t[p.descKey],
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12,
+                    fontSize: 12.5,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -840,12 +640,148 @@ class PortfolioProScreen extends StatelessWidget {
     );
   }
 
+  // --------------------------------------------------------------- services
+
+  Widget _buildServices(BuildContext context, AppStrings t) {
+    final services = [
+      _Service('pfDiscretionary', 'pfDiscretionaryD', Icons.assignment_ind_outlined,
+          AppColors.greenPrimary),
+      _Service('pfAdvisory', 'pfAdvisoryD', Icons.insights_outlined,
+          AppColors.accentBlue),
+      _Service('pfFxOverlay', 'pfFxOverlayD', Icons.shield_outlined,
+          AppColors.accentOrange),
+      _Service('pfReporting', 'pfReportingD', Icons.description_outlined,
+          AppColors.accentPurple),
+    ];
+    final twoCol = context.screenWidth >= 620;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+      child: twoCol
+          ? GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.55,
+              children: services.map((s) => _serviceCard(t, s)).toList(),
+            )
+          : Column(
+              children: services
+                  .map((s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _serviceCard(t, s),
+                      ))
+                  .toList(),
+            ),
+    );
+  }
+
+  Widget _serviceCard(AppStrings t, _Service s) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderPrimary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: s.color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(s.icon, color: s.color, size: 20),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            t[s.titleKey],
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t[s.descKey],
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11.5,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ------------------------------------------------------------- governance
+
+  Widget _buildGovernance(BuildContext context, AppStrings t) {
+    final rows = [
+      [t['pfGovIssuer'], t['pfGovIssuerV']],
+      [t['pfGovLiquidity'], t['pfGovLiquidityV']],
+      [t['pfGovDuration'], t['pfGovDurationV']],
+      [t['pfGovVar'], t['pfGovVarV']],
+    ];
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: context.pagePadding),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderPrimary),
+      ),
+      child: Column(
+        children: rows.map((r) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.verified_user_outlined,
+                  color: AppColors.greenPrimary,
+                  size: 16,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    r[0],
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+                Text(
+                  r[1],
+                  style: const TextStyle(
+                    color: AppColors.greenDark,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- contact
+
   Widget _buildContact(BuildContext context, AppStrings t) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: context.pagePadding),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppColors.bluePurpleGradient,
+        gradient: AppColors.greenGradient,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -855,12 +791,14 @@ class PortfolioProScreen extends StatelessWidget {
             children: [
               Icon(Icons.location_on_outlined, color: Colors.white, size: 18),
               SizedBox(width: 8),
-              Text(
-                'Niamey, Niger · Remote worldwide',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  'Niamey, Niger \u00b7 Gen\u00e8ve, Suisse',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -871,13 +809,12 @@ class PortfolioProScreen extends StatelessWidget {
               Icon(Icons.translate, color: Colors.white70, size: 18),
               SizedBox(width: 8),
               Text(
-                'Français · English · العربية',
+                'Fran\u00e7ais \u00b7 English \u00b7 \u0627\u0644\u0639\u0631\u0628\u064a\u0629',
                 style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          // ---- Direct contact channels (tap to open) ----
           Text(
             t['portfolioDirectContact'],
             style: const TextStyle(
@@ -893,8 +830,7 @@ class PortfolioProScreen extends StatelessWidget {
             icon: Icons.chat_bubble_outline,
             label: t['portfolioWhatsapp'],
             subtitle: '+227 96 49 99 06',
-            onTap: () =>
-                _launch(context, Uri.parse('https://wa.me/$_whatsapp')),
+            onTap: () => _launch(context, Uri.parse('https://wa.me/$_whatsapp')),
           ),
           const SizedBox(height: 10),
           _contactTile(
@@ -909,7 +845,7 @@ class PortfolioProScreen extends StatelessWidget {
             context,
             icon: Icons.business_center_outlined,
             label: t['portfolioLinkedin'],
-            subtitle: 'in/rabiou-saley-abdoul-majid',
+            subtitle: 'in/mydanthoss',
             onTap: () => _launch(context, Uri.parse(_linkedin)),
           ),
           const SizedBox(height: 10),
@@ -926,7 +862,7 @@ class PortfolioProScreen extends StatelessWidget {
             icon: Icons.alternate_email,
             label: t['portfolioTwitter'],
             subtitle: '@RabiousaleyM',
-            onTap: () => _launch(context, Uri.parse(_twitter)),
+            onTap: () => _launch(context, Uri.parse(_x)),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -935,7 +871,7 @@ class PortfolioProScreen extends StatelessWidget {
             label: const Text(_email),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: AppColors.accentBlue,
+              foregroundColor: AppColors.greenDark,
               minimumSize: const Size(double.infinity, 48),
             ),
           ),
@@ -956,7 +892,7 @@ class PortfolioProScreen extends StatelessWidget {
       label: label,
       hint: subtitle,
       child: Material(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           onTap: onTap,
@@ -1002,6 +938,8 @@ class PortfolioProScreen extends StatelessWidget {
     );
   }
 
+  // -------------------------------------------------------------- utilities
+
   Future<void> _launch(BuildContext context, Uri uri) async {
     try {
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -1034,12 +972,39 @@ class PortfolioProScreen extends StatelessWidget {
     );
   }
 
-  void _scrollHint(BuildContext context) {
+  void _scrollHint(BuildContext context, String label) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Scroll down to explore projects and experience.'),
+      SnackBar(
+        content: Text(label),
         backgroundColor: AppColors.backgroundElevated,
+        duration: const Duration(milliseconds: 1200),
       ),
     );
   }
+}
+
+// ------------------------------------------------------------------- models
+
+class _AllocSlice {
+  final String key;
+  final double weight;
+  final Color color;
+  const _AllocSlice(this.key, this.weight, this.color);
+}
+
+class _Pillar {
+  final String titleKey;
+  final String descKey;
+  final IconData icon;
+  final Color color;
+  final String weight;
+  const _Pillar(this.titleKey, this.descKey, this.icon, this.color, this.weight);
+}
+
+class _Service {
+  final String titleKey;
+  final String descKey;
+  final IconData icon;
+  final Color color;
+  const _Service(this.titleKey, this.descKey, this.icon, this.color);
 }

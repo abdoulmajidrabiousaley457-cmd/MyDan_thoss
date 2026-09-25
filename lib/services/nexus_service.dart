@@ -24,7 +24,7 @@ class NexusReply {
 /// Faithful Dart port of the official integration script:
 ///
 /// ```js
-/// fetch('https://ais-pre-ppxd6mc632ewh5fdsoivcx-207318041778.europe-west2.run.app/api/agent/chat', {
+/// fetch('https://omni-studio-abdoul.ai.studio/api/agent/chat', {
 ///   method: 'POST',
 ///   headers: { 'Content-Type': 'application/json' },
 ///   body: JSON.stringify({ message, activeTool, toolContext: { origin: 'Novita-Sandbox-5060' } })
@@ -33,9 +33,8 @@ class NexusReply {
 class NexusService {
   const NexusService._();
 
-  /// The hosted Nexus AI agent base URL.
-  static const String baseUrl =
-      'https://ais-pre-ppxd6mc632ewh5fdsoivcx-207318041778.europe-west2.run.app';
+  /// The hosted Nexus AI agent base URL (published Google AI Studio app).
+  static const String baseUrl = 'https://omni-studio-abdoul.ai.studio';
 
   static const String chatEndpoint = '$baseUrl/api/agent/chat';
 

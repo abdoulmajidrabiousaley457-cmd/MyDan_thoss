@@ -28,17 +28,28 @@ class _NexusChatScreenState extends State<NexusChatScreen> {
   final List<_Msg> _messages = [];
   bool _sending = false;
 
-  /// Tools the agent can be primed with (matches app tool keys).
+  /// Tools the agent can be primed with (matches the hosted agent's keys).
   static const List<String> _tools = [
-    'tracking',
+    'portfolio',
     'screener',
     'valuation',
+    'fx',
     'report',
     'flow',
-    'currency',
     'data',
   ];
-  String _activeTool = 'tracking';
+
+  /// Human-readable labels for the tool chips.
+  static const Map<String, String> _toolLabels = {
+    'portfolio': 'Portefeuille',
+    'screener': 'Screener',
+    'valuation': 'Valorisation',
+    'fx': 'Devises',
+    'report': 'Rapports',
+    'flow': 'Flux',
+    'data': 'Données',
+  };
+  String _activeTool = 'portfolio';
 
   @override
   void initState() {
@@ -166,12 +177,13 @@ class _NexusChatScreenState extends State<NexusChatScreen> {
               child: Row(
                 children: _tools.map((tool) {
                   final selected = tool == _activeTool;
+                  final label = _toolLabels[tool] ?? tool;
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: Semantics(
                       button: true,
                       selected: selected,
-                      label: tool,
+                      label: label,
                       child: GestureDetector(
                         onTap: () => setState(() => _activeTool = tool),
                         child: Container(
@@ -191,7 +203,7 @@ class _NexusChatScreenState extends State<NexusChatScreen> {
                             ),
                           ),
                           child: Text(
-                            tool,
+                            label,
                             style: TextStyle(
                               color: selected
                                   ? Colors.white

@@ -18,8 +18,7 @@ class AiAgentScreen extends StatefulWidget {
   const AiAgentScreen({super.key});
 
   /// The hosted AI agent (Google AI Studio) endpoint.
-  static const String agentUrl =
-      'https://ais-dev-ppxd6mc632ewh5fdsoivcx-207318041778.europe-west2.run.app';
+  static const String agentUrl = 'https://omni-studio-abdoul.ai.studio';
 
   @override
   State<AiAgentScreen> createState() => _AiAgentScreenState();
