@@ -1,6 +1,5 @@
-package com.globalinvestai.investment
+package com.globalworks.works
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
-
