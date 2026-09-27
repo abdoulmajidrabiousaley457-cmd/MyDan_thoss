@@ -33,7 +33,7 @@ dependencies:
   hive_flutter: 1.1.0
   
   # Utilities
-  intl: 0.20.2
+  intl: ^0.20.3
 
   # Deep links (tel / mailto / whatsapp / social) for direct contact
   url_launcher: 6.3.1

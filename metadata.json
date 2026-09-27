@@ -1,0 +1,7 @@
+{
+  "name": "My_danthoss",
+  "description": "Cabinet Rabiou Saley - Plateforme d'expertise Data Science & Agents IA en télétravail international, avec studio professionnel de création de CV & Lettres de motivation et abonnements d'accès aux outils pro.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
