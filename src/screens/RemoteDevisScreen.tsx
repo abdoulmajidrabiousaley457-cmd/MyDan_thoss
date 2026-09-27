@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CABINET_INFO, CABINET_SERVICES } from '../data/cabinetData';
+import { doc, setDoc } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../services/firebase';
 import { 
   Laptop, 
   Calculator, 
@@ -58,9 +60,39 @@ export const RemoteDevisScreen: React.FC = () => {
   const estimatedTotalEUR = Math.round(totalHours * effectiveHourlyRateEUR);
   const estimatedTotalXOF = Math.round(estimatedTotalEUR * 655.957);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+
+    const devisId = `devis_${Date.now()}`;
+    const devisData = {
+      id: devisId,
+      serviceId: selectedServiceId,
+      workFormat,
+      durationWeeks,
+      complexity,
+      clientName: clientName.trim(),
+      clientCompany: clientCompany.trim(),
+      clientEmail: clientEmail.trim(),
+      clientPhone: clientPhone.trim(),
+      projectDescription: projectDescription.trim(),
+      ndaRequested,
+      estimatedCostEUR: estimatedTotalEUR,
+      estimatedCostXOF: estimatedTotalXOF,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(doc(db, 'devisRequests', devisId), devisData);
+    } catch (err) {
+      console.warn('Firestore submission fallback:', err);
+    } finally {
+      setIsSubmitting(false);
+      setSubmitted(true);
+    }
   };
 
   return (

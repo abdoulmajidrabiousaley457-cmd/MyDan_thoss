@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, NotificationItem, CVData, CoverLetterData, SubscriptionTier, AppLanguage } from '../types';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
 
 export const initialCVData: CVData = {
   fullName: 'Rabiou Saley Abdoul Majid',
@@ -229,6 +232,11 @@ const defaultProfile: UserProfile = {
 
 interface UserProfileContextType {
   profile: UserProfile;
+  firebaseUser: User | null;
+  authLoading: boolean;
+  loginGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  saveCVToFirestore: (title?: string) => Promise<boolean>;
   notifications: NotificationItem[];
   unreadCount: number;
   cvData: CVData;
@@ -247,6 +255,9 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
 export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('danthoss_cabinet_profile');
     return saved ? JSON.parse(saved) : defaultProfile;
@@ -265,6 +276,101 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
   const [activeLanguage, setActiveLanguage] = useState<AppLanguage>('fr');
 
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
+      setAuthLoading(false);
+
+      if (user) {
+        // Sync or fetch profile from Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        try {
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setProfile((prev) => ({
+              ...prev,
+              name: data.name || user.displayName || prev.name,
+              email: data.email || user.email || prev.email,
+              tier: data.tier || (user.email === 'abdoulmajidrabiousaley457@gmail.com' ? 'vip_cabinet' : prev.tier),
+              role: data.role || prev.role,
+              country: data.country || prev.country
+            }));
+          } else {
+            // Create user document in Firestore
+            const initialDoc = {
+              id: user.uid,
+              name: user.displayName || profile.name,
+              email: user.email || profile.email,
+              tier: user.email === 'abdoulmajidrabiousaley457@gmail.com' ? 'vip_cabinet' : profile.tier,
+              role: profile.role,
+              country: profile.country,
+              updatedAt: new Date().toISOString()
+            };
+            await setDoc(userDocRef, initialDoc);
+          }
+        } catch (error) {
+          handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const loginGoogle = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      console.error('Login error:', err);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  const saveCVToFirestore = async (customTitle?: string): Promise<boolean> => {
+    if (!firebaseUser) {
+      alert('Veuillez vous connecter avec votre compte Google pour sauvegarder dans Firebase.');
+      return false;
+    }
+
+    const cvId = `cv_${Date.now()}`;
+    const cvDocRef = doc(db, 'users', firebaseUser.uid, 'savedCVs', cvId);
+    try {
+      await setDoc(cvDocRef, {
+        id: cvId,
+        userId: firebaseUser.uid,
+        title: customTitle || `${cvData.fullName} - ${cvData.jobTitle}`,
+        templateId: cvData.templateId,
+        accentColor: cvData.accentColor,
+        cvData: cvData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      const newNotif: NotificationItem = {
+        id: `cv_save_${Date.now()}`,
+        title: 'CV sauvegardé dans Firebase Cloud',
+        message: `Votre CV "${cvData.jobTitle}" a été synchronisé avec succès dans votre base de données.`,
+        time: 'À l\'instant',
+        category: 'career',
+        read: false
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}/savedCVs/${cvId}`);
+      return false;
+    }
+  };
+
   useEffect(() => {
     localStorage.setItem('danthoss_cabinet_profile', JSON.stringify(profile));
   }, [profile]);
@@ -279,8 +385,24 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const updateProfile = (partial: Partial<UserProfile>) => {
-    setProfile((prev) => ({ ...prev, ...partial }));
+  const updateProfile = async (partial: Partial<UserProfile>) => {
+    setProfile((prev) => {
+      const updated = { ...prev, ...partial };
+      if (firebaseUser) {
+        setDoc(doc(db, 'users', firebaseUser.uid), {
+          id: firebaseUser.uid,
+          name: updated.name,
+          email: updated.email,
+          tier: updated.tier,
+          role: updated.role,
+          country: updated.country,
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch((err) => {
+          handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`);
+        });
+      }
+      return updated;
+    });
   };
 
   const updateCVData = (partial: Partial<CVData>) => {
@@ -292,12 +414,24 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const upgradeSubscription = (tier: SubscriptionTier) => {
-    setProfile((prev) => ({
-      ...prev,
-      tier,
-      subscriptionEndDate: '2027-12-31'
-    }));
-    // Add success notification
+    setProfile((prev) => {
+      const updated = {
+        ...prev,
+        tier,
+        subscriptionEndDate: '2027-12-31'
+      };
+      if (firebaseUser) {
+        setDoc(doc(db, 'users', firebaseUser.uid), {
+          tier,
+          subscriptionEndDate: '2027-12-31',
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch((err) => {
+          handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`);
+        });
+      }
+      return updated;
+    });
+
     const newNotif: NotificationItem = {
       id: `sub_${Date.now()}`,
       title: `Abonnement ${tier === 'vip_cabinet' ? 'Cabinet VIP & Mentorat' : 'Plan Pro'} Activé !`,
@@ -328,6 +462,11 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     <UserProfileContext.Provider
       value={{
         profile,
+        firebaseUser,
+        authLoading,
+        loginGoogle,
+        logout,
+        saveCVToFirestore,
         notifications,
         unreadCount,
         cvData,

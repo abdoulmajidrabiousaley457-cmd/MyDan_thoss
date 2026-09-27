@@ -5,6 +5,8 @@ import { AppDrawer } from './components/AppDrawer';
 import { BottomNav } from './components/BottomNav';
 import { NexusFab } from './components/NexusFab';
 import { NexusChatModal } from './components/NexusChatModal';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 import { PortfolioCabinetScreen } from './screens/PortfolioCabinetScreen';
 import { CVBuilderScreen } from './screens/CVBuilderScreen';
@@ -40,6 +42,9 @@ export const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
+      {/* PWA Mobile Installation Banner */}
+      <PWAInstallBanner />
+
       {/* Top Header */}
       <Header
         onOpenDrawer={() => setDrawerOpen(true)}
@@ -97,6 +102,9 @@ export const AppContent: React.FC = () => {
 
       {/* Floating Action Button */}
       <NexusFab onClick={() => setNexusOpen(true)} />
+
+      {/* Offline Status Toast */}
+      <OfflineIndicator />
 
       {/* Bottom Navigation */}
       <BottomNav

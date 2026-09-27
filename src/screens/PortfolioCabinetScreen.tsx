@@ -140,6 +140,61 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
               <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
             </a>
           </div>
+
+          {/* Social Links & Direct WhatsApp Click Bar */}
+          <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400">Contact Direct & Réseaux :</span>
+              <a
+                href={CABINET_INFO.whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-md transition-all animate-pulse hover:animate-none"
+                title="Cliquer pour ouvrir directement WhatsApp"
+              >
+                <span className="w-2 h-2 rounded-full bg-white"></span>
+                <span>WhatsApp ({CABINET_INFO.phone})</span>
+              </a>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* X / Twitter */}
+              <a
+                href={CABINET_INFO.twitterUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                title="Profil X (Twitter) de Rabiou Saley"
+              >
+                <span>𝕏 / Twitter</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href={CABINET_INFO.linkedinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-sky-900/60 hover:bg-sky-800/80 text-sky-200 border border-sky-700/60 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                title="Profil LinkedIn de Rabiou Saley"
+              >
+                <span>in / LinkedIn</span>
+                <ExternalLink className="w-3 h-3 text-sky-400" />
+              </a>
+
+              {/* GitHub */}
+              <a
+                href={CABINET_INFO.githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                title="Profil GitHub de Rabiou Saley"
+              >
+                <span>GitHub</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -362,18 +417,44 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <a
+            href={CABINET_INFO.whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-2 shadow-lg transition-colors cursor-pointer"
+          >
+            <span className="w-2 h-2 rounded-full bg-slate-950"></span>
+            <span>Ouvrir WhatsApp ({CABINET_INFO.phone})</span>
+          </a>
+          <a
             href="mailto:abdoulmajidrabiousaley457@gmail.com"
             className="px-4 py-2.5 rounded-xl bg-white text-emerald-950 font-bold text-xs flex items-center gap-2 hover:bg-emerald-50 transition-colors"
           >
             <Mail className="w-4 h-4 text-emerald-700" />
-            <span>abdoulmajidrabiousaley457@gmail.com</span>
+            <span>Email Direct</span>
           </a>
           <a
-            href="tel:+22796499906"
-            className="px-4 py-2.5 rounded-xl bg-emerald-800 text-white font-bold text-xs border border-emerald-700 flex items-center gap-2 hover:bg-emerald-700 transition-colors"
+            href={CABINET_INFO.twitterUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 text-white font-bold text-xs border border-slate-700 flex items-center gap-1.5 transition-colors"
           >
-            <Phone className="w-4 h-4 text-emerald-300" />
-            <span>+227 96 49 99 06</span>
+            <span>𝕏</span>
+          </a>
+          <a
+            href={CABINET_INFO.linkedinUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-2.5 rounded-xl bg-sky-900/80 hover:bg-sky-800 text-sky-100 font-bold text-xs border border-sky-600/50 flex items-center gap-1.5 transition-colors"
+          >
+            <span>in</span>
+          </a>
+          <a
+            href={CABINET_INFO.githubUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs border border-slate-800 flex items-center gap-1.5 transition-colors"
+          >
+            <span>GitHub</span>
           </a>
         </div>
       </div>

@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny all documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isCabinetAdmin() {
+      return isSignedIn() && request.auth.token.email == 'abdoulmajidrabiousaley457@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isCabinetAdmin());
+      allow create, update: if isOwner(userId) && isValidId(userId);
+      allow delete: if isOwner(userId) || isCabinetAdmin();
+
+      // User saved CVs
+      match /savedCVs/{cvId} {
+        allow read, write: if isOwner(userId) && isValidId(cvId);
+      }
+    }
+
+    // Quote requests submitted to the Cabinet
+    match /devisRequests/{devisId} {
+      // Anyone can submit a quote request with valid data
+      allow create: if isValidId(devisId) 
+        && request.resource.data.clientName is string 
+        && request.resource.data.clientName.size() <= 120
+        && request.resource.data.clientEmail is string 
+        && request.resource.data.clientEmail.size() <= 150;
+      
+      // Only the cabinet admin or the client who submitted it can read/update
+      allow read: if isCabinetAdmin() || (isSignedIn() && resource.data.clientEmail == request.auth.token.email);
+      allow update, delete: if isCabinetAdmin();
+    }
+  }
+}

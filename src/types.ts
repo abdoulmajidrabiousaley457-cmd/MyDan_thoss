@@ -6,8 +6,12 @@ export interface UserProfile {
   name: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   role: string;
   country: string;
+  bio?: string;
+  status?: string;
+  isConfigured?: boolean;
   tier: SubscriptionTier;
   subscriptionEndDate?: string;
   remoteAvailable: boolean;

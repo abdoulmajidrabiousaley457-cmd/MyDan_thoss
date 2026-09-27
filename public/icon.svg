@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pwaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="emeraldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#pwaGrad)" />
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#emeraldGlow)" stroke-width="8" stroke-dasharray="16 12" opacity="0.6"/>
+  <circle cx="256" cy="256" r="150" fill="#042f2e" stroke="#10b981" stroke-width="6"/>
+  <!-- Symbol / Monogram RS / AI -->
+  <path d="M190 170 L260 170 C295 170 315 190 315 220 C315 245 298 260 275 265 L325 342 L275 342 L235 275 L215 275 L215 342 L190 342 Z M215 195 L215 250 L255 250 C275 250 288 240 288 222 C288 205 275 195 255 195 Z" fill="#ffffff" />
+  <circle cx="340" cy="180" r="16" fill="#34d399" />
+  <circle cx="325" cy="342" r="10" fill="#34d399" />
+</svg>

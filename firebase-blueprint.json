@@ -1,0 +1,185 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role, subscription tier, and remote work preferences",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user ID matching auth.uid"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the user",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user",
+          "maxLength": 150
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone or WhatsApp contact",
+          "maxLength": 50
+        },
+        "tier": {
+          "type": "string",
+          "description": "Subscription tier: free, pro, or vip_cabinet",
+          "enum": ["free", "pro", "vip_cabinet"]
+        },
+        "country": {
+          "type": "string",
+          "description": "Country or location",
+          "maxLength": 80
+        },
+        "role": {
+          "type": "string",
+          "description": "Professional title or role",
+          "maxLength": 120
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of last profile update"
+        }
+      },
+      "required": ["id", "name", "email", "tier"]
+    },
+    "SavedCV": {
+      "title": "SavedCV",
+      "description": "User customized resume data and template selection",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique CV ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID matching auth.uid"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title or label for this resume",
+          "maxLength": 150
+        },
+        "templateId": {
+          "type": "string",
+          "description": "Template design identifier",
+          "enum": ["ai_data_engineer", "executive_remote", "minimal_tech", "academic_research"]
+        },
+        "accentColor": {
+          "type": "string",
+          "description": "Hex accent color code",
+          "maxLength": 20
+        },
+        "cvData": {
+          "type": "object",
+          "description": "Complete structured CV content"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["id", "userId", "title", "templateId", "accentColor"]
+    },
+    "DevisRequest": {
+      "title": "DevisRequest",
+      "description": "Remote mission quote submitted to Cabinet Rabiou Saley",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Quote ID"
+        },
+        "serviceId": {
+          "type": "string",
+          "description": "Selected service ID",
+          "maxLength": 100
+        },
+        "workFormat": {
+          "type": "string",
+          "description": "Work format",
+          "enum": ["project", "full_time", "part_time"]
+        },
+        "durationWeeks": {
+          "type": "number",
+          "description": "Duration in weeks"
+        },
+        "complexity": {
+          "type": "string",
+          "description": "Project complexity level",
+          "enum": ["standard", "advanced", "enterprise"]
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Client or company representative name",
+          "maxLength": 100
+        },
+        "clientEmail": {
+          "type": "string",
+          "description": "Client contact email",
+          "maxLength": 150
+        },
+        "clientPhone": {
+          "type": "string",
+          "description": "Client contact phone or WhatsApp",
+          "maxLength": 50
+        },
+        "clientCompany": {
+          "type": "string",
+          "description": "Company name",
+          "maxLength": 120
+        },
+        "projectDescription": {
+          "type": "string",
+          "description": "Summary of requirements",
+          "maxLength": 3000
+        },
+        "ndaRequested": {
+          "type": "boolean",
+          "description": "Whether an NDA is requested"
+        },
+        "estimatedCostEUR": {
+          "type": "number",
+          "description": "Estimated budget in EUR"
+        },
+        "estimatedCostXOF": {
+          "type": "number",
+          "description": "Estimated budget in XOF"
+        },
+        "status": {
+          "type": "string",
+          "description": "Quote status",
+          "enum": ["pending", "reviewed", "accepted", "completed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "clientName", "clientEmail", "projectDescription"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user profiles, roles, and settings"
+    },
+    "/users/{userId}/savedCVs/{cvId}": {
+      "schema": "SavedCV",
+      "description": "Stores customized CVs belonging to a user"
+    },
+    "/devisRequests/{devisId}": {
+      "schema": "DevisRequest",
+      "description": "Stores remote mission quote requests submitted to Cabinet Rabiou Saley"
+    }
+  }
+}

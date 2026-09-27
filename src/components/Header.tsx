@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Globe, Sparkles, Laptop, ShieldCheck } from 'lucide-react';
+import { Menu, Bell, Globe, Sparkles, Laptop, ShieldCheck, Smartphone, User } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { AppLanguage } from '../types';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface HeaderProps {
   onOpenDrawer: () => void;
@@ -16,8 +17,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenDevis
 }) => {
-  const { unreadCount, profile, activeLanguage, setLanguage } = useUserProfile();
+  const { unreadCount, profile, activeLanguage, setLanguage, firebaseUser } = useUserProfile();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const { isInstallable, install, isInstalled } = usePWAInstall();
 
   const languages: { code: AppLanguage; label: string; flag: string }[] = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -66,6 +68,36 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Subscription Badge, Language & Notifications */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          {/* Quick Install Mobile Button if installable */}
+          {isInstallable && !isInstalled && (
+            <button
+              onClick={install}
+              className="px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black flex items-center gap-1 shadow-sm transition-all cursor-pointer animate-pulse"
+              title="Installer sur mon téléphone"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Installer</span>
+            </button>
+          )}
+
+          {/* User Profile Chip */}
+          <button
+            onClick={onOpenProfile}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 transition-colors cursor-pointer"
+            title="Mon profil et compte"
+          >
+            <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+              {firebaseUser?.photoURL ? (
+                <img src={firebaseUser.photoURL} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                profile.name?.slice(0, 1).toUpperCase() || 'U'
+              )}
+            </div>
+            <span className="font-semibold max-w-[100px] truncate hidden md:inline">
+              {firebaseUser?.displayName?.split(' ')[0] || profile.name?.split(' ')[0] || 'Profil'}
+            </span>
+          </button>
+
           {/* Subscription plan badge */}
           <div
             onClick={onOpenProfile}

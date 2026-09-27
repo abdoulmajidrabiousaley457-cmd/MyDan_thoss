@@ -29,12 +29,33 @@ import {
 } from 'lucide-react';
 
 export const CVBuilderScreen: React.FC = () => {
-  const { cvData, updateCVData, coverLetterData, updateCoverLetterData, profile, resetCVToDefault } = useUserProfile();
+  const { 
+    cvData, 
+    updateCVData, 
+    coverLetterData, 
+    updateCoverLetterData, 
+    profile, 
+    resetCVToDefault,
+    saveCVToFirestore,
+    firebaseUser,
+    loginGoogle
+  } = useUserProfile();
   
   const [activeTab, setActiveTab] = useState<'presets' | 'editor' | 'cover_letter' | 'preview' | 'ats'>('presets');
   const [activeEditorSection, setActiveEditorSection] = useState<'info' | 'experiences' | 'projects' | 'skills' | 'education'>('info');
   const [loadedPresetMessage, setLoadedPresetMessage] = useState<string | null>(null);
   const [selectedPresetPreview, setSelectedPresetPreview] = useState<CVPresetItem | null>(null);
+  const [savingCloud, setSavingCloud] = useState(false);
+
+  const handleCloudSave = async () => {
+    if (!firebaseUser) {
+      await loginGoogle();
+      return;
+    }
+    setSavingCloud(true);
+    await saveCVToFirestore();
+    setSavingCloud(false);
+  };
 
   const templates: { id: CVTemplateId; name: string; tag: string; desc: string }[] = [
     {
@@ -158,7 +179,17 @@ export const CVBuilderScreen: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleCloudSave}
+              disabled={savingCloud}
+              className="px-3.5 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+              title="Sauvegarder ce CV en ligne dans votre base Firebase"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>{savingCloud ? 'Sauvegarde...' : firebaseUser ? 'Sauvegarder (Cloud)' : 'Connexion & Sauvegarder'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
               className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 flex items-center gap-2 transition-all cursor-pointer"

@@ -15,10 +15,13 @@ import {
   CheckCircle,
   ExternalLink,
   ArrowRightLeft,
-  BookOpen
+  BookOpen,
+  Smartphone,
+  Download
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { CABINET_INFO } from '../data/cabinetData';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -40,6 +43,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onOpenNotifications,
 }) => {
   const { profile } = useUserProfile();
+  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   if (!isOpen) return null;
 
@@ -166,21 +170,97 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
                 <span>Sécurité & Charte NDA</span>
               </button>
+
+              <button
+                onClick={async () => {
+                  onClose();
+                  if (isInstallable) {
+                    await install();
+                  } else {
+                    onSelectTab('profile');
+                  }
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-100/80 hover:bg-emerald-200 transition-colors cursor-pointer border border-emerald-300/60"
+              >
+                <span className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <Smartphone className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>{isInstalled ? 'Application Installée ✓' : 'Installer sur mon portable'}</span>
+                </span>
+                <Download className="w-3.5 h-3.5 text-emerald-700" />
+              </button>
             </div>
           </div>
 
-          {/* External links */}
-          <div className="pt-2 border-t border-slate-100">
+          {/* External links & Socials */}
+          <div className="pt-2 border-t border-slate-100 space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-2">
-              Liens Officiels
+              Contact Direct & Réseaux
             </span>
+
+            {/* WhatsApp Direct */}
+            <a
+              href={CABINET_INFO.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                <span>WhatsApp : {CABINET_INFO.phone}</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-emerald-600" />
+            </a>
+
+            {/* X / Twitter */}
+            <a
+              href={CABINET_INFO.twitterUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <span className="flex items-center gap-2 font-medium">
+                <span className="font-bold text-slate-800">𝕏</span>
+                <span>Twitter (@RabiousaleyM)</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href={CABINET_INFO.linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-600 hover:text-sky-700 hover:bg-slate-50 transition-colors"
+            >
+              <span className="flex items-center gap-2 font-medium">
+                <span className="font-bold text-sky-700">in</span>
+                <span>LinkedIn Pro</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
+
+            {/* GitHub */}
+            <a
+              href={CABINET_INFO.githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <span className="flex items-center gap-2 font-medium">
+                <span className="font-bold text-slate-700">GH</span>
+                <span>GitHub Repositories</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
+
+            {/* Portfolio Studio AI */}
             <a
               href={CABINET_INFO.portfolioOfficialUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-600 hover:text-emerald-700 hover:bg-slate-50 transition-colors"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-600 hover:text-emerald-700 hover:bg-slate-50 transition-colors"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 font-medium">
                 <Globe className="w-3.5 h-3.5 text-slate-400" />
                 <span>Portfolio Studio AI</span>
               </span>
