@@ -172,23 +172,42 @@ class PortfolioProScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
+          // Founder portrait shown to visitors (kept exactly as provided).
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
               gradient: AppColors.greenGradient,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: const CircleAvatar(
-              radius: 48,
-              backgroundColor: Color(0xFF0F2A1D),
-              child: Icon(
-                Icons.account_balance_rounded,
-                color: AppColors.greenAccent,
-                size: 42,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(19),
+              child: SizedBox(
+                width: 142,
+                height: 254,
+                child: Image.asset(
+                  'assets/portfolio/rabiou_portrait.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF0F2A1D),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.account_balance_rounded,
+                      color: AppColors.greenAccent,
+                      size: 48,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             t['pfCabinet'],
             textAlign: TextAlign.center,
