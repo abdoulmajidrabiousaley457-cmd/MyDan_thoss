@@ -180,19 +180,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </button>
 
-              {/* Download ZIP */}
-              <a
-                href="/api/download-zip"
-                download="my-danthoss-app.zip"
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-900 transition-colors cursor-pointer border border-slate-200"
-              >
-                <span className="flex items-center space-x-3 rtl:space-x-reverse">
-                  <Download className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{t('downloadZip', 'Télécharger l\'application (ZIP)')}</span>
-                </span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white border border-slate-300">ZIP</span>
-              </a>
-
               <button
                 onClick={() => {
                   onClose();

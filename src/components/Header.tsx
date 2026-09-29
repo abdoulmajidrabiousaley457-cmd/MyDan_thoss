@@ -70,17 +70,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Actions, Language & Notifications */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
-          {/* Direct Download ZIP button */}
-          <a
-            href="/api/download-zip"
-            download="my-danthoss-app.zip"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 transition-colors shadow-xs"
-            title="Télécharger l'application au format ZIP"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span>ZIP</span>
-          </a>
-
           {/* Quick Install Mobile Button if installable */}
           {isInstallable && !isInstalled && (
             <button

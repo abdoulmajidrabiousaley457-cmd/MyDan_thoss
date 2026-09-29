@@ -123,58 +123,6 @@ Réponds dans la langue demandée par l'utilisateur (Langue active: ${language =
   }
 });
 
-// Endpoint to download the entire application as a clean ZIP file using JSZip
-app.get('/api/download-zip', async (req, res) => {
-  try {
-    const zip = new JSZip();
-    const projectRoot = __dirname;
-
-    const ignoreList = new Set([
-      'node_modules',
-      '.git',
-      'dist',
-      'dev-dist',
-      '.cache',
-      'my-danthoss-app.zip',
-    ]);
-
-    function addDirToZip(currentDir: string, zipFolder: JSZip) {
-      const items = fs.readdirSync(currentDir);
-      for (const item of items) {
-        if (ignoreList.has(item)) continue;
-        const fullPath = path.join(currentDir, item);
-        const stat = fs.statSync(fullPath);
-
-        if (stat.isDirectory()) {
-          const subFolder = zipFolder.folder(item);
-          if (subFolder) {
-            addDirToZip(fullPath, subFolder);
-          }
-        } else if (stat.isFile()) {
-          const content = fs.readFileSync(fullPath);
-          zipFolder.file(item, content);
-        }
-      }
-    }
-
-    addDirToZip(projectRoot, zip);
-
-    const zipBuffer = await zip.generateAsync({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 9 },
-    });
-
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="my-danthoss-app.zip"');
-    res.setHeader('Content-Length', zipBuffer.length.toString());
-    res.send(zipBuffer);
-  } catch (err) {
-    console.error('ZIP generation error:', err);
-    res.status(500).send('Erreur lors de la génération de l\'archive ZIP.');
-  }
-});
-
 // Setup Vite middleware in dev or static files in production
 async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';

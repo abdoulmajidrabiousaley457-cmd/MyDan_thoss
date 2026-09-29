@@ -186,7 +186,7 @@ export interface BookResource {
   id: string;
   title: string;
   author: string;
-  category: 'agents_ia' | 'data_science' | 'remote_work' | 'strategy_business';
+  category: 'agents_ia' | 'data_science' | 'remote_work' | 'strategy_business' | 'cheat_sheets' | 'blueprints';
   coverGradient: string;
   year: string;
   pages: number;
@@ -198,6 +198,19 @@ export interface BookResource {
   fileSize: string;
   badge?: string;
   downloadFilename: string;
+  level?: 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert' | 'Tous niveaux';
+  tags?: string[];
+  tableOfContents?: string[];
+  codeSnippet?: {
+    title: string;
+    language: string;
+    code: string;
+  };
+  promptTemplate?: {
+    title: string;
+    prompt: string;
+  };
+  format?: 'Guide PDF' | 'Aide-Mémoire' | 'Blueprint Métier' | 'Livre Fondateur';
 }
 
 // ========================

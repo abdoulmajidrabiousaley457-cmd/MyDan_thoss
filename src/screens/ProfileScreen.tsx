@@ -300,24 +300,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <ExternalLink className="w-4 h-4 text-slate-400" />
         </a>
 
-        {/* Télécharger l'App en format ZIP */}
-        <a
-          href="/api/download-zip"
-          download="my-danthoss-app.zip"
-          className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 shadow-sm hover:bg-emerald-100/70 transition-all flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
-              <Download className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-emerald-950">{t('downloadZip', 'Télécharger l\'application (format ZIP)')}</h3>
-              <p className="text-xs text-emerald-800">{t('downloadZipDesc', 'Téléchargez l\'archive complète ZIP du code source')}</p>
-            </div>
-          </div>
-          <span className="text-xs font-mono font-bold bg-white text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-300">ZIP</span>
-        </a>
-
         {/* Devis Télétravail */}
         <div
           onClick={() => onNavigateTab('remote_devis')}

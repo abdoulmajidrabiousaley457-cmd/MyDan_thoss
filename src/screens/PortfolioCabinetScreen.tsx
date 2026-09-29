@@ -158,15 +158,6 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
               <Bot className="w-4 h-4 text-emerald-400" />
               <span>Agent Omni Studio ↗</span>
             </a>
-
-            <a
-              href="/api/download-zip"
-              download="my-danthoss-app.zip"
-              className="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 font-medium text-sm border border-slate-800 flex items-center gap-2 transition-all"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-              <span>{t('downloadZip', 'Télécharger l\'App (ZIP)')}</span>
-            </a>
           </div>
 
           {/* Social Links & Direct WhatsApp Click Bar */}
