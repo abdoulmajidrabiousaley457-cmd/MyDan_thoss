@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Bot, Sparkles, Trash2, ArrowUpRight, MessageSquare, Laptop, FileText, CheckCircle2 } from 'lucide-react';
+import { X, Send, Bot, Sparkles, Trash2, ExternalLink, Globe, Laptop, MessageSquare } from 'lucide-react';
+import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
 
 interface Message {
@@ -18,13 +19,24 @@ interface NexusChatModalProps {
 export const NexusChatModal: React.FC<NexusChatModalProps> = ({
   isOpen,
   onClose,
-  initialTopic = 'services'
 }) => {
+  const { language, t } = useI18n();
+
+  const getInitialMessage = () => {
+    if (language === 'ar') {
+      return `مرحباً بك! أنا "ماجد الذكي"، المساعد الاستشاري لمكتب رابيو صالح. يسعدني الإجابة على جميع استفساراتك حول الذكاء الاصطناعي، البرمجة، والعمل عن بعد. كيف يمكنني مساعدتك اليوم؟`;
+    }
+    if (language === 'en') {
+      return `Hello! I am Majid AI, the intelligent assistant of Rabiou Saley Consulting Firm. I am configured to answer all your questions regarding Data Science, AI Agents, Python coding, and international remote missions. How can I assist you today?`;
+    }
+    return `Bonjour ! Je suis Majid IA, l'assistant intelligent du Cabinet Rabiou Saley. Je suis configuré pour répondre à toutes vos questions : Intelligence Artificielle, code Python, architecture d'agents autonomes, missions en télétravail international ou nos réalisations. Comment puis-je vous aider aujourd'hui ?`;
+  };
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm-init',
       sender: 'assistant',
-      text: `Bonjour ! Je suis Majid IA, l'assistant intelligent du Cabinet Rabiou Saley. Je suis à votre disposition pour vous renseigner sur nos expertises en Data Science & Agents IA, nos modalités de missions en télétravail international, ou pour vous conseiller sur l'optimisation de votre CV professionnel. Comment puis-je vous aider aujourd'hui ?`,
+      text: getInitialMessage(),
       time: 'À l\'instant',
     },
   ]);
@@ -32,11 +44,21 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const suggestions = [
+  const suggestions = language === 'ar' ? [
+    'ما هي تخصصات مكتب رابيو صالح؟',
+    'كيف تبدأ مهمة عمل عن بعد معي؟',
+    'أعطني كود بايثون لإنشاء وكيل RAG ذكي',
+    'أين يمكنني رؤية معرض الأعمال المباشر؟'
+  ] : language === 'en' ? [
+    'What are the core capabilities of Rabiou Saley Firm?',
+    'How to launch an international remote mission?',
+    'Show me Python code to build a multi-agent RAG system',
+    'Where is the official live portfolio?'
+  ] : [
     'Quelles sont les expertises clés du Cabinet Rabiou Saley ?',
     'Comment démarrer une mission en télétravail international ?',
-    'Quels conseils pour optimiser un CV en Data Science et IA ?',
-    'Que comprend l\'abonnement Cabinet VIP & Mentorat ?'
+    'Donne-moi un exemple de code Python pour un agent RAG',
+    'Où consulter le portfolio officiel en direct ?'
   ];
 
   const scrollToBottom = () => {
@@ -59,73 +81,88 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
       id: `u-${Date.now()}`,
       sender: 'user',
       text: query,
-      time: 'À l\'instant',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput('');
     setIsThinking(true);
 
-    // Provide contextual, high-value consulting answer
-    setTimeout(() => {
-      let replyText = '';
-      const lower = query.toLowerCase();
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: query,
+          history: updatedMessages.map((m) => ({ sender: m.sender, text: m.text })),
+          language,
+        }),
+      });
 
-      if (lower.includes('expertise') || lower.includes('compétence') || lower.includes('service') || lower.includes('que fait')) {
-        replyText = `Le Cabinet Rabiou Saley intervient sur 4 pôles d'excellence majeurs :\n\n1. **Agents IA Autonomes & Multi-Agents** : Orchestration avec LangGraph, CrewAI, AutoGen et RAG vectoriel (Gemini, Claude, GPT).\n2. **Data Science & ML Prédictif** : Modélisation avancée, scoring client (Churn, risque), séries temporelles et explicabilité (SHAP).\n3. **Computer Vision & NLP** : Extraction documentaire OCR (LayoutLM), analyse sémantique et automatisation de processus comptables.\n4. **MLOps & Télétravail Sécurisé** : Conteneurisation Docker, APIs FastAPI ultra-rapides et déploiement continu sur GCP/AWS.`;
-      } else if (lower.includes('devise') || lower.includes('monnaie') || lower.includes('cfa') || lower.includes('euro') || lower.includes('dollar') || lower.includes('convertisseur')) {
-        replyText = `Notre **Convertisseur de Devises Internationales** est disponible directement dans l'application !\n\n• Conversion instantanée entre **Franc CFA (XOF/CEMAC)**, **Euro (EUR)**, **Dollar US (USD)**, **Yuan (CNY)**, **Naira (NGN)** et plus de 15 devises.\n• Barèmes et simulateurs intégrés pour calculer vos honoraires en télétravail : tarif horaire, TJM (taux journalier moyen), sprint de 2 semaines et salaire mensuel remote.\n• Bouton de copie rapide pour intégrer directement la conversion à vos devis et factures.`;
-      } else if (lower.includes('bibliothèque') || lower.includes('livre') || lower.includes('pdf') || lower.includes('ressource') || lower.includes('documentation') || lower.includes('télécharger')) {
-        replyText = `Notre **Bibliothèque Numérique Pro** regroupe les ouvrages et synthèses de référence sélectionnés par Rabiou Saley :\n\n• **Agents IA & LLMs** : Guide officiel du cabinet sur LangGraph et architectures RAG hybrides, ainsi que "Generative AI in Production".\n• **Data Science & Machine Learning** : "Hands-On Machine Learning" d'Aurélien Géron et "Clean Code" de Robert C. Martin.\n• **Télétravail & Productivité** : "Le Guide du Télétravail International" (Basecamp) et "Deep Work" de Cal Newport.\n• **Stratégie & Cabinet** : "The McKinsey Mind" et "The Lean Startup".\n\nVous pouvez consulter la synthèse complète de chaque ouvrage et télécharger le fichier en 1 clic !`;
-      } else if (lower.includes('exemple') || lower.includes('modèle') || lower.includes('cv') || lower.includes('lettre') || lower.includes('recruteur') || lower.includes('ats')) {
-        replyText = `Nous avons intégré **5 exemples de CV complets prêts à modifier et télécharger** dans le Studio CV :\n\n1. **Rabiou Saley** : Consultant Senior Data Science & Agents IA (Profil officiel Cabinet)\n2. **Sarah Traoré** : Lead Ingénieure MLOps & Architecture Cloud Data\n3. **Alexandre Mendy** : Consultant Senior Big Data & Business Intelligence (Power BI / Snowflake)\n4. **Fatouma Kaboré** : Ingénieure Full-Stack Web & Applications IA (FastAPI / React / LLMs)\n5. **Ibrahim Diallo** : Chef de Projet Digital Senior & Scrum Master en Télétravail\n\n👉 Cliquez sur l'onglet **"Exemples de CV à Modifier"** dans le Studio CV, choisissez votre profil, cliquez sur **"Charger & Modifier"**, personnalisez vos données et téléchargez votre PDF !`;
-      } else if (lower.includes('télétravail') || lower.includes('remote') || lower.includes('mission') || lower.includes('démarrer') || lower.includes('devis')) {
-      } else if (lower.includes('abonnement') || lower.includes('vip') || lower.includes('mentorat') || lower.includes('tarif')) {
-        replyText = `L'application propose 3 formules :\n\n• **Plan Découverte (0 FCFA)** : Modèle de base et consultation du portfolio.\n• **Plan Pro Carrière (9 900 FCFA / 15 € / mois)** : Débloque les 4 modèles de CV haute définition, lettres de motivation illimitées et audit ATS algorithmique.\n• **Plan Cabinet VIP & Mentorat (39 000 FCFA / 59 € / mois)** : Accompagnement direct par Rabiou Saley, revue de votre CV & LinkedIn, 2 sessions de visioconférence par mois et accès prioritaire aux missions de sous-traitance du cabinet.`;
-      } else {
-        replyText = `Merci pour votre question ! Le Cabinet d'Expertise Rabiou Saley est à votre écoute pour concevoir vos solutions d'Intelligence Artificielle en télétravail international, ou vous accompagner dans l'accélération de votre carrière tech. N'hésitez pas à configurer un devis de mission ou à nous contacter directement sur WhatsApp au +227 96 49 99 06.`;
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
+
+      const data = await res.json();
+      const replyText = data.reply || (
+        language === 'ar'
+          ? 'عذراً، حدث خطأ مؤقت. يرجى المحاولة مرة أخرى أو زيارة معرض الأعمال مباشرة.'
+          : language === 'en'
+          ? 'Sorry, a temporary issue occurred. Please retry or check the live portfolio.'
+          : 'Désolé, une erreur temporaire est survenue. Veuillez réessayer ou consulter le portfolio en direct.'
+      );
 
       const botMsg: Message = {
         id: `a-${Date.now()}`,
         sender: 'assistant',
         text: replyText,
-        time: 'À l\'instant',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      const fallbackMsg: Message = {
+        id: `a-${Date.now()}`,
+        sender: 'assistant',
+        text: `Le Cabinet Rabiou Saley est à votre disposition !\n\n• **Portfolio Officiel en direct** : https://mon-portfolio-fin-ten.vercel.app/\n• **Agent Omni Studio Hébergé** : https://omni-studio-abdoul.ai.studio\n• **WhatsApp Direct** : ${CABINET_INFO.phone}\n\nN'hésitez pas à poser une autre question technique ou relative au télétravail international.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
+    } finally {
       setIsThinking(false);
-    }, 900);
+    }
   };
 
   const handleClear = () => {
     setMessages([
       {
-        id: 'm-init',
+        id: `m-init-${Date.now()}`,
         sender: 'assistant',
-        text: `Conversation réinitialisée. Comment puis-je vous orienter aujourd'hui concernant le Cabinet Rabiou Saley ou vos projets d'IA en télétravail ?`,
+        text: getInitialMessage(),
         time: 'À l\'instant',
       },
     ]);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[650px] max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[680px] max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-5 flex items-center justify-between border-b border-slate-800">
+        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-4 md:p-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shadow-inner">
               <Bot className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base tracking-tight text-white">Majid IA</h3>
+                <h3 className="font-extrabold text-base tracking-tight text-white">{t('majidAiTitle', 'Majid IA')}</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Assistant Cabinet
+                  {t('majidAiBadge', 'Assistant Cabinet & IA')}
                 </span>
               </div>
               <p className="text-xs text-slate-300">
-                Conseiller Intelligence Artificielle, Télétravail & Carrière Pro
+                {t('majidAiDesc', 'Posez toutes vos questions : IA, code, missions ou télétravail')}
               </p>
             </div>
           </div>
@@ -133,7 +170,7 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handleClear}
-              title="Effacer l'historique"
+              title={t('majidAiClear', 'Effacer l\'historique')}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
@@ -147,12 +184,37 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
           </div>
         </div>
 
+        {/* Live Links Bar: Omni Studio Agent & Live Vercel Portfolio */}
+        <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <a
+            href="https://omni-studio-abdoul.ai.studio"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-emerald-300 hover:text-emerald-200 font-semibold"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Agent Omni Studio : omni-studio-abdoul.ai.studio</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+
+          <a
+            href="https://mon-portfolio-fin-ten.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-sky-300 hover:text-sky-200 font-semibold"
+          >
+            <Globe className="w-3.5 h-3.5 text-sky-400" />
+            <span>Portfolio Vercel</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
         {/* Messages Body */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-slate-50">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex gap-3 max-w-[85%] ${m.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+              className={`flex gap-3 max-w-[88%] ${m.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
             >
               {m.sender === 'assistant' && (
                 <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-1">
@@ -182,7 +244,7 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
               </div>
               <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 text-xs text-slate-500">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
-                <span>Majid IA analyse votre demande...</span>
+                <span>{t('majidAiThinking', 'Majid IA réfléchit et formule sa réponse...')}</span>
               </div>
             </div>
           )}
@@ -191,7 +253,7 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
         </div>
 
         {/* Suggestion Chips */}
-        <div className="p-3 bg-white border-t border-slate-200 overflow-x-auto flex gap-2">
+        <div className="p-2.5 bg-white border-t border-slate-200 overflow-x-auto flex gap-2">
           {suggestions.map((s, idx) => (
             <button
               key={idx}
@@ -204,10 +266,10 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 bg-white border-t border-slate-200 flex items-center gap-2">
+        <div className="p-3 md:p-4 bg-white border-t border-slate-200 flex items-center gap-2">
           <input
             type="text"
-            placeholder="Posez votre question sur les prestations IA ou le télétravail..."
+            placeholder={t('majidAiPlaceholder', 'Posez votre question (IA, code, télétravail, devis, etc.)...')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}

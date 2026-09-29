@@ -2,7 +2,7 @@ import React from 'react';
 import {
   X,
   Briefcase,
-  FileText,
+  LayoutGrid,
   Sparkles,
   Laptop,
   User,
@@ -20,6 +20,7 @@ import {
   Download
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
+import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
@@ -43,18 +44,19 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onOpenNotifications,
 }) => {
   const { profile } = useUserProfile();
+  const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWAInstall();
 
   if (!isOpen) return null;
 
   const navItems = [
-    { id: 'portfolio', label: 'Cabinet & Portfolio Télétravail', icon: Briefcase },
-    { id: 'cv_builder', label: 'Studio CV & Exemples Prêts', icon: FileText },
-    { id: 'currency', label: 'Convertisseur de Devises Mondiales', icon: ArrowRightLeft },
-    { id: 'library', label: 'Bibliothèque Numérique Pro', icon: BookOpen },
-    { id: 'remote_devis', label: 'Simulateur Devis & Recrutement', icon: Laptop },
-    { id: 'subscription', label: 'Abonnements & Outils Carrière', icon: Sparkles },
-    { id: 'profile', label: 'Mon Espace & Profil', icon: User },
+    { id: 'portfolio', label: t('navCabinet', 'Cabinet & Portfolio Télétravail'), icon: Briefcase },
+    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios, Projets & CV'), icon: LayoutGrid },
+    { id: 'currency', label: t('navCurrencies', 'Convertisseur de Devises Mondiales'), icon: ArrowRightLeft },
+    { id: 'library', label: t('navLibrary', 'Bibliothèque Numérique Pro'), icon: BookOpen },
+    { id: 'remote_devis', label: t('navDevis', 'Simulateur Devis & Recrutement'), icon: Laptop },
+    { id: 'subscription', label: t('navSubscriptions', 'Abonnements & Outils Carrière'), icon: Sparkles },
+    { id: 'profile', label: t('navProfile', 'Mon Espace & Profil'), icon: User },
   ];
 
   return (
@@ -70,12 +72,12 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
         {/* Drawer Header */}
         <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 text-white p-5 flex items-center justify-between border-b border-emerald-800">
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-white text-base shadow-md">
-              RS
+            <div className="w-11 h-11 rounded-2xl overflow-hidden border border-emerald-400/60 shadow-md bg-slate-950 shrink-0">
+              <img src="/app-logo.png" alt="Danthoss Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h2 className="font-extrabold text-base tracking-tight leading-snug">Cabinet Rabiou Saley</h2>
-              <p className="text-[11px] text-emerald-300">Data Science & Agents IA</p>
+              <h2 className="font-extrabold text-base tracking-tight leading-snug">Danthoss IA</h2>
+              <p className="text-[11px] text-emerald-300">Cabinet Rabiou Saley</p>
             </div>
           </div>
           <button
@@ -101,6 +103,35 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
 
         {/* Drawer Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {/* Top Highlights: Official Live Portfolio & Hosted AI Agent */}
+          <div className="space-y-2">
+            <a
+              href="https://mon-portfolio-fin-ten.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md hover:from-emerald-500 hover:to-teal-600 transition-all text-xs font-bold"
+            >
+              <span className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-200" />
+                <span>Mon Portfolio Officiel (Vercel)</span>
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-200" />
+            </a>
+
+            <a
+              href="https://omni-studio-abdoul.ai.studio"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900 text-emerald-300 border border-emerald-500/40 shadow-sm hover:bg-slate-800 transition-all text-xs font-bold"
+            >
+              <span className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-emerald-400" />
+                <span>Mon Agent IA (Omni Studio)</span>
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
+            </a>
+          </div>
+
           {/* Main Navigation */}
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-2">
@@ -134,7 +165,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           {/* Assistant & Services IA */}
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-2">
-              Assistance & Cabinet
+              Assistance & Téléchargement
             </span>
             <div className="space-y-1">
               <button
@@ -149,6 +180,19 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </button>
 
+              {/* Download ZIP */}
+              <a
+                href="/api/download-zip"
+                download="my-danthoss-app.zip"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-900 transition-colors cursor-pointer border border-slate-200"
+              >
+                <span className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <Download className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{t('downloadZip', 'Télécharger l\'application (ZIP)')}</span>
+                </span>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white border border-slate-300">ZIP</span>
+              </a>
+
               <button
                 onClick={() => {
                   onClose();
@@ -157,7 +201,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 className="w-full flex items-center space-x-3 rtl:space-x-reverse px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <Bell className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>Centre de Notifications</span>
+                <span>{t('navNotifications', 'Centre de Notifications')}</span>
               </button>
 
               <button
@@ -168,7 +212,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 className="w-full flex items-center space-x-3 rtl:space-x-reverse px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>Sécurité & Charte NDA</span>
+                <span>{t('navSecurity', 'Sécurité & Charte NDA')}</span>
               </button>
 
               <button
@@ -184,7 +228,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               >
                 <span className="flex items-center space-x-3 rtl:space-x-reverse">
                   <Smartphone className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>{isInstalled ? 'Application Installée ✓' : 'Installer sur mon portable'}</span>
+                  <span>{isInstalled ? 'Application Installée ✓' : t('installPhone', 'Installer sur mon portable')}</span>
                 </span>
                 <Download className="w-3.5 h-3.5 text-emerald-700" />
               </button>
@@ -194,8 +238,36 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           {/* External links & Socials */}
           <div className="pt-2 border-t border-slate-100 space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-2">
-              Contact Direct & Réseaux
+              Contact Direct & Liens Clés
             </span>
+
+            {/* Direct Official Portfolio */}
+            <a
+              href="https://mon-portfolio-fin-ten.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-emerald-700 hover:bg-emerald-50 transition-colors font-bold"
+            >
+              <span className="flex items-center gap-2">
+                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Portfolio Officiel (Vercel)</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-emerald-600" />
+            </a>
+
+            {/* Omni Studio Agent */}
+            <a
+              href="https://omni-studio-abdoul.ai.studio"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+            >
+              <span className="flex items-center gap-2">
+                <Bot className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Agent Omni Studio Hébergé</span>
+              </span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
 
             {/* WhatsApp Direct */}
             <a
@@ -249,20 +321,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               <span className="flex items-center gap-2 font-medium">
                 <span className="font-bold text-slate-700">GH</span>
                 <span>GitHub Repositories</span>
-              </span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
-
-            {/* Portfolio Studio AI */}
-            <a
-              href={CABINET_INFO.portfolioOfficialUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-xs text-slate-600 hover:text-emerald-700 hover:bg-slate-50 transition-colors"
-            >
-              <span className="flex items-center gap-2 font-medium">
-                <Globe className="w-3.5 h-3.5 text-slate-400" />
-                <span>Portfolio Studio AI</span>
               </span>
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>

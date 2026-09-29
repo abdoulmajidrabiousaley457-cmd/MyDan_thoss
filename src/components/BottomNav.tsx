@@ -1,5 +1,6 @@
 import React from 'react';
-import { Briefcase, FileText, ArrowRightLeft, BookOpen, User } from 'lucide-react';
+import { Briefcase, LayoutGrid, ArrowRightLeft, BookOpen, User } from 'lucide-react';
+import { useI18n } from '../i18n/I18nContext';
 
 interface BottomNavProps {
   activeTab: string;
@@ -7,12 +8,14 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) => {
+  const { t } = useI18n();
+
   const tabs = [
-    { id: 'portfolio', label: 'Cabinet & IA', icon: Briefcase },
-    { id: 'cv_builder', label: 'Studio CV & Exemples', icon: FileText },
-    { id: 'currency', label: 'Devises', icon: ArrowRightLeft },
-    { id: 'library', label: 'Bibliothèque', icon: BookOpen },
-    { id: 'profile', label: 'Mon Espace', icon: User },
+    { id: 'portfolio', label: t('navCabinet', 'Cabinet & IA'), icon: Briefcase },
+    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & Projets'), icon: LayoutGrid },
+    { id: 'currency', label: t('navCurrencies', 'Devises'), icon: ArrowRightLeft },
+    { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
+    { id: 'profile', label: t('navProfile', 'Mon Espace'), icon: User },
   ];
 
   return (

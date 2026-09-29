@@ -274,7 +274,27 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   });
 
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
-  const [activeLanguage, setActiveLanguage] = useState<AppLanguage>('fr');
+  const [activeLanguage, setActiveLanguageState] = useState<AppLanguage>(() => {
+    return (localStorage.getItem('mydanthoss_lang') as AppLanguage) || 'fr';
+  });
+
+  const setActiveLanguage = (lang: AppLanguage) => {
+    setActiveLanguageState(lang);
+    localStorage.setItem('mydanthoss_lang', lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    window.dispatchEvent(new CustomEvent('language-change', { detail: lang }));
+  };
+
+  useEffect(() => {
+    const handleLangChange = (e: any) => {
+      if (e.detail && e.detail !== activeLanguage) {
+        setActiveLanguageState(e.detail);
+      }
+    };
+    window.addEventListener('language-change', handleLangChange);
+    return () => window.removeEventListener('language-change', handleLangChange);
+  }, [activeLanguage]);
 
   // Listen to Firebase Auth state
   useEffect(() => {

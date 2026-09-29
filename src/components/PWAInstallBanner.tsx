@@ -23,8 +23,8 @@ export const PWAInstallBanner: React.FC = () => {
             <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-emerald-500/30 p-6 text-white shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-inner">
-                    RS
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-lg shrink-0 bg-slate-950">
+                    <img src="/app-logo.png" alt="Logo Danthoss" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-white">Installer Danthoss sur votre mobile</h3>
@@ -112,16 +112,16 @@ export const PWAInstallBanner: React.FC = () => {
       <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-emerald-950 text-white border-b border-emerald-800/60 px-4 py-3 shadow-md relative z-30">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-left">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 text-emerald-300">
-              <Smartphone className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-xl overflow-hidden border border-emerald-400/50 shadow-md shrink-0 bg-slate-950">
+              <img src="/app-logo.png" alt="Logo Danthoss" className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black tracking-wide uppercase text-emerald-400">Application Mobile & PWA</span>
-                <span className="text-[10px] px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 font-bold">100% Gratuit</span>
+                <span className="text-xs font-black tracking-wide uppercase text-emerald-400">Application Portable</span>
+                <span className="text-[10px] px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 font-bold">Avec Logo Officiel</span>
               </div>
               <p className="text-xs text-slate-200 mt-0.5">
-                Installez <strong>Danthoss</strong> sur votre portable pour créer votre profil, sauvegarder vos CV et contacter le Cabinet en 1 clic !
+                Téléchargez <strong>Danthoss</strong> avec son logo esthétique pour créer votre profil directement sur votre téléphone !
               </p>
             </div>
           </div>

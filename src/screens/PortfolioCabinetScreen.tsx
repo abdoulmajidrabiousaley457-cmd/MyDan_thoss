@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CABINET_INFO, CABINET_SERVICES, PORTFOLIO_PROJECTS, CABINET_PILLARS, REMOTE_METHODOLOGY_STEPS } from '../data/cabinetData';
+import { useI18n } from '../i18n/I18nContext';
 import { 
   Bot, 
   TrendingUp, 
@@ -20,7 +21,10 @@ import {
   Award,
   Users,
   ArrowRightLeft,
-  BookOpen
+  BookOpen,
+  Smartphone,
+  Download,
+  LayoutGrid
 } from 'lucide-react';
 
 interface PortfolioCabinetScreenProps {
@@ -28,6 +32,7 @@ interface PortfolioCabinetScreenProps {
 }
 
 export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ onNavigateTab }) => {
+  const { t } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>('p1');
 
@@ -53,21 +58,41 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            {CABINET_INFO.statusBadge}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              {CABINET_INFO.statusBadge}
+            </div>
+
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-install-modal'))}
+              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-105 active:scale-95"
+              title="Installer l'application sur votre téléphone avec son logo"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Installer l'Appli Portable (Logo Officiel)</span>
+            </button>
           </div>
 
-          <div className="space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-              {CABINET_INFO.name}
-            </span>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              {CABINET_INFO.fullName}
-            </h1>
-            <p className="text-base md:text-xl text-slate-300 font-medium max-w-3xl leading-relaxed">
-              {CABINET_INFO.title}
-            </p>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="relative group shrink-0">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl blur opacity-70 group-hover:opacity-100 transition duration-300"></div>
+              <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-emerald-400/80 shadow-2xl bg-slate-950">
+                <img src="/app-logo.png" alt="Danthoss App Logo" className="w-full h-full object-cover" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 flex-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+                {CABINET_INFO.name}
+              </span>
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                {CABINET_INFO.fullName}
+              </h1>
+              <p className="text-base md:text-xl text-slate-300 font-medium max-w-3xl leading-relaxed">
+                {CABINET_INFO.title}
+              </p>
+            </div>
           </div>
 
           <p className="text-sm md:text-base text-slate-300 max-w-3xl leading-relaxed font-normal">
@@ -96,48 +121,51 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
 
           {/* Action CTAs */}
           <div className="flex flex-wrap gap-3 pt-2">
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('remote_devis') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'remote_devis' }))}
-              className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition-all cursor-pointer"
+            <a
+              href="https://mon-portfolio-fin-ten.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-105"
             >
-              <Laptop className="w-4 h-4" />
-              <span>Demander un Devis Télétravail</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              <Globe className="w-4 h-4" />
+              <span>{t('visitLivePortfolio', 'Visiter mon Portfolio (Vercel) ↗')}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
 
             <button
               onClick={() => onNavigateTab ? onNavigateTab('cv_builder') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'cv_builder' }))}
-              className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-sm border border-slate-700 flex items-center gap-2 transition-all cursor-pointer"
+              className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-sm border border-emerald-500/40 flex items-center gap-2 transition-all cursor-pointer"
             >
-              <FileText className="w-4 h-4" />
-              <span>Outils CV & Carrière Pro</span>
+              <LayoutGrid className="w-4 h-4 text-emerald-400" />
+              <span>{t('navPortfolios', 'Portfolios, Modèles & CV')}</span>
             </button>
 
             <button
-              onClick={() => onNavigateTab ? onNavigateTab('currency') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'currency' }))}
-              className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 flex items-center gap-2 transition-all cursor-pointer"
+              onClick={() => onNavigateTab ? onNavigateTab('remote_devis') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'remote_devis' }))}
+              className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer"
             >
-              <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
-              <span>Convertisseur Devises</span>
-            </button>
-
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('library') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'library' }))}
-              className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <BookOpen className="w-4 h-4 text-purple-400" />
-              <span>Bibliothèque Pro</span>
+              <Laptop className="w-4 h-4" />
+              <span>{t('requestRemoteQuote', 'Demander un Devis Télétravail')}</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
 
             <a
-              href={CABINET_INFO.portfolioOfficialUrl}
+              href="https://omni-studio-abdoul.ai.studio"
               target="_blank"
               rel="noreferrer"
-              className="px-5 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 font-medium text-sm border border-slate-800 flex items-center gap-2 transition-all"
+              className="px-4 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 flex items-center gap-2 transition-all"
             >
-              <Globe className="w-4 h-4 text-emerald-400" />
-              <span>Portfolio Officiel</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+              <Bot className="w-4 h-4 text-emerald-400" />
+              <span>Agent Omni Studio ↗</span>
+            </a>
+
+            <a
+              href="/api/download-zip"
+              download="my-danthoss-app.zip"
+              className="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 font-medium text-sm border border-slate-800 flex items-center gap-2 transition-all"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>{t('downloadZip', 'Télécharger l\'App (ZIP)')}</span>
             </a>
           </div>
 

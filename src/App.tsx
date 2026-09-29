@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { I18nProvider } from './i18n/I18nContext';
 import { UserProfileProvider } from './context/UserProfileContext';
 import { Header } from './components/Header';
 import { AppDrawer } from './components/AppDrawer';
@@ -7,6 +8,7 @@ import { NexusFab } from './components/NexusFab';
 import { NexusChatModal } from './components/NexusChatModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { InstallAppModal } from './components/InstallAppModal';
 
 import { PortfolioCabinetScreen } from './screens/PortfolioCabinetScreen';
 import { CVBuilderScreen } from './screens/CVBuilderScreen';
@@ -106,6 +108,9 @@ export const AppContent: React.FC = () => {
       {/* Offline Status Toast */}
       <OfflineIndicator />
 
+      {/* Mobile Welcome & Install Modal */}
+      <InstallAppModal />
+
       {/* Bottom Navigation */}
       <BottomNav
         activeTab={activeTab}
@@ -117,9 +122,11 @@ export const AppContent: React.FC = () => {
 
 export function App() {
   return (
-    <UserProfileProvider>
-      <AppContent />
-    </UserProfileProvider>
+    <I18nProvider>
+      <UserProfileProvider>
+        <AppContent />
+      </UserProfileProvider>
+    </I18nProvider>
   );
 }
 

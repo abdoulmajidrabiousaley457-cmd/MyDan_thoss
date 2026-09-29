@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Globe, Sparkles, Laptop, ShieldCheck, Smartphone, User } from 'lucide-react';
+import { Menu, Bell, Globe, Sparkles, Smartphone, Download, ExternalLink } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
+import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
@@ -17,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenDevis
 }) => {
-  const { unreadCount, profile, activeLanguage, setLanguage, firebaseUser } = useUserProfile();
+  const { unreadCount, profile, firebaseUser } = useUserProfile();
+  const { language, setLanguage, t } = useI18n();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { isInstallable, install, isInstalled } = usePWAInstall();
 
@@ -41,42 +43,53 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="flex items-center space-x-2.5 rtl:space-x-reverse cursor-pointer" onClick={onOpenProfile}>
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-black text-white text-base shadow-md">
-              RS
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-emerald-400/50 shadow-md bg-slate-950 shrink-0">
+              <img src="/app-logo.png" alt="Danthoss Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-white font-extrabold text-base tracking-tight">
-                  My_danthoss
+                  Danthoss
                 </span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Cabinet IA
+                  {t('cabinetBadge', 'Cabinet IA')}
                 </span>
               </div>
               <span className="text-emerald-300/80 text-[11px] leading-tight font-medium hidden sm:inline">
-                Rabiou Saley • Data Science & Télétravail
+                {t('cabinetAuthor', 'Rabiou Saley • Data Science & Télétravail')}
               </span>
             </div>
           </div>
         </div>
 
         {/* Center: Remote availability badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-semibold text-emerald-300">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-semibold text-emerald-300">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Disponible Télétravail International (Full Remote)</span>
+          <span>{t('remoteAvailable', 'Disponible Télétravail International (Full Remote)')}</span>
         </div>
 
-        {/* Right: Subscription Badge, Language & Notifications */}
+        {/* Right: Actions, Language & Notifications */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          {/* Direct Download ZIP button */}
+          <a
+            href="/api/download-zip"
+            download="my-danthoss-app.zip"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 transition-colors shadow-xs"
+            title="Télécharger l'application au format ZIP"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>ZIP</span>
+          </a>
+
           {/* Quick Install Mobile Button if installable */}
           {isInstallable && !isInstalled && (
             <button
               onClick={install}
               className="px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black flex items-center gap-1 shadow-sm transition-all cursor-pointer animate-pulse"
-              title="Installer sur mon téléphone"
+              title={t('installPhone', 'Installer sur mon téléphone')}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Installer</span>
+              <span className="hidden sm:inline">{t('installPhone', 'Installer')}</span>
             </button>
           )}
 
@@ -84,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenProfile}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 transition-colors cursor-pointer"
-            title="Mon profil et compte"
+            title={t('myProfile', 'Mon profil et compte')}
           >
             <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
               {firebaseUser?.photoURL ? (
@@ -94,30 +107,19 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
             <span className="font-semibold max-w-[100px] truncate hidden md:inline">
-              {firebaseUser?.displayName?.split(' ')[0] || profile.name?.split(' ')[0] || 'Profil'}
+              {firebaseUser?.displayName?.split(' ')[0] || profile.name?.split(' ')[0] || t('myProfile', 'Profil')}
             </span>
           </button>
-
-          {/* Subscription plan badge */}
-          <div
-            onClick={onOpenProfile}
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-200 cursor-pointer hover:border-emerald-500"
-          >
-            <Sparkles className="w-3 h-3 text-emerald-400" />
-            <span>
-              {profile.tier === 'vip_cabinet' ? 'VIP Cabinet 👑' : profile.tier === 'pro' ? 'Plan Pro ⭐' : 'Découverte'}
-            </span>
-          </div>
 
           {/* Language Selector */}
           <div className="relative">
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
               className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center space-x-1 cursor-pointer"
-              aria-label="Langue"
+              aria-label={t('language', 'Langue')}
             >
               <Globe className="w-4 h-4 text-emerald-200" />
-              <span className="text-xs font-bold uppercase">{activeLanguage}</span>
+              <span className="text-xs font-bold uppercase">{language}</span>
             </button>
 
             {langMenuOpen && (
@@ -130,11 +132,11 @@ export const Header: React.FC<HeaderProps> = ({
                       setLangMenuOpen(false);
                     }}
                     className={`w-full text-left px-3.5 py-2 flex items-center justify-between hover:bg-emerald-50 cursor-pointer ${
-                      activeLanguage === l.code ? 'font-bold text-emerald-700 bg-emerald-50/70' : 'text-slate-700'
+                      language === l.code ? 'font-bold text-emerald-700 bg-emerald-50/70' : 'text-slate-700'
                     }`}
                   >
                     <span>{l.flag} {l.label}</span>
-                    {activeLanguage === l.code && <span className="text-emerald-600 font-bold">✓</span>}
+                    {language === l.code && <span className="text-emerald-600 font-bold">✓</span>}
                   </button>
                 ))}
               </div>
@@ -145,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenNotifications}
             className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors relative cursor-pointer"
-            aria-label="Notifications"
+            aria-label={t('navNotifications', 'Notifications')}
           >
             <Bell className="w-5 h-5 text-emerald-200" />
             {unreadCount > 0 && (

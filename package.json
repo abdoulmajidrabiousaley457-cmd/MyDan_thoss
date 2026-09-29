@@ -4,20 +4,28 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000",
+    "dev": "tsx server.ts",
     "build": "tsc -b && vite build",
     "lint": "tsc -b",
+    "start": "tsx server.ts",
     "preview": "vite preview --port 3000"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
+    "archiver": "^8.0.0",
     "clsx": "^2.1.1",
+    "express": "^5.2.1",
     "firebase": "^12.19.0",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.9",
+    "@types/archiver": "^8.0.0",
+    "@types/express": "^5.0.6",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",

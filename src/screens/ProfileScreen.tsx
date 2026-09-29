@@ -17,9 +17,12 @@ import {
   BookOpen,
   Edit3,
   Smartphone,
-  Download
+  Download,
+  LayoutGrid,
+  Bot
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
+import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
 import { ProfileCreationModal } from '../components/ProfileCreationModal';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -35,13 +38,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onOpenNotifications,
   onNavigateTab,
 }) => {
-  const { profile, activeLanguage, setLanguage, firebaseUser, loginGoogle, logout } = useUserProfile();
+  const { profile, firebaseUser, loginGoogle, logout } = useUserProfile();
+  const { language, setLanguage, t } = useI18n();
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const { isInstallable, isInstalled, install, isIOS } = usePWAInstall();
 
   const switchLanguage = () => {
-    if (activeLanguage === 'fr') setLanguage('en');
-    else if (activeLanguage === 'en') setLanguage('ar');
+    if (language === 'fr') setLanguage('en');
+    else if (language === 'en') setLanguage('ar');
     else setLanguage('fr');
   };
 
@@ -238,21 +242,81 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       {/* Account Navigation Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* CV & Carrière */}
+        {/* Portfolio & Projets */}
         <div
           onClick={() => onNavigateTab('cv_builder')}
           className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-300 transition-all cursor-pointer flex items-center justify-between"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <FileText className="w-5 h-5" />
+              <LayoutGrid className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900">Studio CV & Lettre de Motivation</h3>
-              <p className="text-xs text-slate-500">4 modèles professionnels certifiés ATS</p>
+              <h3 className="font-bold text-sm text-slate-900">{t('navPortfolios', 'Portfolios & Projets Professionnels')}</h3>
+              <p className="text-xs text-slate-500">Exemples de portfolios à utiliser et créateur de CV ATS</p>
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-400" />
         </div>
+
+        {/* Mon Portfolio Officiel en Direct (Vercel) */}
+        <a
+          href="https://mon-portfolio-fin-ten.vercel.app/"
+          target="_blank"
+          rel="noreferrer"
+          className="bg-gradient-to-r from-emerald-950 to-slate-900 text-white rounded-2xl p-5 border border-emerald-500/40 shadow-sm hover:border-emerald-400 transition-all flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-white">Portfolio Officiel en Direct (Vercel)</h3>
+                <span className="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2 py-0.2 rounded-full">Live</span>
+              </div>
+              <p className="text-xs text-emerald-200 mt-0.5">https://mon-portfolio-fin-ten.vercel.app/</p>
+            </div>
+          </div>
+          <ExternalLink className="w-4 h-4 text-emerald-300" />
+        </a>
+
+        {/* Mon Agent IA Hébergé (Omni Studio) */}
+        <a
+          href="https://omni-studio-abdoul.ai.studio"
+          target="_blank"
+          rel="noreferrer"
+          className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-300 transition-all flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-slate-900">Mon Agent IA Hébergé (Omni Studio)</h3>
+              <p className="text-xs text-slate-500">https://omni-studio-abdoul.ai.studio</p>
+            </div>
+          </div>
+          <ExternalLink className="w-4 h-4 text-slate-400" />
+        </a>
+
+        {/* Télécharger l'App en format ZIP */}
+        <a
+          href="/api/download-zip"
+          download="my-danthoss-app.zip"
+          className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 shadow-sm hover:bg-emerald-100/70 transition-all flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+              <Download className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-emerald-950">{t('downloadZip', 'Télécharger l\'application (format ZIP)')}</h3>
+              <p className="text-xs text-emerald-800">{t('downloadZipDesc', 'Téléchargez l\'archive complète ZIP du code source')}</p>
+            </div>
+          </div>
+          <span className="text-xs font-mono font-bold bg-white text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-300">ZIP</span>
+        </a>
 
         {/* Devis Télétravail */}
         <div
@@ -400,7 +464,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             onClick={switchLanguage}
             className="text-xs font-bold text-emerald-700 uppercase bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 cursor-pointer"
           >
-            {activeLanguage === 'fr' ? 'Français (FR)' : activeLanguage === 'en' ? 'English (EN)' : 'العربية (AR)'}
+            {language === 'fr' ? 'Français (FR)' : language === 'en' ? 'English (EN)' : 'العربية (AR)'}
           </button>
         </div>
 

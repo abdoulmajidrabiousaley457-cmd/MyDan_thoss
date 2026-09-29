@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useUserProfile } from '../context/UserProfileContext';
+import { useI18n } from '../i18n/I18nContext';
 import { CVTemplateId, CVExperience, CVProject, CVEducation } from '../types';
 import { AIDataEngineerTemplate, ExecutiveRemoteTemplate, MinimalTechTemplate, AcademicResearchTemplate } from '../components/cv/CVTemplates';
 import { CoverLetterView } from '../components/cv/CoverLetterView';
 import { ATSScoreAnalyzer } from '../components/cv/ATSScoreAnalyzer';
 import { CV_PRESETS, CVPresetItem } from '../data/cvPresets';
+import { PORTFOLIO_TEMPLATES, PortfolioTemplateItem } from '../data/portfolioTemplates';
+import { CABINET_INFO } from '../data/cabinetData';
 import { 
   Printer, 
   Sparkles, 
@@ -25,7 +28,14 @@ import {
   ArrowRight,
   Download,
   CheckCircle2,
-  Bookmark
+  Bookmark,
+  LayoutGrid,
+  Globe,
+  ExternalLink,
+  Copy,
+  Code,
+  Layers,
+  Bot
 } from 'lucide-react';
 
 export const CVBuilderScreen: React.FC = () => {
@@ -40,9 +50,13 @@ export const CVBuilderScreen: React.FC = () => {
     firebaseUser,
     loginGoogle
   } = useUserProfile();
+  const { t, language } = useI18n();
   
-  const [activeTab, setActiveTab] = useState<'presets' | 'editor' | 'cover_letter' | 'preview' | 'ats'>('presets');
+  const [activeTab, setActiveTab] = useState<'portfolio_templates' | 'presets' | 'editor' | 'cover_letter' | 'preview' | 'ats'>('portfolio_templates');
   const [activeEditorSection, setActiveEditorSection] = useState<'info' | 'experiences' | 'projects' | 'skills' | 'education'>('info');
+  const [selectedPortfolioCategory, setSelectedPortfolioCategory] = useState<'all' | 'ai_data' | 'fullstack' | 'mlops' | 'consulting'>('all');
+  const [previewPortfolioModal, setPreviewPortfolioModal] = useState<PortfolioTemplateItem | null>(null);
+  const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
   const [loadedPresetMessage, setLoadedPresetMessage] = useState<string | null>(null);
   const [selectedPresetPreview, setSelectedPresetPreview] = useState<CVPresetItem | null>(null);
   const [savingCloud, setSavingCloud] = useState(false);
@@ -161,21 +175,55 @@ export const CVBuilderScreen: React.FC = () => {
     setTimeout(() => setLoadedPresetMessage(null), 6000);
   };
 
+  const handleLoadPortfolioTemplateToCV = (template: PortfolioTemplateItem) => {
+    updateCVData({
+      fullName: template.author.includes('Modèle') ? cvData.fullName : template.author,
+      jobTitle: template.role,
+      bioSummary: template.bio,
+      portfolioUrl: template.liveUrl || cvData.portfolioUrl,
+      projects: template.featuredProjects.map((p, idx) => ({
+        id: `port_proj_${idx}_${Date.now()}`,
+        title: p.title,
+        description: p.description,
+        technologies: p.technologies,
+        link: p.github || p.demo || '',
+        impactMetric: p.impact
+      })),
+      skillCategories: template.skills.map((s) => ({
+        category: s.category,
+        skills: s.items
+      }))
+    });
+    setLoadedPresetMessage(`Modèle de portfolio "${template.title}" injecté dans l'éditeur de CV ! Personnalisez vos coordonnées.`);
+    setActiveTab('editor');
+    setTimeout(() => setLoadedPresetMessage(null), 6000);
+  };
+
+  const handleCopyCodeSnippet = (template: PortfolioTemplateItem) => {
+    navigator.clipboard.writeText(template.codeSnippet);
+    setCopiedTemplateId(template.id);
+    setTimeout(() => setCopiedTemplateId(null), 3000);
+  };
+
+  const filteredPortfolios = selectedPortfolioCategory === 'all'
+    ? PORTFOLIO_TEMPLATES
+    : PORTFOLIO_TEMPLATES.filter((p) => p.category === selectedPortfolioCategory);
+
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 md:p-8 shadow-md border border-slate-700/60 print:hidden">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-700/60 print:hidden space-y-5">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              Studio Carrière & Recrutement Pro
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>{t('portfoliosTitle', 'Portfolios & Projets Professionnels')}</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Créateur de CV & Lettre de Motivation Pro
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
+              {t('portfoliosTitle', 'Portfolios & Projets')}
             </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
-              Modèles certifiés ATS conçus pour les ingénieurs IA, Data Scientists et professionnels du télétravail international. Export PDF immédiat et audit d'impact.
+            <p className="text-slate-300 text-xs md:text-sm mt-1 max-w-2xl leading-relaxed">
+              {t('portfoliosSubtitle', 'Consultez notre portfolio officiel en direct, ou explorez des modèles complets de portfolios à utiliser.')}
             </p>
           </div>
 
@@ -184,10 +232,10 @@ export const CVBuilderScreen: React.FC = () => {
               onClick={handleCloudSave}
               disabled={savingCloud}
               className="px-3.5 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-2 transition-all cursor-pointer"
-              title="Sauvegarder ce CV en ligne dans votre base Firebase"
+              title="Sauvegarder ce document dans Firebase"
             >
               <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>{savingCloud ? 'Sauvegarde...' : firebaseUser ? 'Sauvegarder (Cloud)' : 'Connexion & Sauvegarder'}</span>
+              <span>{savingCloud ? 'Sauvegarde...' : firebaseUser ? t('saveCloud', 'Sauvegarder (Cloud)') : 'Connexion & Sauvegarder'}</span>
             </button>
 
             <button
@@ -195,11 +243,11 @@ export const CVBuilderScreen: React.FC = () => {
               className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 flex items-center gap-2 transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer / Télécharger PDF</span>
+              <span>{t('exportPdf', 'Imprimer / PDF')}</span>
             </button>
             <button
               onClick={resetCVToDefault}
-              title="Charger l'exemple type Cabinet"
+              title={t('resetDefault', 'Réinitialiser')}
               className="p-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
@@ -207,63 +255,119 @@ export const CVBuilderScreen: React.FC = () => {
           </div>
         </div>
 
+        {/* Highlight Banner: Official Live Portfolio (Vercel) & Omni Studio Agent */}
+        <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-teal-950/80 border border-emerald-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner">
+              <Globe className="w-6 h-6 text-emerald-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm md:text-base text-white">
+                  {t('officialPortfolioTitle', 'Portfolio Officiel en Direct de Rabiou Saley')}
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/50">
+                  En ligne 🟢
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                https://mon-portfolio-fin-ten.vercel.app/ • Démonstrations interactives & architecture IA
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="https://mon-portfolio-fin-ten.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer transform hover:scale-105"
+            >
+              <span>{t('visitLivePortfolio', 'Ouvrir le Portfolio (Vercel) ↗')}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <a
+              href="https://omni-studio-abdoul.ai.studio"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/40 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <Bot className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Omni Studio ↗</span>
+            </a>
+          </div>
+        </div>
+
         {/* Tab navigation */}
-        <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-slate-700/60">
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-700/60">
           <button
-            onClick={() => setActiveTab('presets')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'presets'
+            onClick={() => setActiveTab('portfolio_templates')}
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'portfolio_templates'
                 ? 'bg-emerald-500 text-slate-950 font-extrabold shadow-md'
                 : 'text-emerald-300 hover:text-white hover:bg-slate-800 bg-emerald-950/60 border border-emerald-500/40'
             }`}
           >
+            <LayoutGrid className="w-4 h-4" />
+            <span>{t('portfolioTemplatesTab', 'Modèles de Portfolios à Utiliser')}</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-900 text-emerald-200 font-bold">4</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('presets')}
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'presets'
+                ? 'bg-white text-slate-900 shadow-md font-bold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
             <Bookmark className="w-4 h-4" />
             <span>Exemples de CV à Modifier</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-900 text-emerald-200 font-bold">5</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300 font-bold">5</span>
           </button>
           <button
             onClick={() => setActiveTab('editor')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'editor'
                 ? 'bg-white text-slate-900 shadow-md font-bold'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <FileText className="w-4 h-4" />
-            Éditeur du CV
+            <span>{t('cvBuilderTab', 'Éditeur du CV')}</span>
           </button>
           <button
             onClick={() => setActiveTab('cover_letter')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'cover_letter'
                 ? 'bg-white text-slate-900 shadow-md font-bold'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Mail className="w-4 h-4" />
-            Lettre de Motivation Pro
+            <span>{t('coverLetterTab', 'Lettre de Motivation')}</span>
           </button>
           <button
             onClick={() => setActiveTab('preview')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'preview'
                 ? 'bg-white text-slate-900 shadow-md font-bold'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Eye className="w-4 h-4" />
-            Aperçu A4 & Modèles
+            <span>Aperçu A4 & Modèles</span>
           </button>
           <button
             onClick={() => setActiveTab('ats')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'ats'
                 ? 'bg-white text-slate-900 shadow-md font-bold'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Award className="w-4 h-4" />
-            Audit ATS & Recrutement
+            <span>{t('atsAnalyzerTab', 'Audit ATS IA')}</span>
           </button>
         </div>
       </div>
@@ -301,6 +405,283 @@ export const CVBuilderScreen: React.FC = () => {
           >
             Passer Pro <ArrowRight className="w-3.5 h-3.5" />
           </button>
+        </div>
+      )}
+
+      {/* ================================================= */}
+      {/* TAB: PORTFOLIO TEMPLATES TO USE & SHOWCASE */}
+      {/* ================================================= */}
+      {activeTab === 'portfolio_templates' && (
+        <div className="space-y-6 print:hidden">
+          {/* Header & Categories */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-1.5">
+                  <LayoutGrid className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{t('portfolioTemplatesTab', 'Modèles de Portfolios Prêts à l\'Emploi')}</span>
+                </div>
+                <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Exemples de Portfolios à Utiliser & Télécharger
+                </h2>
+                <p className="text-xs md:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
+                  Explorez ces architectures de portfolios technologiques complets. Vous pouvez visiter le portfolio officiel en direct sur Vercel, copier le code source prêt à l'emploi (HTML/React), ou charger les données dans le Studio CV pour générer votre document immédiatement.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://mon-portfolio-fin-ten.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Portfolio Vercel Direct</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-200" />
+                </a>
+              </div>
+            </div>
+
+            {/* Category Filter Chips */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { id: 'all', label: 'Tous les Portfolios' },
+                { id: 'ai_data', label: 'IA & Data Science' },
+                { id: 'fullstack', label: 'Full-Stack & Cloud' },
+                { id: 'mlops', label: 'MLOps & Plateforme' },
+                { id: 'consulting', label: 'Conseil & Stratégie' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedPortfolioCategory(cat.id as any)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    selectedPortfolioCategory === cat.id
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Portfolios Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+              {filteredPortfolios.map((pst) => (
+                <div
+                  key={pst.id}
+                  className={`bg-white rounded-3xl border transition-all flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-lg ${
+                    pst.isOfficial
+                      ? 'border-emerald-400 ring-2 ring-emerald-500/20'
+                      : 'border-slate-200 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="p-6 space-y-4">
+                    {/* Header badge & Category */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
+                        pst.isOfficial
+                          ? 'bg-emerald-500 text-slate-950 font-black'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {pst.badge}
+                      </span>
+                      {pst.isOfficial && (
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>En Direct (Live)</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Title & Role */}
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-900 leading-snug">
+                        {pst.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-bold text-emerald-700">{pst.role}</span>
+                        <span className="text-xs text-slate-400">•</span>
+                        <span className="text-xs text-slate-500">{pst.author}</span>
+                      </div>
+                    </div>
+
+                    {/* Tagline & Bio */}
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {pst.bio}
+                    </p>
+
+                    {/* Key Stats Bar */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      {pst.stats.map((st, sidx) => (
+                        <div key={sidx} className="text-center">
+                          <div className="text-sm md:text-base font-black text-slate-900">{st.value}</div>
+                          <div className="text-[10px] text-slate-500 leading-tight">{st.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Skills pills */}
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] font-bold text-slate-700">Stack & Compétences Phares :</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {pst.skills.flatMap((s) => s.items).slice(0, 7).map((sk, skidx) => (
+                          <span key={skidx} className="text-[10px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                            {sk}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Featured Projects Highlight */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                        <span>Projets inclus dans ce portfolio ({pst.featuredProjects.length}) :</span>
+                      </div>
+                      <div className="space-y-2">
+                        {pst.featuredProjects.slice(0, 2).map((proj, pidx) => (
+                          <div key={pidx} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
+                            <div className="flex items-center justify-between font-bold text-slate-900">
+                              <span>{proj.title}</span>
+                              <span className="text-[10px] text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full font-semibold">{proj.impact}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 line-clamp-2">{proj.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Consulting Rates summary */}
+                    <div className="p-3 rounded-xl bg-emerald-950 text-white text-xs flex items-center justify-between">
+                      <div>
+                        <div className="text-[10px] text-emerald-300 font-bold uppercase">Prestation Télétravail</div>
+                        <div className="font-extrabold text-xs">{pst.services[0]?.title}</div>
+                      </div>
+                      <span className="font-mono font-bold text-emerald-300 bg-emerald-900/60 px-2 py-1 rounded-lg border border-emerald-700/50">
+                        {pst.services[0]?.rate}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {pst.liveUrl && (
+                        <a
+                          href={pst.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                        >
+                          <Globe className="w-3.5 h-3.5" />
+                          <span>Visiter le Portfolio Vercel</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => handleCopyCodeSnippet(pst)}
+                        className="px-3 py-2 rounded-xl border border-slate-300 hover:bg-white text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Copier le code source prêt à l'emploi"
+                      >
+                        {copiedTemplateId === pst.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-700 font-bold">Copié !</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copier le Code</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPreviewPortfolioModal(pst)}
+                        className="p-2 rounded-xl border border-slate-200 hover:bg-white text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                        title="Voir la structure et le code complet"
+                      >
+                        <Code className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleLoadPortfolioTemplateToCV(pst)}
+                        className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        title="Injecter ces projets et compétences dans le créateur de CV"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Utiliser dans le Studio CV</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Code & Structure Modal */}
+      {previewPortfolioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-5 bg-gradient-to-r from-slate-950 to-emerald-950 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                  <Code className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base">{previewPortfolioModal.title}</h3>
+                  <p className="text-xs text-slate-300">Structure & Code Source du Portfolio</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewPortfolioModal(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Code prêt à intégrer (HTML / React / Tailwind) :</span>
+                <button
+                  onClick={() => handleCopyCodeSnippet(previewPortfolioModal)}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>{copiedTemplateId === previewPortfolioModal.id ? 'Code copié !' : 'Copier tout le code'}</span>
+                </button>
+              </div>
+
+              <pre className="p-4 rounded-2xl bg-slate-950 text-emerald-300 font-mono text-xs overflow-x-auto border border-slate-800 leading-relaxed whitespace-pre-wrap">
+                {previewPortfolioModal.codeSnippet}
+              </pre>
+
+              {previewPortfolioModal.liveUrl && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-emerald-900 block">Démonstration en Ligne :</span>
+                    <span className="text-emerald-700">{previewPortfolioModal.liveUrl}</span>
+                  </div>
+                  <a
+                    href={previewPortfolioModal.liveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1"
+                  >
+                    <span>Ouvrir en direct</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
