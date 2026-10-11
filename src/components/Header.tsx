@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Globe, Sparkles, Smartphone, Download, ExternalLink } from 'lucide-react';
+import { Menu, Bell, Globe, Sparkles, Smartphone, Download, ExternalLink, FolderLock, LogOut, ShieldAlert } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenDevis
 }) => {
-  const { unreadCount, profile, firebaseUser } = useUserProfile();
+  const { unreadCount, profile, firebaseUser, logout, isAdmin } = useUserProfile();
   const { language, setLanguage, t } = useI18n();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { isInstallable, install, isInstalled } = usePWAInstall();
@@ -70,6 +70,28 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Actions, Language & Notifications */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          {/* Super Admin Badge Button */}
+          {isAdmin && (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'admin_dashboard' }))}
+              className="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md border border-amber-300 transition-all cursor-pointer animate-pulse"
+              title="Tableau de Bord Administrateur (UID: zbc5lYSgQ9bIcKipYER68wbI1Er1)"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 fill-slate-950 text-amber-500" />
+              <span>ADMIN</span>
+            </button>
+          )}
+
+          {/* Quick Client Vault button */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'client_vault' }))}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            title="Accéder au Coffre-fort Clients (Client Vault)"
+          >
+            <FolderLock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Client Vault</span>
+          </button>
+
           {/* Quick Install Mobile Button if installable */}
           {isInstallable && !isInstalled && (
             <button
@@ -99,6 +121,18 @@ export const Header: React.FC<HeaderProps> = ({
               {firebaseUser?.displayName?.split(' ')[0] || profile.name?.split(' ')[0] || t('myProfile', 'Profil')}
             </span>
           </button>
+
+          {/* Quick Logout Button */}
+          {firebaseUser && (
+            <button
+              onClick={logout}
+              className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 hover:text-rose-300 border border-slate-700 text-xs text-rose-400 font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title={t('logout', 'Déconnexion')}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('logout', 'Déconnexion')}</span>
+            </button>
+          )}
 
           {/* Language Selector */}
           <div className="relative">

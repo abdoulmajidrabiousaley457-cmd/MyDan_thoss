@@ -217,6 +217,25 @@ export interface BookResource {
 // CURRENCY CONVERTER TYPES
 // ========================
 
+export interface VaultFile {
+  id: string;
+  userId: string;
+  name: string;
+  size: number;
+  sizeFormatted: string;
+  type: string;
+  category: 'livrable' | 'contrat' | 'code' | 'facture' | 'rapport' | 'autre';
+  clientName: string;
+  clientEmail?: string;
+  uploadedAt: string;
+  downloadCount: number;
+  status: 'active' | 'archived';
+  notes?: string;
+  fileContentBase64?: string;
+  storagePath?: string;
+  storageUrl?: string;
+}
+
 export interface CurrencyItem {
   code: string;
   name: string;

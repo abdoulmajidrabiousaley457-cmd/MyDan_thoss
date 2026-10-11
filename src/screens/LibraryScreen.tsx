@@ -25,11 +25,18 @@ import {
   SlidersHorizontal,
   BookmarkCheck,
   TrendingUp,
-  FileCheck
+  FileCheck,
+  FolderLock,
+  ShieldCheck,
+  Users
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 
-export const LibraryScreen: React.FC = () => {
+interface LibraryScreenProps {
+  onNavigateTab?: (tab: string) => void;
+}
+
+export const LibraryScreen: React.FC<LibraryScreenProps> = ({ onNavigateTab }) => {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -246,6 +253,53 @@ Agent Omni Studio : https://omni-studio-abdoul.ai.studio
               <span>Lecteur interactif intégré</span>
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Featured Tool: Client Vault (Portail Fichiers Clients Sécurisé) */}
+      <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 rounded-3xl p-6 sm:p-8 text-white border border-emerald-500/30 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none"></div>
+        <div className="space-y-3 max-w-2xl relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <FolderLock className="w-3.5 h-3.5" />
+            <span>Nouveau dans la Bibliothèque • Outil Opérationnel</span>
+          </div>
+
+          <h2 className="text-xl sm:text-2xl font-black text-white">
+            Outil Client Vault (Portail Fichiers Clients Sécurisé)
+          </h2>
+
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Un portail de fichiers privé où les pigistes et consultants peuvent téléverser leurs livrables, codes et rapports pour permettre à leurs clients de les télécharger en toute sécurité avec suivi en temps réel.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-400">
+            <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Chiffrement Firebase</span>
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1 text-teal-400 font-semibold">
+              <Download className="w-4 h-4" />
+              <span>Téléchargements directs</span>
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1 text-purple-400 font-semibold">
+              <Users className="w-4 h-4" />
+              <span>Espace dédié par client</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="relative z-10 shrink-0 w-full md:w-auto">
+          <button
+            onClick={() => onNavigateTab ? onNavigateTab('client_vault') : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'client_vault' }))}
+            className="w-full md:w-auto px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2.5 cursor-pointer hover:scale-[1.02]"
+          >
+            <FolderLock className="w-4 h-4" />
+            <span>Accéder à l'Outil Client Vault</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

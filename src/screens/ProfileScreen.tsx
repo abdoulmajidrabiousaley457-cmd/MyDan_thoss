@@ -19,7 +19,8 @@ import {
   Smartphone,
   Download,
   LayoutGrid,
-  Bot
+  Bot,
+  FolderLock
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -315,6 +316,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-400" />
+        </div>
+
+        {/* Coffre-fort Clients (Client Vault) */}
+        <div
+          onClick={() => onNavigateTab('client_vault')}
+          className="bg-emerald-50/80 rounded-2xl p-5 border border-emerald-200 shadow-sm hover:bg-emerald-100/70 transition-all cursor-pointer flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+              <FolderLock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-emerald-950">Coffre-fort Clients (Client Vault)</h3>
+              <p className="text-xs text-emerald-800">Partage et téléchargement sécurisé de vos livrables</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-emerald-700" />
         </div>
 
         {/* Convertisseur de Devises */}

@@ -103,19 +103,19 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-800">
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
               <div className="text-2xl md:text-3xl font-extrabold text-emerald-400">{CABINET_INFO.stats.experienceYears}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Années d'expérience</div>
+              <div className="text-xs text-slate-400 mt-0.5">{t('yearsExp', "Années d'expérience")}</div>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
               <div className="text-2xl md:text-3xl font-extrabold text-white">{CABINET_INFO.stats.projectsDelivered}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Projets IA & Data livrés</div>
+              <div className="text-xs text-slate-400 mt-0.5">{t('projectsDelivered', "Projets IA & Data livrés")}</div>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
               <div className="text-2xl md:text-3xl font-extrabold text-sky-400">{CABINET_INFO.stats.remoteClientsCount}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Clients en Télétravail</div>
+              <div className="text-xs text-slate-400 mt-0.5">{t('remoteClients', "Clients en Télétravail")}</div>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
               <div className="text-2xl md:text-3xl font-extrabold text-amber-400">{CABINET_INFO.stats.clientSatisfaction}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Satisfaction client</div>
+              <div className="text-xs text-slate-400 mt-0.5">{t('satisfactionRate', "Satisfaction client")}</div>
             </div>
           </div>
 

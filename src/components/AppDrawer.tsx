@@ -17,7 +17,11 @@ import {
   ArrowRightLeft,
   BookOpen,
   Smartphone,
-  Download
+  Download,
+  FolderLock,
+  KeyRound,
+  LogOut,
+  ShieldAlert
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -43,13 +47,16 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onOpenSecurity,
   onOpenNotifications,
 }) => {
-  const { profile } = useUserProfile();
+  const { profile, firebaseUser, logout, isAdmin } = useUserProfile();
   const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWAInstall();
 
   if (!isOpen) return null;
 
   const navItems = [
+    ...(isAdmin ? [{ id: 'admin_dashboard', label: '⭐ Tableau de Bord Super Admin', icon: ShieldAlert, isAdminItem: true }] : []),
+    { id: 'dashboard', label: t('navDashboard', 'Tableau de Bord'), icon: ShieldCheck },
+    { id: 'client_vault', label: t('navClientVault', 'Coffre-fort Clients (Client Vault)'), icon: FolderLock },
     { id: 'portfolio', label: t('navCabinet', 'Cabinet & Portfolio Télétravail'), icon: Briefcase },
     { id: 'cv_builder', label: t('navPortfolios', 'Portfolios, Projets & CV'), icon: LayoutGrid },
     { id: 'currency', label: t('navCurrencies', 'Convertisseur de Devises Mondiales'), icon: ArrowRightLeft },
@@ -313,6 +320,22 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
             </a>
           </div>
         </div>
+
+        {/* Logout button if logged in */}
+        {firebaseUser && (
+          <div className="p-4 border-t border-slate-100 bg-slate-50">
+            <button
+              onClick={() => {
+                onClose();
+                logout();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>{t('logout', 'Se déconnecter')}</span>
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 space-y-1">

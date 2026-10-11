@@ -1,6 +1,7 @@
 import React from 'react';
-import { Briefcase, LayoutGrid, ArrowRightLeft, BookOpen, User } from 'lucide-react';
+import { LayoutGrid, ArrowRightLeft, BookOpen, User, FolderLock, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { useUserProfile } from '../context/UserProfileContext';
 
 interface BottomNavProps {
   activeTab: string;
@@ -9,11 +10,13 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) => {
   const { t } = useI18n();
+  const { isAdmin } = useUserProfile();
 
   const tabs = [
-    { id: 'portfolio', label: t('navCabinet', 'Cabinet & IA'), icon: Briefcase },
-    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & Projets'), icon: LayoutGrid },
-    { id: 'currency', label: t('navCurrencies', 'Devises'), icon: ArrowRightLeft },
+    ...(isAdmin ? [{ id: 'admin_dashboard', label: 'Admin', icon: ShieldAlert }] : []),
+    { id: 'dashboard', label: t('navDashboard', 'Dashboard'), icon: ShieldCheck },
+    { id: 'client_vault', label: t('navClientVault', 'Client Vault'), icon: FolderLock },
+    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & CV'), icon: LayoutGrid },
     { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
     { id: 'profile', label: t('navProfile', 'Mon Espace'), icon: User },
   ];

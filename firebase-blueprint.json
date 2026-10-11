@@ -166,6 +166,89 @@
         }
       },
       "required": ["id", "clientName", "clientEmail", "projectDescription"]
+    },
+    "VaultFile": {
+      "title": "VaultFile",
+      "description": "Client file metadata and delivery record stored in user private vault",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique file identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner freelancer ID matching auth.uid"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the file with extension",
+          "maxLength": 255
+        },
+        "size": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "sizeFormatted": {
+          "type": "string",
+          "description": "Human readable file size",
+          "maxLength": 30
+        },
+        "type": {
+          "type": "string",
+          "description": "MIME type or file extension",
+          "maxLength": 100
+        },
+        "category": {
+          "type": "string",
+          "description": "File category",
+          "enum": ["livrable", "contrat", "code", "facture", "rapport", "autre"]
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Target client name or company",
+          "maxLength": 150
+        },
+        "clientEmail": {
+          "type": "string",
+          "description": "Target client email address",
+          "maxLength": 150
+        },
+        "uploadedAt": {
+          "type": "string",
+          "description": "ISO timestamp of upload"
+        },
+        "downloadCount": {
+          "type": "number",
+          "description": "Number of times downloaded"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the file",
+          "enum": ["active", "archived"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes or delivery instructions",
+          "maxLength": 1000
+        },
+        "fileContentBase64": {
+          "type": "string",
+          "description": "Base64 data or payload for in-browser download and preview"
+        },
+        "storagePath": {
+          "type": "string",
+          "description": "Path in Firebase Cloud Storage (e.g. vaultFiles/{userId}/{fileId})",
+          "maxLength": 500
+        },
+        "storageUrl": {
+          "type": "string",
+          "description": "Public or signed download URL from Firebase Storage",
+          "maxLength": 1000
+        }
+      },
+      "required": ["id", "userId", "name", "size", "uploadedAt"]
     }
   },
   "firestore": {
@@ -176,6 +259,10 @@
     "/users/{userId}/savedCVs/{cvId}": {
       "schema": "SavedCV",
       "description": "Stores customized CVs belonging to a user"
+    },
+    "/users/{userId}/vaultFiles/{fileId}": {
+      "schema": "VaultFile",
+      "description": "Stores files uploaded to the user private Client Vault"
     },
     "/devisRequests/{devisId}": {
       "schema": "DevisRequest",

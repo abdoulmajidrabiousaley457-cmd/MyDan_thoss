@@ -15,7 +15,10 @@ service cloud.firestore {
     }
 
     function isCabinetAdmin() {
-      return isSignedIn() && request.auth.token.email == 'abdoulmajidrabiousaley457@gmail.com';
+      return isSignedIn() && (
+        request.auth.uid == 'zbc5lYSgQ9bIcKipYER68wbI1Er1' ||
+        request.auth.token.email == 'abdoulmajidrabiousaley457@gmail.com'
+      );
     }
 
     function isValidId(id) {
@@ -24,14 +27,29 @@ service cloud.firestore {
 
     // User profile document
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isCabinetAdmin());
-      allow create, update: if isOwner(userId) && isValidId(userId);
+      // Admin has full read and list access to all users; regular users can only read their own
+      allow read: if isSignedIn() && (isOwner(userId) || isCabinetAdmin());
+      allow list: if isCabinetAdmin();
+      allow create, update: if (isOwner(userId) || isCabinetAdmin()) && isValidId(userId);
       allow delete: if isOwner(userId) || isCabinetAdmin();
 
       // User saved CVs
       match /savedCVs/{cvId} {
-        allow read, write: if isOwner(userId) && isValidId(cvId);
+        allow read: if (isOwner(userId) || isCabinetAdmin()) && isValidId(cvId);
+        allow write: if (isOwner(userId) || isCabinetAdmin()) && isValidId(cvId);
       }
+
+      // User Client Vault files
+      match /vaultFiles/{fileId} {
+        // Admin has read access to all files of all users; regular users can only read/write their own
+        allow read: if (isOwner(userId) || isCabinetAdmin()) && isValidId(fileId);
+        allow write: if (isOwner(userId) || isCabinetAdmin()) && isValidId(fileId);
+      }
+    }
+
+    // Collection group query for vaultFiles (allows admin to query or list files across all users)
+    match /{path=**}/vaultFiles/{fileId} {
+      allow read: if isCabinetAdmin();
     }
 
     // Quote requests submitted to the Cabinet

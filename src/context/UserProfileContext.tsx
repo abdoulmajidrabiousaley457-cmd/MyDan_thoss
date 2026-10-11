@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, NotificationItem, CVData, CoverLetterData, SubscriptionTier, AppLanguage } from '../types';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
+import { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, resetPassword, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
 
 export const initialCVData: CVData = {
   fullName: 'Rabiou Saley Abdoul Majid',
@@ -230,11 +230,18 @@ const defaultProfile: UserProfile = {
   remoteAvailable: true,
 };
 
+export const ADMIN_USER_ID = 'zbc5lYSgQ9bIcKipYER68wbI1Er1';
+export const ADMIN_EMAIL = 'abdoulmajidrabiousaley457@gmail.com';
+
 interface UserProfileContextType {
   profile: UserProfile;
   firebaseUser: User | null;
   authLoading: boolean;
+  isAdmin: boolean;
   loginGoogle: () => Promise<void>;
+  loginEmail: (email: string, pass: string) => Promise<void>;
+  registerEmail: (email: string, pass: string, name?: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   saveCVToFirestore: (title?: string) => Promise<boolean>;
   notifications: NotificationItem[];
@@ -344,6 +351,34 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       await loginWithGoogle();
     } catch (err) {
       console.error('Login error:', err);
+      throw err;
+    }
+  };
+
+  const loginEmail = async (email: string, pass: string) => {
+    try {
+      await loginWithEmail(email, pass);
+    } catch (err) {
+      console.error('Email login error:', err);
+      throw err;
+    }
+  };
+
+  const registerEmail = async (email: string, pass: string, name?: string) => {
+    try {
+      await registerWithEmail(email, pass, name);
+    } catch (err) {
+      console.error('Email registration error:', err);
+      throw err;
+    }
+  };
+
+  const sendPasswordReset = async (email: string) => {
+    try {
+      await resetPassword(email);
+    } catch (err) {
+      console.error('Password reset error:', err);
+      throw err;
     }
   };
 
@@ -352,6 +387,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       await logoutUser();
     } catch (err) {
       console.error('Logout error:', err);
+      throw err;
     }
   };
 
@@ -478,13 +514,21 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCoverLetterData(initialCoverLetterData);
   };
 
+  const isAdmin = Boolean(
+    firebaseUser && (firebaseUser.uid === ADMIN_USER_ID || firebaseUser.email === ADMIN_EMAIL)
+  );
+
   return (
     <UserProfileContext.Provider
       value={{
         profile,
         firebaseUser,
         authLoading,
+        isAdmin,
         loginGoogle,
+        loginEmail,
+        registerEmail,
+        sendPasswordReset,
         logout,
         saveCVToFirestore,
         notifications,
