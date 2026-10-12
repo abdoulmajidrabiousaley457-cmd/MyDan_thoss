@@ -4,26 +4,33 @@ import { SubscriptionTier } from '../types';
 import { 
   Check, 
   Sparkles, 
-  Crown, 
   ShieldCheck, 
   Zap, 
   CreditCard, 
   Smartphone, 
   X, 
-  Award, 
   Calendar,
   Lock,
-  ArrowRight
+  ArrowRight,
+  ExternalLink,
+  Download,
+  Building,
+  CheckCircle2,
+  FileCheck
 } from 'lucide-react';
+import { CABINET_INFO } from '../data/cabinetData';
+
+type PaymentMethodOption = 'mobile_money' | 'card' | 'transfer';
 
 export const SubscriptionScreen: React.FC = () => {
   const { profile, upgradeSubscription } = useUserProfile();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [showCheckoutModal, setShowCheckoutModal] = useState<boolean>(false);
   const [selectedTierToBuy, setSelectedTierToBuy] = useState<SubscriptionTier>('pro');
-  const [paymentMethod, setPaymentMethod] = useState<'mobile_money' | 'card'>('mobile_money');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodOption>('mobile_money');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState<boolean>(false);
+  const [attestationSuccess, setAttestationSuccess] = useState<string | null>(null);
 
   const plans = [
     {
@@ -101,16 +108,168 @@ export const SubscriptionScreen: React.FC = () => {
     setShowCheckoutModal(true);
   };
 
-  const handleProcessPayment = () => {
+  const getTierDetails = (tier: SubscriptionTier) => {
+    if (tier === 'vip_cabinet') {
+      return {
+        name: 'Plan Cabinet VIP & Mentorat 👑',
+        price: billingPeriod === 'monthly' ? '39 000 FCFA (59 €)' : '31 200 FCFA (47 €)',
+        rawPrice: billingPeriod === 'monthly' ? '39 000 FCFA / mois' : '31 200 FCFA / mois (facturé annuellement)'
+      };
+    }
+    return {
+      name: 'Plan Pro Carrière & Télétravail ⭐',
+      price: billingPeriod === 'monthly' ? '9 900 FCFA (15 €)' : '7 900 FCFA (12 €)',
+      rawPrice: billingPeriod === 'monthly' ? '9 900 FCFA / mois' : '7 900 FCFA / mois (facturé annuellement)'
+    };
+  };
+
+  const getPaymentMethodLabel = (method: PaymentMethodOption = paymentMethod) => {
+    switch (method) {
+      case 'mobile_money':
+        return 'Mobile Money (Airtel Money / Moov Money / Orange Money)';
+      case 'card':
+        return 'Carte Bancaire (Visa / Mastercard)';
+      case 'transfer':
+        return 'Virement Bancaire International (EUR / USD / XOF)';
+      default:
+        return 'Mobile Money';
+    }
+  };
+
+  const buildWhatsAppUrl = (methodOverride?: PaymentMethodOption) => {
+    const details = getTierDetails(selectedTierToBuy);
+    const subRef = `SUB-${Date.now().toString().slice(-6)}`;
+    const clientName = profile.name || 'Client Danthoss';
+    const clientEmail = profile.email || 'Email non renseigné';
+    const chosenMethod = methodOverride || paymentMethod;
+
+    const message = `Bonjour Cabinet Rabiou Saley ! 👋
+
+Je souhaite souscrire et finaliser mon abonnement Danthoss :
+
+📋 Forfait : ${details.name}
+💳 Montant : ${details.price}
+🔄 Cycle de facturation : ${billingPeriod === 'monthly' ? 'Mensuel' : 'Annuel (-20%)'}
+📱 Moyen de paiement choisi : ${getPaymentMethodLabel(chosenMethod)}
+👤 Nom du client : ${clientName}
+📧 Email : ${clientEmail}
+🆔 Référence : ${subRef}
+
+Merci de m'indiquer les coordonnées de paiement pour valider et achever mon abonnement immédiatement.`;
+
+    return `https://wa.me/22796499906?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleFinalizeOnWhatsApp = (methodOverride?: PaymentMethodOption) => {
+    const chosenMethod = methodOverride || paymentMethod;
+    if (methodOverride) {
+      setPaymentMethod(methodOverride);
+    }
     setIsProcessing(true);
-    setTimeout(() => {
-      upgradeSubscription(selectedTierToBuy);
-      setIsProcessing(false);
-      setCheckoutSuccess(true);
-      setTimeout(() => {
-        setShowCheckoutModal(false);
-      }, 2000);
-    }, 1500);
+    const whatsappUrl = buildWhatsAppUrl(chosenMethod);
+
+    // 1. Upgrade subscription tier in the local user profile
+    upgradeSubscription(selectedTierToBuy);
+
+    // 2. Open WhatsApp directly - try native open, fallback to location href
+    try {
+      const opened = window.open(whatsappUrl, '_blank');
+      if (!opened) {
+        window.location.href = whatsappUrl;
+      }
+    } catch {
+      window.location.href = whatsappUrl;
+    }
+
+    // 3. Update modal UI to show success
+    setIsProcessing(false);
+    setCheckoutSuccess(true);
+  };
+
+  const handleDownloadAttestation = () => {
+    const today = new Date().toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    const tierLabel = profile.tier === 'vip_cabinet' 
+      ? 'Membre Cabinet VIP & Mentorat' 
+      : profile.tier === 'pro' 
+      ? 'Abonné Plan Pro Carrière & Télétravail' 
+      : 'Utilisateur Plan Découverte';
+
+    const attestationHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Attestation d'Abonnement - Danthoss Cabinet Rabiou Saley</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 40px; color: #1e293b; background: #fff; line-height: 1.6; }
+    .header { border-bottom: 3px solid #059669; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .title { color: #064e3b; font-size: 24px; font-weight: bold; margin: 0; }
+    .subtitle { color: #059669; font-size: 14px; margin-top: 4px; }
+    .badge { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+    .content { margin: 40px 0; }
+    .client-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 25px 0; }
+    .footer { margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: space-between; font-size: 12px; color: #64748b; }
+    .seal { border: 2px dashed #059669; padding: 15px; border-radius: 10px; display: inline-block; text-align: center; color: #065f46; font-weight: bold; font-size: 12px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1 class="title">Cabinet d'Expertise Rabiou Saley</h1>
+      <div class="subtitle">Ingénierie Data Science, Agents IA & Télétravail International • Plateforme Danthoss</div>
+    </div>
+    <div class="badge">ATTESTATION OFFICIELLE</div>
+  </div>
+
+  <div class="content">
+    <p>Nous soussignés, <strong>Cabinet Rabiou Saley</strong> (Niamey / International Remote), certifions par la présente que :</p>
+    
+    <div class="client-card">
+      <p style="margin: 0 0 8px 0;"><strong>Nom du Titulaire :</strong> ${profile.name || 'Membre Professionnel'}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Identifiant / Email :</strong> ${profile.email || 'Email vérifié'}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Formule souscrite :</strong> ${tierLabel}</p>
+      <p style="margin: 0;"><strong>Statut du Compte :</strong> Actif & Opérationnel</p>
+    </div>
+
+    <p>Le titulaire bénéficie d'un accès vérifié aux outils professionnels du cabinet, notamment :</p>
+    <ul>
+      <li>Studio de conception et optimisation de CV ATS pour le télétravail international</li>
+      <li>Générateur de lettres de motivation personnalisées et modèles haute fidélité</li>
+      <li>Coffre-fort sécurisé de fichiers et livrables techniques (Client Vault)</li>
+      <li>Accompagnement et support direct du Cabinet Rabiou Saley</li>
+    </ul>
+
+    <p>Fait à Niamey, le <strong>${today}</strong> pour servir et valoir ce que de droit.</p>
+
+    <div class="seal">
+      CACHE ET SIGNATURE NUMÉRIQUE DU CABINET<br>
+      Cabinet Rabiou Saley • Réf: ATTEST-${Date.now().toString().slice(-8)}<br>
+      WhatsApp: +227 96 49 99 06 • Email: abdoulmajidrabiousaley457@gmail.com
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Plateforme Officielle Danthoss - Cabinet Rabiou Saley</div>
+    <div>Document généré électroniquement avec valeur probante</div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([attestationHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Attestation_Abonnement_Danthoss_${(profile.name || 'Client').replace(/\s+/g, '_')}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setAttestationSuccess("Votre attestation d'abonnement officielle a été téléchargée avec succès !");
+    setTimeout(() => setAttestationSuccess(null), 4500);
   };
 
   return (
@@ -125,8 +284,16 @@ export const SubscriptionScreen: React.FC = () => {
           Investissez dans votre Carrière & vos Missions Télétravail
         </h1>
         <p className="text-sm md:text-base text-slate-600">
-          Débloquez l'intégralité des outils de candidature professionnelle, l'audit ATS IA et bénéficiez de l'expertise directe du Cabinet Rabiou Saley.
+          Débloquez l'intégralité des outils de candidature professionnelle, l'audit ATS IA et finalisez votre souscription en contact direct sur WhatsApp avec Rabiou Saley.
         </p>
+
+        {/* Attestation success feedback */}
+        {attestationSuccess && (
+          <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{attestationSuccess}</span>
+          </div>
+        )}
 
         {/* Billing period toggle */}
         <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 mt-4">
@@ -268,103 +435,222 @@ export const SubscriptionScreen: React.FC = () => {
             Changer de forfait
           </button>
           <button
-            onClick={() => alert('Votre attestation d\'abonnement pro a été envoyée à votre adresse email.')}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer"
+            onClick={handleDownloadAttestation}
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 shadow-xs"
           >
-            Télécharger attestation
+            <Download className="w-4 h-4" />
+            <span>Télécharger l'attestation</span>
           </button>
         </div>
       </div>
 
-      {/* Checkout Modal Simulation */}
+      {/* Checkout Modal with Direct WhatsApp Finalization */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl space-y-6 relative border border-slate-100">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl space-y-6 relative border border-slate-100 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowCheckoutModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {checkoutSuccess ? (
-              <div className="text-center py-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto animate-bounce">
+              <div className="text-center py-6 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Félicitations !</h3>
-                <p className="text-xs text-slate-600">
-                  Votre souscription au <strong>{selectedTierToBuy === 'vip_cabinet' ? 'Plan Cabinet VIP' : 'Plan Pro'}</strong> a été activée avec succès. Vos outils et modèles sont débloqués.
-                </p>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Demande transmise avec succès !</h3>
+                  <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
+                    Votre lien WhatsApp s'est ouvert pour achever votre règlement avec <strong>Rabiou Saley</strong>. Vos outils et modèles <strong>{selectedTierToBuy === 'vip_cabinet' ? 'Cabinet VIP' : 'Plan Pro'}</strong> sont activés.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-col gap-2">
+                  <a
+                    href={buildWhatsAppUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Réouvrir WhatsApp (+227 96 49 99 06)</span>
+                  </a>
+                  <button
+                    onClick={() => setShowCheckoutModal(false)}
+                    className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
+                  >
+                    Retourner à la plateforme
+                  </button>
+                </div>
               </div>
             ) : (
               <>
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Activation Sécurisée</span>
-                  <h3 className="text-xl font-extrabold text-slate-900 mt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Règlement & Activation
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-bold">Lien WhatsApp Direct</span>
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mt-2">
                     Souscrire au {selectedTierToBuy === 'vip_cabinet' ? 'Plan Cabinet VIP' : 'Plan Pro Carrière'}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Règlement immédiat par Mobile Money ou Carte Bancaire.
+                  <p className="text-xs text-slate-500 mt-1">
+                    Choisissez votre moyen de paiement ci-dessous puis cliquez sur le bouton pour achever directement votre abonnement sur WhatsApp.
                   </p>
                 </div>
 
                 {/* Payment method selector */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setPaymentMethod('mobile_money')}
-                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      paymentMethod === 'mobile_money'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Smartphone className="w-5 h-5 text-emerald-600" />
-                    <span>Mobile Money (Niger / UEMOA)</span>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                      paymentMethod === 'card'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <CreditCard className="w-5 h-5 text-emerald-600" />
-                    <span>Carte Visa / Mastercard</span>
-                  </button>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Forfait sélectionné :</span>
-                    <span className="font-bold text-slate-900">{selectedTierToBuy === 'vip_cabinet' ? 'Cabinet VIP' : 'Plan Pro'}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Montant total :</span>
-                    <span className="font-bold text-emerald-700 text-sm">
-                      {selectedTierToBuy === 'vip_cabinet' ? '39 000 FCFA (59 €)' : '9 900 FCFA (15 €)'}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">
+                      Sélectionnez votre moyen de paiement :
+                    </label>
+                    <span className="text-[10px] text-emerald-600 font-bold">
+                      Redirection WhatsApp instantanée
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-1 border-t">
-                    Paiement chiffré et sécurisé SSL 256 bits. Annulable à tout moment.
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {/* Mobile Money */}
+                    <div
+                      onClick={() => setPaymentMethod('mobile_money')}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                        paymentMethod === 'mobile_money'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1.5">
+                        <Smartphone className={`w-5 h-5 ${paymentMethod === 'mobile_money' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                        <span className="leading-tight">Mobile Money<br/><span className="text-[10px] font-normal text-slate-500">(Airtel, Moov, Orange)</span></span>
+                      </div>
+                      {paymentMethod === 'mobile_money' && (
+                        <a
+                          href={buildWhatsAppUrl('mobile_money')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFinalizeOnWhatsApp('mobile_money');
+                          }}
+                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
+                        >
+                          <span>Payer sur WhatsApp</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Carte Bancaire */}
+                    <div
+                      onClick={() => setPaymentMethod('card')}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                        paymentMethod === 'card'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1.5">
+                        <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                        <span className="leading-tight">Carte Bancaire<br/><span className="text-[10px] font-normal text-slate-500">(Visa, Mastercard)</span></span>
+                      </div>
+                      {paymentMethod === 'card' && (
+                        <a
+                          href={buildWhatsAppUrl('card')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFinalizeOnWhatsApp('card');
+                          }}
+                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
+                        >
+                          <span>Payer sur WhatsApp</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Virement Bancaire */}
+                    <div
+                      onClick={() => setPaymentMethod('transfer')}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                        paymentMethod === 'transfer'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1.5">
+                        <Building className={`w-5 h-5 ${paymentMethod === 'transfer' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                        <span className="leading-tight">Virement Pro<br/><span className="text-[10px] font-normal text-slate-500">(EUR, USD, XOF)</span></span>
+                      </div>
+                      {paymentMethod === 'transfer' && (
+                        <a
+                          href={buildWhatsAppUrl('transfer')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFinalizeOnWhatsApp('transfer');
+                          }}
+                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
+                        >
+                          <span>Payer sur WhatsApp</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <button
-                  disabled={isProcessing}
-                  onClick={handleProcessPayment}
-                  className="w-full py-3.5 rounded-xl font-extrabold text-xs md:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                {/* Payment method instruction callout */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Mode sélectionné : {getPaymentMethodLabel()}</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 leading-relaxed">
+                    {paymentMethod === 'mobile_money' && 'Transférez via Airtel Money, Moov Money ou Orange Money vers le numéro officiel +227 96 49 99 06, puis cliquez sur le bouton pour confirmer directement sur WhatsApp.'}
+                    {paymentMethod === 'card' && 'Un lien de paiement sécurisé direct Visa / Mastercard vous sera généré par Rabiou Saley sur WhatsApp dès votre clic.'}
+                    {paymentMethod === 'transfer' && 'Le RIB officiel du Cabinet Rabiou Saley vous sera transmis immédiatement sur WhatsApp avec facture proforma certifiée.'}
+                  </p>
+                </div>
+
+                {/* Recap block */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Forfait sélectionné :</span>
+                    <span className="font-bold text-slate-900">{getTierDetails(selectedTierToBuy).name}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Cycle de facturation :</span>
+                    <span className="font-semibold text-slate-800">{billingPeriod === 'monthly' ? 'Mensuel' : 'Annuel (-20%)'}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
+                    <span>Montant total :</span>
+                    <span className="font-black text-emerald-700 text-base">
+                      {getTierDetails(selectedTierToBuy).price}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Direct WhatsApp Action Button (Anchor tag for 100% native click reliability) */}
+                <a
+                  href={buildWhatsAppUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => handleFinalizeOnWhatsApp()}
+                  className="w-full py-4 rounded-2xl font-black text-xs sm:text-sm bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white shadow-xl shadow-emerald-950/30 flex items-center justify-center gap-2.5 cursor-pointer transition-all transform hover:scale-[1.01] active:scale-[0.99] text-center"
                 >
-                  {isProcessing ? (
-                    <span>Validation du paiement en cours...</span>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" />
-                      <span>Confirmer et Activer l'Abonnement</span>
-                    </>
-                  )}
-                </button>
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Achever mon Abonnement sur WhatsApp (+227 96 49 99 06)</span>
+                </a>
+
+                <p className="text-[11px] text-slate-400 text-center">
+                  En cliquant, vous serez directement redirigé vers WhatsApp avec le message pré-rempli pour activer votre abonnement en direct avec Rabiou Saley.
+                </p>
               </>
             )}
           </div>

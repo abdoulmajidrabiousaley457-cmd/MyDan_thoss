@@ -26,7 +26,7 @@ import {
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
-import { usePWAInstall } from '../hooks/usePWAInstall';
+import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -215,10 +215,10 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                   if (isInstallable) {
                     await install();
                   } else {
-                    onSelectTab('profile');
+                    openInstallModal();
                   }
                 }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-100/80 hover:bg-emerald-200 transition-colors cursor-pointer border border-emerald-300/60"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-100/90 hover:bg-emerald-200 transition-colors cursor-pointer border border-emerald-300/80 shadow-xs"
               >
                 <span className="flex items-center space-x-3 rtl:space-x-reverse">
                   <Smartphone className="w-4 h-4 text-emerald-700 shrink-0" />

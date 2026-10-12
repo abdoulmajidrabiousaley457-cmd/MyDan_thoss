@@ -9,11 +9,14 @@ import {
   CheckCircle2, 
   Globe,
   LogOut,
-  FolderLock
+  FolderLock,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
+import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 
 interface AuthScreenProps {
   onSuccess?: () => void;
@@ -31,6 +34,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
   } = useUserProfile();
 
   const { t, language, setLanguage, isRtl } = useI18n();
+  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [email, setEmail] = useState('');
@@ -390,6 +394,51 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
           )}
         </div>
       </div>
+
+      {/* Direct Home Screen App Download Card for Clients */}
+      {!isInstalled && (
+        <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 p-4 sm:p-5 rounded-3xl border border-emerald-500/40 text-white shadow-xl space-y-3 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-emerald-400 shadow-md shrink-0 bg-slate-950">
+              <img src="/app-logo.png" alt="Logo Danthoss" className="w-full h-full object-cover" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-sm text-white">Application Danthoss</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">PWA</span>
+              </div>
+              <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5">
+                Installez l'application directement sur l'écran d'accueil de votre téléphone (Android & iPhone).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={async () => {
+                if (isInstallable) {
+                  await install();
+                } else {
+                  openInstallModal();
+                }
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all transform hover:scale-[1.01] active:scale-[0.99]"
+            >
+              <Download className="w-4 h-4 text-slate-950" />
+              <span>Télécharger sur l'Écran</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => openInstallModal()}
+              className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer border border-slate-700"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Guide</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { Menu, Bell, Globe, Sparkles, Smartphone, Download, ExternalLink, Folder
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
-import { usePWAInstall } from '../hooks/usePWAInstall';
+import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 
 interface HeaderProps {
   onOpenDrawer: () => void;
@@ -92,15 +92,21 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Client Vault</span>
           </button>
 
-          {/* Quick Install Mobile Button if installable */}
-          {isInstallable && !isInstalled && (
+          {/* Install Mobile / PWA Button */}
+          {!isInstalled && (
             <button
-              onClick={install}
-              className="px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black flex items-center gap-1 shadow-sm transition-all cursor-pointer animate-pulse"
-              title={t('installPhone', 'Installer sur mon téléphone')}
+              onClick={async () => {
+                if (isInstallable) {
+                  await install();
+                } else {
+                  openInstallModal();
+                }
+              }}
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
+              title={t('installPhone', "Télécharger / Installer l'Application")}
             >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('installPhone', 'Installer')}</span>
+              <Download className="w-3.5 h-3.5 text-slate-950 animate-bounce" />
+              <span>{t('installPhone', "Installer l'App")}</span>
             </button>
           )}
 

@@ -28,9 +28,11 @@ import {
   FileCheck,
   FolderLock,
   ShieldCheck,
-  Users
+  Users,
+  Printer
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { downloadNDAContract } from '../services/ndaDownloader';
 
 interface LibraryScreenProps {
   onNavigateTab?: (tab: string) => void;
@@ -200,15 +202,27 @@ Portfolio : https://mon-portfolio-fin-ten.vercel.app/
 Agent Omni Studio : https://omni-studio-abdoul.ai.studio
 `;
 
+    // Special case: If user is downloading the NDA & Contract Blueprint, download the full official NDA contract
+    if (book.id === 'contrat-prestation-nda-remote') {
+      const res = downloadNDAContract(undefined, 'html');
+      setDownloadSuccessMessage(`Contrat NDA officiel téléchargé avec succès !`);
+      setTimeout(() => setDownloadSuccessMessage(null), 5000);
+      return;
+    }
+
     const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = book.downloadFilename.replace('.pdf', '_Synthese.txt');
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 60000);
 
     setDownloadSuccessMessage(`Fiche exportée avec succès : "${book.title}"`);
     setTimeout(() => setDownloadSuccessMessage(null), 4000);

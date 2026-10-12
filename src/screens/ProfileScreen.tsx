@@ -26,7 +26,8 @@ import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
 import { ProfileCreationModal } from '../components/ProfileCreationModal';
-import { usePWAInstall } from '../hooks/usePWAInstall';
+import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
+import { downloadNDAContract } from '../services/ndaDownloader';
 
 interface ProfileScreenProps {
   onOpenSecurity: () => void;
@@ -409,7 +410,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             if (isInstallable) {
               await install();
             } else {
-              window.dispatchEvent(new CustomEvent('open-pwa-guide'));
+              openInstallModal();
             }
           }}
           className="bg-gradient-to-r from-emerald-900 to-slate-900 text-white rounded-2xl p-5 border border-emerald-700/60 shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-between"
@@ -468,17 +469,27 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center justify-between py-2 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-slate-100 gap-2">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="w-4 h-4 text-slate-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="text-xs font-semibold text-slate-700">Charte de Confidentialité (NDA) & Sécurité</span>
           </div>
-          <button
-            onClick={onOpenSecurity}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-          >
-            Consulter
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => downloadNDAContract({ clientName: profile.name, clientEmail: profile.email }, 'html')}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer flex items-center gap-1.5 transition-colors"
+              title="Télécharger l'accord NDA officiel"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Télécharger NDA</span>
+            </button>
+            <button
+              onClick={onOpenSecurity}
+              className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer px-2 py-1"
+            >
+              Consulter
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center justify-between py-2">

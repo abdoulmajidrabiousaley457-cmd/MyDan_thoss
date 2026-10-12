@@ -24,7 +24,8 @@ import {
   FileSpreadsheet,
   FileArchive,
   Image as ImageIcon,
-  ShieldAlert
+  ShieldAlert,
+  Smartphone
 } from 'lucide-react';
 import { useUserProfile, ADMIN_USER_ID } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -32,6 +33,8 @@ import { VaultFile } from '../types';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, uploadFileToStorage, deleteFileFromStorage } from '../services/firebase';
 import { storeLocalFileBlob, getLocalFileBlob } from '../services/localFileStorage';
+import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
+import { downloadNDAContract } from '../services/ndaDownloader';
 
 interface DashboardScreenProps {
   onNavigateTab: (tab: string) => void;
@@ -40,6 +43,7 @@ interface DashboardScreenProps {
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab }) => {
   const { firebaseUser, profile, logout, isAdmin } = useUserProfile();
   const { t, isRtl } = useI18n();
+  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(true);
@@ -305,6 +309,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
               </button>
             )}
 
+            {!isInstalled && (
+              <button
+                onClick={async () => {
+                  if (isInstallable) {
+                    await install();
+                  } else {
+                    openInstallModal();
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+                title="Télécharger et installer l'application sur votre écran"
+              >
+                <Download className="w-4 h-4 text-slate-950" />
+                <span>Installer l'App</span>
+              </button>
+            )}
+
             <button
               onClick={() => onNavigateTab('client_vault')}
               className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer"
@@ -384,6 +405,65 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
             <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
             <span>{errorMsg}</span>
           </div>
+        </div>
+      )}
+
+      {/* Dedicated Home Screen Download / Install Banner Card */}
+      {!isInstalled && (
+        <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 rounded-3xl p-5 sm:p-6 border-2 border-emerald-500/50 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 animate-in fade-in">
+          <div className="flex items-center gap-4 text-left">
+            <div className="relative shrink-0">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl blur opacity-75 animate-pulse"></div>
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-2xl bg-slate-950">
+                <img src="/app-logo.png" alt="Logo Officiel Danthoss" className="w-full h-full object-cover" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Application Officielle</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Mode Autonome</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-white">
+                Télécharger l'Application Danthoss sur l'Écran d'Accueil
+              </h3>
+              <p className="text-xs text-slate-300 max-w-xl">
+                Ajoutez l'icône officielle Danthoss directement sur l'écran de votre smartphone (iPhone, Android) ou bureau d'ordinateur pour une utilisation fluide en plein écran.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto shrink-0">
+            <button
+              onClick={async () => {
+                if (isInstallable) {
+                  await install();
+                } else {
+                  openInstallModal();
+                }
+              }}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Download className="w-4 h-4 text-slate-950" />
+              <span>Télécharger sur mon Écran (1 Clic)</span>
+            </button>
+            <button
+              onClick={() => openInstallModal()}
+              className="w-full sm:w-auto px-4 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-400" />
+              <span>Guide iPhone & Android</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isInstalled && (
+        <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl px-4 py-3 text-xs text-emerald-300 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>Application Danthoss installée et opérationnelle en mode autonome sur cet écran</span>
+          </div>
+          <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Écran d'Accueil Actif ✓</span>
         </div>
       )}
 
