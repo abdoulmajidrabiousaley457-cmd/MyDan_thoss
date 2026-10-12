@@ -13,11 +13,12 @@ import {
   ExternalLink,
   ShieldAlert,
   Sparkles,
-  Copy
+  Copy,
+  Share2
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { CABINET_INFO } from '../data/cabinetData';
-import { downloadNDAContract, generateNDAPlainText } from '../services/ndaDownloader';
+import { downloadNDAContract, generateNDAPlainText, shareNDAContract } from '../services/ndaDownloader';
 
 interface SecurityPrivacyScreenProps {
   onBack: () => void;
@@ -39,6 +40,12 @@ export const SecurityPrivacyScreen: React.FC<SecurityPrivacyScreenProps> = ({ on
 
   const handleDownloadNDA = (format: 'html' | 'txt' | 'print' = 'html') => {
     const res = downloadNDAContract({ clientName, clientEmail }, format);
+    setDownloadSuccessMessage(res.message);
+    setTimeout(() => setDownloadSuccessMessage(null), 5000);
+  };
+
+  const handleShareNDA = async () => {
+    const res = await shareNDAContract({ clientName, clientEmail });
     setDownloadSuccessMessage(res.message);
     setTimeout(() => setDownloadSuccessMessage(null), 5000);
   };
@@ -290,6 +297,14 @@ export const SecurityPrivacyScreen: React.FC<SecurityPrivacyScreenProps> = ({ on
                 >
                   <Copy className="w-4 h-4 text-slate-500" />
                   <span>{copiedText ? 'Copié !' : 'Copier'}</span>
+                </button>
+                <button
+                  onClick={handleShareNDA}
+                  className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Partager le document NDA"
+                >
+                  <Share2 className="w-4 h-4 text-emerald-600" />
+                  <span>Partager</span>
                 </button>
               </div>
 

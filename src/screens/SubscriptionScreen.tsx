@@ -512,96 +512,87 @@ Merci de m'indiquer les coordonnées de paiement pour valider et achever mon abo
                       Redirection WhatsApp instantanée
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Mobile Money */}
-                    <div
-                      onClick={() => setPaymentMethod('mobile_money')}
-                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                    <a
+                      href={buildWhatsAppUrl('mobile_money')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        handleFinalizeOnWhatsApp('mobile_money');
+                      }}
+                      className={`p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2.5 transition-all cursor-pointer no-underline group transform hover:scale-[1.02] active:scale-[0.98] ${
                         paymentMethod === 'mobile_money'
-                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-950 ring-2 ring-emerald-500/30 shadow-md'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/40 shadow-xs'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-1.5">
-                        <Smartphone className={`w-5 h-5 ${paymentMethod === 'mobile_money' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                        <span className="leading-tight">Mobile Money<br/><span className="text-[10px] font-normal text-slate-500">(Airtel, Moov, Orange)</span></span>
+                      <div className="flex flex-col items-center gap-1.5 w-full">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                          <Smartphone className="w-5 h-5 text-emerald-700" />
+                        </div>
+                        <span className="font-extrabold text-sm text-slate-900 leading-tight">Mobile Money</span>
+                        <span className="text-[11px] font-normal text-slate-500">Airtel • Moov • Orange</span>
                       </div>
-                      {paymentMethod === 'mobile_money' && (
-                        <a
-                          href={buildWhatsAppUrl('mobile_money')}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFinalizeOnWhatsApp('mobile_money');
-                          }}
-                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
-                        >
-                          <span>Payer sur WhatsApp</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
+                      <div className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 group-hover:bg-emerald-500 text-white text-[11px] font-black tracking-tight flex items-center justify-center gap-1.5 shadow-xs transition-colors">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Payer via WhatsApp</span>
+                      </div>
+                    </a>
 
                     {/* Carte Bancaire */}
-                    <div
-                      onClick={() => setPaymentMethod('card')}
-                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                    <a
+                      href={buildWhatsAppUrl('card')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        handleFinalizeOnWhatsApp('card');
+                      }}
+                      className={`p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2.5 transition-all cursor-pointer no-underline group transform hover:scale-[1.02] active:scale-[0.98] ${
                         paymentMethod === 'card'
-                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-950 ring-2 ring-emerald-500/30 shadow-md'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/40 shadow-xs'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-1.5">
-                        <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                        <span className="leading-tight">Carte Bancaire<br/><span className="text-[10px] font-normal text-slate-500">(Visa, Mastercard)</span></span>
+                      <div className="flex flex-col items-center gap-1.5 w-full">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-blue-700" />
+                        </div>
+                        <span className="font-extrabold text-sm text-slate-900 leading-tight">Carte Bancaire</span>
+                        <span className="text-[11px] font-normal text-slate-500">Visa • Mastercard • En Ligne</span>
                       </div>
-                      {paymentMethod === 'card' && (
-                        <a
-                          href={buildWhatsAppUrl('card')}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFinalizeOnWhatsApp('card');
-                          }}
-                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
-                        >
-                          <span>Payer sur WhatsApp</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
+                      <div className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 group-hover:bg-emerald-500 text-white text-[11px] font-black tracking-tight flex items-center justify-center gap-1.5 shadow-xs transition-colors">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Payer via WhatsApp</span>
+                      </div>
+                    </a>
 
                     {/* Virement Bancaire */}
-                    <div
-                      onClick={() => setPaymentMethod('transfer')}
-                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2 transition-all cursor-pointer ${
+                    <a
+                      href={buildWhatsAppUrl('transfer')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        handleFinalizeOnWhatsApp('transfer');
+                      }}
+                      className={`p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-center justify-between text-center gap-2.5 transition-all cursor-pointer no-underline group transform hover:scale-[1.02] active:scale-[0.98] ${
                         paymentMethod === 'transfer'
-                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          ? 'border-emerald-600 bg-emerald-50/90 text-emerald-950 ring-2 ring-emerald-500/30 shadow-md'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/40 shadow-xs'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-1.5">
-                        <Building className={`w-5 h-5 ${paymentMethod === 'transfer' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                        <span className="leading-tight">Virement Pro<br/><span className="text-[10px] font-normal text-slate-500">(EUR, USD, XOF)</span></span>
+                      <div className="flex flex-col items-center gap-1.5 w-full">
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                          <Building className="w-5 h-5 text-purple-700" />
+                        </div>
+                        <span className="font-extrabold text-sm text-slate-900 leading-tight">Virement Pro</span>
+                        <span className="text-[11px] font-normal text-slate-500">Facture & RIB (EUR, USD, XOF)</span>
                       </div>
-                      {paymentMethod === 'transfer' && (
-                        <a
-                          href={buildWhatsAppUrl('transfer')}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFinalizeOnWhatsApp('transfer');
-                          }}
-                          className="mt-1 w-full py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black tracking-tight flex items-center justify-center gap-1 shadow-xs"
-                        >
-                          <span>Payer sur WhatsApp</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
+                      <div className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 group-hover:bg-emerald-500 text-white text-[11px] font-black tracking-tight flex items-center justify-center gap-1.5 shadow-xs transition-colors">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Payer via WhatsApp</span>
+                      </div>
+                    </a>
                   </div>
                 </div>
 

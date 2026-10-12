@@ -543,25 +543,61 @@ Agent Omni Studio : https://omni-studio-abdoul.ai.studio
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-5 pt-0 border-t border-slate-100 mt-2 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedBook(book);
-                      setActiveModalTab('summary');
-                    }}
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Lire la Fiche</span>
-                  </button>
+                <div className="p-5 pt-0 border-t border-slate-100 mt-2 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedBook(book);
+                        setActiveModalTab('summary');
+                      }}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{book.id === 'contrat-prestation-nda-remote' ? 'Voir le Contrat' : 'Lire la Fiche'}</span>
+                    </button>
 
-                  <button
-                    onClick={(e) => handleExportSummary(book, e)}
-                    className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
-                    title="Exporter la fiche de synthèse en texte"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
+                    <button
+                      onClick={(e) => handleExportSummary(book, e)}
+                      className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+                        book.id === 'contrat-prestation-nda-remote'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white'
+                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      }`}
+                      title={book.id === 'contrat-prestation-nda-remote' ? 'Télécharger le Contrat NDA Officiel' : 'Exporter la fiche de synthèse en texte'}
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{book.id === 'contrat-prestation-nda-remote' ? 'Télécharger NDA' : ''}</span>
+                    </button>
+                  </div>
+
+                  {book.id === 'contrat-prestation-nda-remote' && (
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const res = downloadNDAContract(undefined, 'print');
+                          setDownloadSuccessMessage(res.message);
+                          setTimeout(() => setDownloadSuccessMessage(null), 5000);
+                        }}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center gap-1 transition-colors"
+                      >
+                        <Printer className="w-3 h-3 text-slate-500" />
+                        <span>Imprimer / PDF</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const res = downloadNDAContract(undefined, 'txt');
+                          setDownloadSuccessMessage(res.message);
+                          setTimeout(() => setDownloadSuccessMessage(null), 5000);
+                        }}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center gap-1 transition-colors"
+                      >
+                        <FileText className="w-3 h-3 text-slate-500" />
+                        <span>Format .txt</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -624,12 +660,33 @@ Agent Omni Studio : https://omni-studio-abdoul.ai.studio
                     <Star className={`w-4 h-4 ${isFav ? 'fill-amber-500' : ''}`} />
                   </button>
 
+                  {book.id === 'contrat-prestation-nda-remote' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const res = downloadNDAContract(undefined, 'print');
+                        setDownloadSuccessMessage(res.message);
+                        setTimeout(() => setDownloadSuccessMessage(null), 5000);
+                      }}
+                      className="hidden sm:flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+                      title="Imprimer ou enregistrer en PDF"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-slate-500" />
+                      <span>PDF</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={(e) => handleExportSummary(book, e)}
-                    className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
-                    title="Exporter la synthèse"
+                    className={`p-2 sm:px-3 sm:py-2 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 ${
+                      book.id === 'contrat-prestation-nda-remote'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white'
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}
+                    title={book.id === 'contrat-prestation-nda-remote' ? 'Télécharger le Contrat NDA Officiel' : 'Exporter la synthèse'}
                   >
                     <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">{book.id === 'contrat-prestation-nda-remote' ? 'Télécharger NDA' : ''}</span>
                   </button>
 
                   <button
@@ -950,19 +1007,45 @@ Agent Omni Studio : https://omni-studio-abdoul.ai.studio
 
                   <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="space-y-1 text-center sm:text-left">
-                      <h4 className="font-bold text-sm text-emerald-950">Télécharger la Fiche de Synthèse Complète</h4>
+                      <h4 className="font-bold text-sm text-emerald-950">
+                        {selectedBook.id === 'contrat-prestation-nda-remote'
+                          ? 'Télécharger le Contrat NDA & Charte de Confidentialité Officiel'
+                          : 'Télécharger la Fiche de Synthèse Complète'}
+                      </h4>
                       <p className="text-xs text-emerald-800">
-                        Générez un document textuel contenant le résumé exécutif, le sommaire, les points clés et les snippets.
+                        {selectedBook.id === 'contrat-prestation-nda-remote'
+                          ? 'Document contractuel officiel complet du Cabinet Rabiou Saley, prêt pour exécution et signature numérique.'
+                          : 'Générez un document textuel contenant le résumé exécutif, le sommaire, les points clés et les snippets.'}
                       </p>
                     </div>
 
-                    <button
-                      onClick={() => handleExportSummary(selectedBook)}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all shrink-0 cursor-pointer"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Exporter la Synthèse</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      {selectedBook.id === 'contrat-prestation-nda-remote' && (
+                        <button
+                          onClick={() => {
+                            const res = downloadNDAContract(undefined, 'print');
+                            setDownloadSuccessMessage(res.message);
+                            setTimeout(() => setDownloadSuccessMessage(null), 5000);
+                          }}
+                          className="px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-100 text-emerald-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Printer className="w-4 h-4 text-emerald-700" />
+                          <span>Imprimer / PDF</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleExportSummary(selectedBook)}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all shrink-0 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>
+                          {selectedBook.id === 'contrat-prestation-nda-remote'
+                            ? 'Télécharger NDA (.html)'
+                            : 'Exporter la Synthèse'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -977,12 +1060,30 @@ Agent Omni Studio : https://omni-studio-abdoul.ai.studio
               </div>
 
               <div className="flex items-center gap-2">
+                {selectedBook.id === 'contrat-prestation-nda-remote' && (
+                  <button
+                    onClick={() => {
+                      const res = downloadNDAContract(undefined, 'print');
+                      setDownloadSuccessMessage(res.message);
+                      setTimeout(() => setDownloadSuccessMessage(null), 5000);
+                    }}
+                    className="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Imprimer / PDF</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => handleExportSummary(selectedBook)}
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Télécharger la Synthèse</span>
+                  <span>
+                    {selectedBook.id === 'contrat-prestation-nda-remote'
+                      ? 'Télécharger le Contrat NDA'
+                      : 'Télécharger la Synthèse'}
+                  </span>
                 </button>
 
                 <button

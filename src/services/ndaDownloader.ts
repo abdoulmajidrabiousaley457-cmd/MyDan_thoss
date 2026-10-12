@@ -317,8 +317,47 @@ Contact : WhatsApp ${CABINET_INFO.phone} • Email ${CABINET_INFO.email}
 }
 
 /**
- * Universal, rock-solid downloader for the NDA contract on all devices (iOS, Android, PC)
+ * Universal, rock-solid downloader and sharer for the NDA contract on all devices (iOS, Android, PC)
  */
+export async function shareNDAContract(
+  info?: Partial<NDAPartyInfo>
+): Promise<{ success: boolean; message: string }> {
+  try {
+    if (typeof window === 'undefined') {
+      return { success: false, message: 'Environnement non supporté.' };
+    }
+
+    const htmlContent = generateNDADocumentHTML(info);
+    const filename = 'Accord_de_Confidentialite_NDA_Cabinet_Rabiou_Saley.html';
+
+    // 1. Try native Web Share API with File (iOS Safari & Android Chrome)
+    if (typeof navigator !== 'undefined' && 'canShare' in navigator && 'share' in navigator) {
+      try {
+        const file = new File([htmlContent], filename, { type: 'text/html;charset=utf-8' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Accord NDA - Cabinet Rabiou Saley',
+            text: 'Accord officiel de non-divulgation et confidentialité du Cabinet Rabiou Saley'
+          });
+          return { success: true, message: 'Document partagé avec succès !' };
+        }
+      } catch (shareErr: any) {
+        if (shareErr.name === 'AbortError') {
+          return { success: true, message: 'Partage annulé.' };
+        }
+        console.warn('Share file fallback:', shareErr);
+      }
+    }
+
+    // 2. Fallback to print / PDF open
+    return downloadNDAContract(info, 'print');
+  } catch (err) {
+    console.error('Erreur partage NDA:', err);
+    return downloadNDAContract(info, 'html');
+  }
+}
+
 export function downloadNDAContract(
   info?: Partial<NDAPartyInfo>,
   format: 'html' | 'txt' | 'print' = 'html'
@@ -332,23 +371,58 @@ export function downloadNDAContract(
     const textContent = generateNDAPlainText(info);
 
     if (format === 'print') {
-      // Open in a printable tab/window that automatically launches the print/PDF dialog
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.open();
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
+      // Create a printable tab or hidden iframe for seamless printing/saving as PDF
+      try {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.open();
+          printWindow.document.write(htmlContent);
+          printWindow.document.close();
+          setTimeout(() => {
+            try {
+              printWindow.focus();
+              printWindow.print();
+            } catch (e) {
+              console.warn('Impression auto', e);
+            }
+          }, 600);
+          return {
+            success: true,
+            message: 'Fenêtre d\'impression PDF ouverte ! Vous pouvez enregistrer en PDF ou imprimer.'
+          };
+        }
+      } catch (err) {
+        console.warn('Popup bloquée pour impression, essai en iframe:', err);
+      }
+
+      // Iframe fallback for print if window.open was blocked
+      const printIframe = document.createElement('iframe');
+      printIframe.style.position = 'fixed';
+      printIframe.style.right = '0';
+      printIframe.style.bottom = '0';
+      printIframe.style.width = '0';
+      printIframe.style.height = '0';
+      printIframe.style.border = '0';
+      document.body.appendChild(printIframe);
+      const frameDoc = printIframe.contentWindow?.document;
+      if (frameDoc) {
+        frameDoc.open();
+        frameDoc.write(htmlContent);
+        frameDoc.close();
         setTimeout(() => {
           try {
-            printWindow.focus();
-            printWindow.print();
+            printIframe.contentWindow?.focus();
+            printIframe.contentWindow?.print();
           } catch (e) {
-            console.warn('Impression auto déclenchée manuellement', e);
+            console.warn('Iframe print error', e);
           }
-        }, 500);
+          setTimeout(() => {
+            document.body.removeChild(printIframe);
+          }, 30000);
+        }, 600);
         return {
           success: true,
-          message: 'Fenêtre d\'impression PDF ouverte ! Vous pouvez enregistrer en PDF ou imprimer.'
+          message: 'Boîte de dialogue d\'impression / Enregistrement PDF prête !'
         };
       }
     }
@@ -361,8 +435,24 @@ export function downloadNDAContract(
       ? 'Accord_de_Confidentialite_NDA_Cabinet_Rabiou_Saley.html'
       : 'Accord_de_Confidentialite_NDA_Cabinet_Rabiou_Saley.txt';
 
+    // Create Blob
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
+
+    const isIOSDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    // On iOS Safari, downloading an HTML blob via <a download> is notoriously ignored or blocked.
+    // If it's iOS, open the blob URL in a new window or tab where iOS Safari allows "Partager -> Enregistrer dans Fichiers"
+    if (isIOSDevice && isHtml) {
+      const opened = window.open(url, '_blank');
+      if (opened) {
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        return {
+          success: true,
+          message: 'Contrat NDA ouvert dans un nouvel onglet ! Touchez Partager puis "Enregistrer dans Fichiers" ou "Imprimer".'
+        };
+      }
+    }
 
     const link = document.createElement('a');
     link.href = url;
@@ -374,7 +464,11 @@ export function downloadNDAContract(
 
     // Do NOT synchronously revokeObjectURL (which causes failures on mobile browsers)
     setTimeout(() => {
-      document.body.removeChild(link);
+      try {
+        document.body.removeChild(link);
+      } catch {
+        // Ignore if already removed
+      }
       URL.revokeObjectURL(url);
     }, 60000);
 

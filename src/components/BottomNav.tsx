@@ -22,33 +22,35 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 shadow-xl print:hidden">
-      <div className="max-w-2xl mx-auto flex items-center justify-around py-1.5 px-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onSelectTab(tab.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all relative cursor-pointer ${
-                isActive ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              {isActive && (
-                <span className="absolute -top-1.5 w-10 h-1 bg-emerald-600 rounded-full" />
-              )}
-              <div
-                className={`p-1.5 rounded-xl transition-transform ${
-                  isActive ? 'scale-110 bg-emerald-50 text-emerald-700' : ''
+    <nav className="fixed bottom-0 inset-x-0 sm:bottom-3 z-30 print:hidden pointer-events-none lg:hidden">
+      <div className="max-w-2xl sm:max-w-xl mx-auto px-2 pointer-events-auto">
+        <div className="bg-white/95 backdrop-blur-md border-t sm:border border-slate-200/90 sm:rounded-3xl shadow-xl sm:shadow-2xl py-1.5 px-2 flex items-center justify-around pb-[max(0.4rem,env(safe-area-inset-bottom))]">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onSelectTab(tab.id)}
+                className={`flex flex-col items-center justify-center flex-1 py-1 transition-all relative cursor-pointer ${
+                  isActive ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] sm:text-[11px] leading-tight mt-0.5 tracking-tight">{tab.label}</span>
-            </button>
-          );
-        })}
+                {isActive && (
+                  <span className="absolute -top-1.5 w-8 h-1 bg-emerald-600 rounded-full" />
+                )}
+                <div
+                  className={`p-1.5 rounded-xl transition-transform ${
+                    isActive ? 'scale-110 bg-emerald-50 text-emerald-700' : ''
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] sm:text-[11px] leading-tight mt-0.5 tracking-tight">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

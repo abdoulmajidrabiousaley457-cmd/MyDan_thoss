@@ -1,11 +1,28 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Globe, Sparkles, Smartphone, Download, ExternalLink, FolderLock, LogOut, ShieldAlert } from 'lucide-react';
+import { 
+  Menu, 
+  Bell, 
+  Globe, 
+  Sparkles, 
+  Smartphone, 
+  Download, 
+  ExternalLink, 
+  FolderLock, 
+  LogOut, 
+  ShieldAlert,
+  ShieldCheck,
+  LayoutGrid,
+  BookOpen,
+  User
+} from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
 import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 
 interface HeaderProps {
+  activeTab?: string;
+  onSelectTab?: (tab: string) => void;
   onOpenDrawer: () => void;
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
@@ -13,6 +30,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  activeTab,
+  onSelectTab,
   onOpenDrawer,
   onOpenNotifications,
   onOpenProfile,
@@ -22,6 +41,14 @@ export const Header: React.FC<HeaderProps> = ({
   const { language, setLanguage, t } = useI18n();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { isInstallable, install, isInstalled } = usePWAInstall();
+
+  const desktopNavItems = [
+    { id: 'dashboard', label: t('navDashboard', 'Dashboard'), icon: ShieldCheck },
+    { id: 'client_vault', label: t('navClientVault', 'Client Vault'), icon: FolderLock },
+    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & CV'), icon: LayoutGrid },
+    { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
+    { id: 'profile', label: t('navProfile', 'Mon Espace'), icon: User },
+  ];
 
   const languages: { code: AppLanguage; label: string; flag: string }[] = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -62,11 +89,27 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Remote availability badge */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs font-semibold text-emerald-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>{t('remoteAvailable', 'Disponible Télétravail International (Full Remote)')}</span>
-        </div>
+        {/* Center: Desktop Navigation Bar (Visible on Laptops, Tablets landscape & Desktops) */}
+        <nav className="hidden md:flex items-center gap-1 bg-slate-950/70 p-1 rounded-2xl border border-emerald-500/20">
+          {desktopNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onSelectTab && onSelectTab(item.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right: Actions, Language & Notifications */}
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
