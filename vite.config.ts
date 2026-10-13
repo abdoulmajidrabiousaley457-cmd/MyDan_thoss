@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'app-logo.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png', 'icon.svg'],
       manifest: {
         id: '/',
         name: 'Danthoss - Cabinet IA & Carrière',
@@ -30,6 +30,12 @@ export default defineConfig({
           },
           {
             src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/app-logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any',

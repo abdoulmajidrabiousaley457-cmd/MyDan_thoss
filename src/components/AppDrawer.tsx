@@ -218,13 +218,22 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                     openInstallModal();
                   }
                 }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-100/90 hover:bg-emerald-200 transition-colors cursor-pointer border border-emerald-300/80 shadow-xs"
+                className="w-full flex items-center justify-between p-2.5 rounded-2xl text-xs font-bold text-emerald-950 bg-gradient-to-r from-emerald-100 to-teal-50 hover:from-emerald-200 hover:to-teal-100 transition-all cursor-pointer border border-emerald-300 shadow-xs"
               >
-                <span className="flex items-center space-x-3 rtl:space-x-reverse">
-                  <Smartphone className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>{isInstalled ? 'Application Installée ✓' : t('installPhone', 'Installer sur mon portable')}</span>
-                </span>
-                <Download className="w-3.5 h-3.5 text-emerald-700" />
+                <div className="flex items-center gap-2.5 text-left rtl:text-right">
+                  <div className="w-8 h-8 rounded-xl overflow-hidden border border-emerald-400 shadow-xs bg-slate-950 shrink-0">
+                    <img src="/app-logo.png" alt="Logo Danthoss" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <span className="block font-black text-emerald-950">
+                      {isInstalled ? 'App Installée avec Logo ✓' : 'Installer sur mon portable'}
+                    </span>
+                    <span className="text-[10px] text-emerald-700 block font-medium">
+                      Icône officielle sur l'écran d'accueil
+                    </span>
+                  </div>
+                </div>
+                <Download className="w-4 h-4 text-emerald-800 shrink-0" />
               </button>
             </div>
           </div>

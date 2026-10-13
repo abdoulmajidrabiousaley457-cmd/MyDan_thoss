@@ -50,6 +50,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
   const [uploading, setUploading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<VaultFile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Quick dropzone states
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,25 +232,49 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
     }
   };
 
-  const handleDeleteFile = async (fileId: string, name: string) => {
-    if (!firebaseUser) return;
-    if (!window.confirm(t('confirmDelete', 'Êtes-vous sûr de vouloir supprimer définitivement ce fichier ?'))) return;
+  const handleRequestDelete = (file: VaultFile) => {
+    setFileToDelete(file);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!fileToDelete) return;
+    const target = fileToDelete;
+    setDeleting(true);
 
     try {
-      const target = files.find((f) => f.id === fileId);
-      await deleteFileFromStorage(target?.storagePath || '', firebaseUser.uid, fileId);
+      const uid = firebaseUser?.uid || target.userId || 'anonymous';
+      await deleteFileFromStorage(target.storagePath || '', uid, target.id);
 
-      try {
-        await deleteDoc(doc(db, 'users', firebaseUser.uid, 'vaultFiles', fileId));
-      } catch {
-        // ignore
+      if (firebaseUser) {
+        try {
+          await deleteDoc(doc(db, 'users', firebaseUser.uid, 'vaultFiles', target.id));
+        } catch {
+          // ignore
+        }
       }
 
-      setFiles((prev) => prev.filter((f) => f.id !== fileId));
-      setSuccessMsg(`Fichier "${name}" supprimé.`);
+      setFiles((prev) => {
+        const updated = prev.filter((f) => f.id !== target.id);
+        try {
+          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+
+      setSuccessMsg(`Fichier "${target.name}" supprimé.`);
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch {
-      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      setFiles((prev) => {
+        const updated = prev.filter((f) => f.id !== target.id);
+        try {
+          const uid = firebaseUser?.uid || target.userId || 'anonymous';
+          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+    } finally {
+      setDeleting(false);
+      setFileToDelete(null);
     }
   };
 
@@ -755,8 +781,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
                           <Download className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteFile(f.id, f.name)}
-                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors"
+                          onClick={() => handleRequestDelete(f)}
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
                           title={t('deleteBtn', 'Supprimer')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -770,6 +796,57 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
           </div>
         )}
       </div>
+
+      {/* In-App Delete Confirmation Modal */}
+      {fileToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-rose-500/40 rounded-3xl w-full max-w-md p-6 text-white shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">
+                  Supprimer ce fichier du coffre-fort ?
+                </h3>
+                <p className="text-xs text-rose-300">
+                  Le document sera retiré définitivement.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-1">
+              <span className="font-bold text-xs text-white block truncate" title={fileToDelete.name}>
+                {fileToDelete.name}
+              </span>
+              <span className="text-[10px] text-slate-400 block">
+                {fileToDelete.sizeFormatted} • Client : {fileToDelete.clientName}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setFileToDelete(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/50 transition-all cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{deleting ? 'Suppression...' : 'Supprimer'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -32,6 +32,7 @@ import { VaultFile } from '../types';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db, deleteFileFromStorage } from '../services/firebase';
 import { getLocalFileBlob } from '../services/localFileStorage';
+import { downloadVaultFile } from '../services/vaultFileDownloader';
 
 interface AdminUserSummary {
   id: string;
@@ -67,6 +68,8 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
   const [globalBytes, setGlobalBytes] = useState(0);
   const [activeTab, setActiveTab] = useState<'users' | 'all_files'>('users');
   const [allPlatformFiles, setAllPlatformFiles] = useState<Array<VaultFile & { ownerEmail?: string }>>([]);
+  const [fileToDeleteAdmin, setFileToDeleteAdmin] = useState<VaultFile | null>(null);
+  const [deletingAdmin, setDeletingAdmin] = useState(false);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
@@ -223,62 +226,28 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
   // 3. Download a file
   const handleDownloadFile = async (file: VaultFile) => {
     try {
-      let downloaded = false;
-
-      // Try IndexedDB first
-      try {
-        const localBlob = await getLocalFileBlob(file.id);
-        if (localBlob && localBlob.size > 0) {
-          const blobUrl = URL.createObjectURL(localBlob);
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = file.name;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-          downloaded = true;
-        }
-      } catch {
-        // ignore
+      const res = await downloadVaultFile(file, file.userId);
+      if (res.success) {
+        setSuccessMessage(res.message);
+        setTimeout(() => setSuccessMessage(null), 3500);
+      } else {
+        setSuccessMessage(res.message);
       }
-
-      // Try Server Storage URL or storageUrl
-      if (!downloaded) {
-        const targetUrl = file.storageUrl || `/api/vault/files/${file.userId}/${file.id}/${encodeURIComponent(file.name)}`;
-        const link = document.createElement('a');
-        link.href = targetUrl;
-        link.download = file.name;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        downloaded = true;
-      }
-
-      // Fallback base64
-      if (!downloaded && file.fileContentBase64) {
-        const link = document.createElement('a');
-        link.href = file.fileContentBase64;
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        downloaded = true;
-      }
-
-      setSuccessMessage(`Téléchargement admin lancé : "${file.name}"`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Admin download error:', err);
+      setSuccessMessage(`Erreur lors du téléchargement : ${err?.message || 'Problème réseau'}`);
     }
   };
 
   // 4. Delete / Moderate file
-  const handleDeleteFile = async (file: VaultFile) => {
-    if (!window.confirm(`Action Administrateur : Supprimer définitivement "${file.name}" du coffre-fort de cet utilisateur ?`)) {
-      return;
-    }
+  const handleRequestDeleteAdmin = (file: VaultFile) => {
+    setFileToDeleteAdmin(file);
+  };
+
+  const handleConfirmDeleteAdmin = async () => {
+    if (!fileToDeleteAdmin) return;
+    const file = fileToDeleteAdmin;
+    setDeletingAdmin(true);
 
     try {
       await deleteFileFromStorage(file.storagePath || '', file.userId, file.id);
@@ -291,11 +260,19 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
       }
 
       setUserFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setSuccessMessage(`Fichier "${file.name}" supprimé par l'administrateur.`);
+      setAllPlatformFiles((prev) => prev.filter((f) => f.id !== file.id));
+      setSuccessMessage(`Fichier "${file.name}" supprimé définitivement par l'administrateur.`);
       if (previewFile?.id === file.id) setPreviewFile(null);
       setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
       console.error('Admin delete error:', err);
+      setUserFiles((prev) => prev.filter((f) => f.id !== file.id));
+      setAllPlatformFiles((prev) => prev.filter((f) => f.id !== file.id));
+      setSuccessMessage(`Fichier "${file.name}" retiré de la liste.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } finally {
+      setDeletingAdmin(false);
+      setFileToDeleteAdmin(null);
     }
   };
 
@@ -695,7 +672,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
 
                               {/* Admin Delete */}
                               <button
-                                onClick={() => handleDeleteFile(file)}
+                                onClick={() => handleRequestDeleteAdmin(file)}
                                 className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
                                 title="Supprimer définitivement (Modération Admin)"
                               >
@@ -783,7 +760,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
 
             <div className="flex items-center justify-between gap-3 pt-2">
               <button
-                onClick={() => handleDeleteFile(previewFile)}
+                onClick={() => handleRequestDeleteAdmin(previewFile)}
                 className="py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
@@ -796,6 +773,57 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
               >
                 <Download className="w-4 h-4" />
                 <span>Télécharger le Fichier (Admin)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Delete Confirmation Modal */}
+      {fileToDeleteAdmin && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-rose-500/50 rounded-3xl w-full max-w-md p-6 text-white shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">
+                  Action Administrateur : Supprimer ce fichier ?
+                </h3>
+                <p className="text-xs text-rose-300">
+                  Suppression irréversible du compte utilisateur.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-1">
+              <span className="font-bold text-xs text-white block truncate" title={fileToDeleteAdmin.name}>
+                {fileToDeleteAdmin.name}
+              </span>
+              <span className="text-[10px] text-slate-400 block">
+                {fileToDeleteAdmin.sizeFormatted} • UID Propriétaire : {fileToDeleteAdmin.userId}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setFileToDeleteAdmin(null)}
+                disabled={deletingAdmin}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDeleteAdmin}
+                disabled={deletingAdmin}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/50 transition-all cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{deletingAdmin ? 'Suppression...' : 'Supprimer Définitivement'}</span>
               </button>
             </div>
           </div>

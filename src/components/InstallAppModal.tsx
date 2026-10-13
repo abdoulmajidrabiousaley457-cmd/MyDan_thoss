@@ -189,6 +189,18 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({ forceOpen, onC
           </div>
         </div>
 
+        {/* Direct Logo Download Button */}
+        <div className="flex items-center gap-2">
+          <a
+            href="/app-logo.png"
+            download="Danthoss-Logo-Officiel-512x512.png"
+            className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Télécharger le Logo Officiel HD (.PNG 512x512)</span>
+          </a>
+        </div>
+
         {/* Direct One-Tap Install Action */}
         <div className="space-y-2">
           {isInstallable ? (
@@ -198,23 +210,30 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({ forceOpen, onC
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm shadow-xl shadow-emerald-950/70 flex items-center justify-center gap-2.5 transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <Download className="w-5 h-5 text-slate-950 shrink-0" />
-              <span>{isInstalling ? 'Téléchargement en cours...' : 'Télécharger & Installer Directement (1 Clic)'}</span>
+              <span>{isInstalling ? 'Installation en cours...' : 'Télécharger & Installer Directement (1 Clic)'}</span>
             </button>
           ) : isInstalled ? (
             <div className="w-full py-3 px-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Application déjà installée et opérationnelle sur votre écran</span>
+              <span>Application déjà installée et opérationnelle sur votre écran avec son logo</span>
             </div>
+          ) : isIOS ? (
+            <button
+              onClick={() => setSelectedTab('ios')}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-slate-950 font-black text-sm shadow-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+            >
+              <PlusSquare className="w-5 h-5 text-slate-950 shrink-0" />
+              <span>Ajouter à l'écran d'accueil iPhone (avec Logo)</span>
+            </button>
           ) : (
-            <div className="w-full py-2.5 px-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Guide pas-à-pas pour votre appareil :</span>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
-                100% Gratuit
-              </span>
-            </div>
+            <button
+              onClick={handleDirectInstall}
+              disabled={isInstalling}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 text-slate-950 font-black text-sm shadow-xl flex items-center justify-center gap-2.5 cursor-pointer active:scale-95 transition-all"
+            >
+              <Download className="w-5 h-5 text-slate-950 shrink-0" />
+              <span>{isInstalling ? 'Initialisation...' : 'Installer sur mon téléphone Android (1 Clic)'}</span>
+            </button>
           )}
         </div>
 

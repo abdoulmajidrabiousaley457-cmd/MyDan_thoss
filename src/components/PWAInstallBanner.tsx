@@ -5,7 +5,7 @@ import { Download, X } from 'lucide-react';
 export const PWAInstallBanner: React.FC = () => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [dismissed, setDismissed] = useState(() => {
-    return localStorage.getItem('danthoss_pwa_banner_dismissed') === 'true';
+    return sessionStorage.getItem('danthoss_pwa_banner_dismissed') === 'true';
   });
 
   if (isInstalled || dismissed) {
@@ -14,7 +14,7 @@ export const PWAInstallBanner: React.FC = () => {
 
   const handleDismiss = () => {
     setDismissed(true);
-    localStorage.setItem('danthoss_pwa_banner_dismissed', 'true');
+    sessionStorage.setItem('danthoss_pwa_banner_dismissed', 'true');
   };
 
   const handleInstallClick = async () => {
@@ -47,6 +47,16 @@ export const PWAInstallBanner: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <a
+            href="/app-logo.png"
+            download="Danthoss-Logo-Officiel-512x512.png"
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="Télécharger directement le logo officiel HD (.PNG)"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Logo HD</span>
+          </a>
+
           <button
             onClick={handleInstallClick}
             className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"

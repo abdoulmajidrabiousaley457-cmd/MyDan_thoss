@@ -42,6 +42,7 @@ import {
 } from 'firebase/firestore';
 import { db, uploadFileToStorage, deleteFileFromStorage, handleFirestoreError, OperationType } from '../services/firebase';
 import { storeLocalFileBlob, getLocalFileBlob } from '../services/localFileStorage';
+import { downloadVaultFile, shareVaultFile } from '../services/vaultFileDownloader';
 import { AuthScreen } from './AuthScreen';
 
 interface ClientVaultScreenProps {
@@ -64,6 +65,8 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedLinkFileId, setCopiedLinkFileId] = useState<string | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<VaultFile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Upload Form State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -316,97 +319,91 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
     }
   };
 
-  const handleDeleteFile = async (fileId: string, fileName: string) => {
-    if (!firebaseUser) return;
-    const confirmDelete = window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le fichier "${fileName}" du coffre-fort ?`);
-    if (!confirmDelete) return;
+  const handleRequestDelete = (file: VaultFile) => {
+    setFileToDelete(file);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!fileToDelete) return;
+    const target = fileToDelete;
+    setDeleting(true);
 
     try {
-      const fileToDelete = files.find((f) => f.id === fileId);
-      await deleteFileFromStorage(fileToDelete?.storagePath || '', firebaseUser.uid, fileId);
+      const uid = firebaseUser?.uid || target.userId || 'anonymous';
+      await deleteFileFromStorage(target.storagePath || '', uid, target.id);
 
-      try {
-        const docRef = doc(db, 'users', firebaseUser.uid, 'vaultFiles', fileId);
-        await deleteDoc(docRef);
-      } catch {
-        // ignore
+      if (firebaseUser) {
+        try {
+          const docRef = doc(db, 'users', firebaseUser.uid, 'vaultFiles', target.id);
+          await deleteDoc(docRef);
+        } catch (firestoreErr) {
+          console.warn('Firestore deletion notice:', firestoreErr);
+        }
       }
 
-      setFiles((prev) => prev.filter((f) => f.id !== fileId));
-      setSuccessMessage(`Fichier "${fileName}" supprimé du coffre-fort.`);
-      if (previewFile?.id === fileId) setPreviewFile(null);
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
+      setFiles((prev) => {
+        const updated = prev.filter((f) => f.id !== target.id);
+        try {
+          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+
+      if (previewFile?.id === target.id) {
+        setPreviewFile(null);
+      }
+
+      setSuccessMessage(`Fichier "${target.name}" supprimé définitivement du coffre-fort.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } catch (err: any) {
       console.warn('Error deleting file, removing locally:', err);
-      setFiles((prev) => prev.filter((f) => f.id !== fileId));
-      setSuccessMessage(`Fichier "${fileName}" supprimé.`);
+      setFiles((prev) => {
+        const updated = prev.filter((f) => f.id !== target.id);
+        try {
+          const uid = firebaseUser?.uid || target.userId || 'anonymous';
+          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+      setSuccessMessage(`Fichier "${target.name}" supprimé.`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } finally {
+      setDeleting(false);
+      setFileToDelete(null);
     }
   };
 
   const handleDownloadFile = async (file: VaultFile) => {
     try {
-      let downloadTriggered = false;
-
-      // 1. Check local IndexedDB first for instant binary access (original intact file)
-      try {
-        const localBlob = await getLocalFileBlob(file.id);
-        if (localBlob && localBlob.size > 0) {
-          const blobUrl = URL.createObjectURL(localBlob);
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = file.name;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-          downloadTriggered = true;
-        }
-      } catch (blobErr) {
-        console.warn('IndexedDB blob retrieval notice:', blobErr);
+      setErrorMessage(null);
+      const res = await downloadVaultFile(file, firebaseUser?.uid);
+      if (res.success) {
+        setFiles((prev) =>
+          prev.map((f) => (f.id === file.id ? { ...f, downloadCount: (f.downloadCount || 0) + 1 } : f))
+        );
+        setSuccessMessage(res.message);
+        setTimeout(() => setSuccessMessage(null), 4000);
+      } else {
+        setErrorMessage(res.message);
       }
-
-      // 2. If not triggered from IndexedDB, download from storageUrl or Node server endpoint
-      if (!downloadTriggered) {
-        const targetUrl = file.storageUrl || `/api/vault/files/${file.userId}/${file.id}/${encodeURIComponent(file.name)}`;
-        const link = document.createElement('a');
-        link.href = targetUrl;
-        link.download = file.name;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        downloadTriggered = true;
-      }
-
-      // 3. Fallback to base64 if present
-      if (!downloadTriggered && file.fileContentBase64) {
-        const link = document.createElement('a');
-        link.href = file.fileContentBase64;
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        downloadTriggered = true;
-      }
-
-      // Increment download counter in Firestore
-      if (firebaseUser) {
-        try {
-          const docRef = doc(db, 'users', firebaseUser.uid, 'vaultFiles', file.id);
-          await updateDoc(docRef, { downloadCount: increment(1) });
-        } catch {
-          // ignore
-        }
-      }
-
-      setFiles((prev) =>
-        prev.map((f) => (f.id === file.id ? { ...f, downloadCount: (f.downloadCount || 0) + 1 } : f))
-      );
-      setSuccessMessage(`Téléchargement lancé avec succès : "${file.name}"`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Download error:', err);
-      setErrorMessage('Erreur lors du téléchargement du fichier.');
+      setErrorMessage(`Erreur lors du téléchargement : ${err?.message || 'Problème réseau'}`);
+    }
+  };
+
+  const handleShareFile = async (file: VaultFile) => {
+    try {
+      setErrorMessage(null);
+      const res = await shareVaultFile(file, firebaseUser?.uid);
+      if (res.success) {
+        setSuccessMessage(res.message);
+        setTimeout(() => setSuccessMessage(null), 4000);
+      } else {
+        setErrorMessage(res.message);
+      }
+    } catch (err: any) {
+      setErrorMessage(`Erreur de partage : ${err?.message || 'Action non disponible'}`);
     }
   };
 
@@ -678,15 +675,27 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
                   <p className="line-clamp-2">{file.notes || 'Livrable prêt à être téléchargé en haute fidélité.'}</p>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between">
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[11px] text-slate-400 font-medium">Téléchargé {file.downloadCount} fois</span>
-                  <button
-                    onClick={() => handleDownloadFile(file)}
-                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Télécharger le Fichier</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`${file.storageUrl || `/api/vault/files/${file.userId}/${file.id}/${encodeURIComponent(file.name)}`}?preview=1`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition-colors no-underline cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Aperçu</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadFile(file)}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5 text-slate-950" />
+                      <span>Télécharger</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -955,12 +964,13 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
 
                         <div className="grid grid-cols-4 gap-1.5 pt-1">
                           <button
+                            type="button"
                             onClick={() => handleDownloadFile(file)}
                             className="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                            title="Télécharger"
+                            title="Télécharger le fichier"
                           >
                             <Download className="w-3.5 h-3.5" />
-                            <span className="text-[10px]">Ouvrir</span>
+                            <span className="text-[10px]">Télécharger</span>
                           </button>
                           <button
                             onClick={() => handleCopyClientLink(file)}
@@ -983,7 +993,7 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
                             <span className="text-[10px]">Détails</span>
                           </button>
                           <button
-                            onClick={() => handleDeleteFile(file.id, file.name)}
+                            onClick={() => handleRequestDelete(file)}
                             className="py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
                             title="Supprimer"
                           >
@@ -1058,8 +1068,9 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
                               <div className="flex items-center justify-end gap-1.5">
                                 {/* Download file */}
                                 <button
+                                  type="button"
                                   onClick={() => handleDownloadFile(file)}
-                                  className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors cursor-pointer"
+                                  className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors cursor-pointer inline-flex items-center justify-center"
                                   title="Télécharger le fichier"
                                 >
                                   <Download className="w-3.5 h-3.5" />
@@ -1093,7 +1104,7 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
 
                                 {/* Delete File */}
                                 <button
-                                  onClick={() => handleDeleteFile(file.id, file.name)}
+                                  onClick={() => handleRequestDelete(file)}
                                   className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer"
                                   title="Supprimer définitivement le fichier"
                                 >
@@ -1169,21 +1180,104 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
               <button
                 onClick={() => handleCopyClientLink(previewFile)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Copier Lien Client</span>
+                <span>Copier Lien</span>
+              </button>
+
+              <a
+                href={`${previewFile.storageUrl || `/api/vault/files/${previewFile.userId}/${previewFile.id}/${encodeURIComponent(previewFile.name)}`}?preview=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-3.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer no-underline"
+                title="Ouvrir le fichier dans un nouvel onglet"
+              >
+                <ExternalLink className="w-4 h-4 text-slate-500" />
+                <span>Ouvrir</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => handleRequestDelete(previewFile)}
+                className="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                title="Supprimer définitivement le fichier"
+              >
+                <Trash2 className="w-4 h-4 text-rose-600" />
+                <span>Supprimer</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleDownloadFile(previewFile)}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Télécharger</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Delete Confirmation Modal (100% reliable, no window.confirm popup blocker) */}
+      {fileToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-rose-500/40 rounded-3xl w-full max-w-md p-6 text-white shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">
+                  Supprimer définitivement ce fichier ?
+                </h3>
+                <p className="text-xs text-rose-300">
+                  Cette action est irréversible.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-slate-800 text-rose-400">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="font-bold text-xs text-white block truncate" title={fileToDelete.name}>
+                    {fileToDelete.name}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {fileToDelete.sizeFormatted} • Client : {fileToDelete.clientName}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-300 pt-1">
+                Le document sera supprimé définitivement du coffre-fort, du serveur et de votre portail client.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setFileToDelete(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/50 transition-all cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{deleting ? 'Suppression...' : 'Supprimer'}</span>
               </button>
             </div>
           </div>
