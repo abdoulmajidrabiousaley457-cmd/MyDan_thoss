@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, NotificationItem, CVData, CoverLetterData, SubscriptionTier, AppLanguage } from '../types';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, UserCredential } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, resetPassword, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
+import { auth, db, loginWithGoogle, checkRedirectAuthResult, loginWithEmail, registerWithEmail, resetPassword, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
 
 export const initialCVData: CVData = {
   fullName: 'Rabiou Saley Abdoul Majid',
@@ -238,7 +238,9 @@ interface UserProfileContextType {
   firebaseUser: User | null;
   authLoading: boolean;
   isAdmin: boolean;
-  loginGoogle: () => Promise<void>;
+  authError: string | null;
+  setAuthError: (err: string | null) => void;
+  loginGoogle: (preferRedirect?: boolean | any) => Promise<UserCredential | null>;
   loginEmail: (email: string, pass: string) => Promise<void>;
   registerEmail: (email: string, pass: string, name?: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
@@ -264,6 +266,7 @@ const UserProfileContext = createContext<UserProfileContextType | null>(null);
 export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('danthoss_cabinet_profile');
@@ -303,13 +306,34 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => window.removeEventListener('language-change', handleLangChange);
   }, [activeLanguage]);
 
-  // Listen to Firebase Auth state
+  // Listen to Firebase Auth state & check redirect result
   useEffect(() => {
+    // Check if user is returning from a redirect Google sign-in
+    checkRedirectAuthResult()
+      .then((res) => {
+        if (res && res.user) {
+          setAuthError(null);
+        }
+      })
+      .catch((err: any) => {
+        console.warn('Redirect auth check notice:', err);
+        const code = err?.code || '';
+        if (code === 'auth/unauthorized-domain') {
+          const host = typeof window !== 'undefined' ? window.location.hostname : 'votre domaine';
+          setAuthError(`Le domaine "${host}" n'est pas encore autorisé dans Firebase Console.`);
+        } else if (code === 'auth/operation-not-allowed') {
+          setAuthError('Le fournisseur Google est désactivé dans votre console Firebase (Authentication > Sign-in method).');
+        } else if (err?.message) {
+          setAuthError(`Erreur d'authentification Google : ${err.message}`);
+        }
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
       setAuthLoading(false);
 
       if (user) {
+        setAuthError(null);
         // Sync or fetch profile from Firestore
         const userDocRef = doc(db, 'users', user.uid);
         try {
@@ -346,11 +370,24 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => unsubscribe();
   }, []);
 
-  const loginGoogle = async () => {
+  const loginGoogle = async (preferRedirect?: boolean | any) => {
     try {
-      await loginWithGoogle();
-    } catch (err) {
+      setAuthError(null);
+      const shouldRedirect = typeof preferRedirect === 'boolean' ? preferRedirect : false;
+      const res = await loginWithGoogle(shouldRedirect);
+      if (res && res.user) {
+        setFirebaseUser(res.user);
+      }
+      return res;
+    } catch (err: any) {
       console.error('Login error:', err);
+      const code = err?.code || '';
+      if (code === 'auth/unauthorized-domain') {
+        const host = typeof window !== 'undefined' ? window.location.hostname : 'votre domaine';
+        setAuthError(`Le domaine "${host}" n'est pas encore autorisé dans Firebase Console.`);
+      } else if (code === 'auth/operation-not-allowed') {
+        setAuthError('Le fournisseur Google est désactivé dans votre console Firebase.');
+      }
       throw err;
     }
   };
@@ -525,6 +562,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         firebaseUser,
         authLoading,
         isAdmin,
+        authError,
+        setAuthError,
         loginGoogle,
         loginEmail,
         registerEmail,

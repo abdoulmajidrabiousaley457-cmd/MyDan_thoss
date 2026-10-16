@@ -122,7 +122,10 @@ export const AppContent: React.FC = () => {
               <AdminDashboardScreen onNavigateTab={handleSelectTab} />
             )}
             {activeTab === 'dashboard' && (
-              <DashboardScreen onNavigateTab={handleSelectTab} />
+              <DashboardScreen 
+                onNavigateTab={handleSelectTab} 
+                onOpenChat={() => setNexusOpen(true)} 
+              />
             )}
             {activeTab === 'client_vault' && (
               <ClientVaultScreen onNavigateTab={handleSelectTab} />

@@ -63,7 +63,13 @@ export const CVBuilderScreen: React.FC = () => {
 
   const handleCloudSave = async () => {
     if (!firebaseUser) {
-      await loginGoogle();
+      try {
+        await loginGoogle();
+      } catch (err: any) {
+        if (err?.code !== 'auth/popup-closed-by-user') {
+          console.warn('Google sign in error while saving CV:', err);
+        }
+      }
       return;
     }
     setSavingCloud(true);

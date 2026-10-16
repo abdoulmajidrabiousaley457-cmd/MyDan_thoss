@@ -2,6 +2,116 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function() {
+        // Mock Vite HMR WebSocket in proxy / cloud run environments where HMR is disabled
+        if (typeof window !== 'undefined' && window.WebSocket) {
+          const OrigWebSocket = window.WebSocket;
+          const MockWebSocket = function(url, protocols) {
+            const urlStr = String(url || '');
+            const isViteHmr = (Array.isArray(protocols) ? protocols.includes('vite-hmr') : protocols === 'vite-hmr') ||
+                              urlStr.includes('vite') ||
+                              (window.location && urlStr.includes(window.location.host));
+
+            if (isViteHmr) {
+              const listeners = {};
+              const mockWs = {
+                readyState: 1, // WebSocket.OPEN
+                url: urlStr,
+                protocol: 'vite-hmr',
+                bufferedAmount: 0,
+                extensions: '',
+                binaryType: 'blob',
+                send: function() {},
+                close: function() {},
+                addEventListener: function(event, cb) {
+                  if (!listeners[event]) listeners[event] = [];
+                  listeners[event].push(cb);
+                  if (event === 'open') {
+                    setTimeout(function() {
+                      try { cb({ type: 'open' }); } catch(e) {}
+                    }, 0);
+                  }
+                },
+                removeEventListener: function(event, cb) {
+                  if (listeners[event]) {
+                    listeners[event] = listeners[event].filter(function(fn) { return fn !== cb; });
+                  }
+                },
+                dispatchEvent: function() { return true; },
+                onopen: null,
+                onclose: null,
+                onerror: null,
+                onmessage: null
+              };
+
+              setTimeout(function() {
+                if (typeof mockWs.onopen === 'function') {
+                  try { mockWs.onopen({ type: 'open' }); } catch(e) {}
+                }
+              }, 0);
+
+              return mockWs;
+            }
+
+            return new OrigWebSocket(url, protocols);
+          };
+
+          MockWebSocket.prototype = OrigWebSocket.prototype;
+          MockWebSocket.CONNECTING = OrigWebSocket.CONNECTING;
+          MockWebSocket.OPEN = OrigWebSocket.OPEN;
+          MockWebSocket.CLOSING = OrigWebSocket.CLOSING;
+          MockWebSocket.CLOSED = OrigWebSocket.CLOSED;
+          window.WebSocket = MockWebSocket;
+        }
+
+        // Suppress Vite HMR WebSocket notices in proxy / cloud run environments
+        const isWsNoise = function(val) {
+          if (!val) return false;
+          const s = typeof val === 'object' ? (val.message || val.stack || JSON.stringify(val)) : String(val);
+          return s.includes('WebSocket') || s.includes('ws://') || s.includes('wss://') || s.includes('@vite/client');
+        };
+
+        const origConsoleError = console.error;
+        console.error = function(...args) {
+          if (args.some(arg => isWsNoise(arg))) {
+            return;
+          }
+          origConsoleError.apply(console, args);
+        };
+
+        const origConsoleWarn = console.warn;
+        console.warn = function(...args) {
+          if (args.some(arg => isWsNoise(arg))) {
+            return;
+          }
+          origConsoleWarn.apply(console, args);
+        };
+
+        window.onerror = function(message, source, lineno, colno, error) {
+          if (isWsNoise(message) || isWsNoise(source) || (error && isWsNoise(error))) {
+            return true;
+          }
+          return false;
+        };
+
+        window.addEventListener('error', function(event) {
+          if (event && (isWsNoise(event.message) || isWsNoise(event.filename) || isWsNoise(event.error))) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event && (isWsNoise(event.reason) || (event.reason && isWsNoise(event.reason)))) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/app-logo.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/app-logo.png" />
@@ -14,9 +124,9 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#064e3b" />
-    <title>Danthoss - Cabinet IA & Carrière</title>
+    <title>My_danthoss - Cabinet Rabiou Saley</title>
     <meta name="description" content="Cabinet Rabiou Saley - Plateforme d'expertise Data Science & Agents IA en télétravail international, avec studio professionnel de création de CV & Lettres de motivation et abonnements d'accès aux outils pro." />
-    <meta property="og:title" content="Danthoss - Cabinet IA & Carrière" />
+    <meta property="og:title" content="My_danthoss - Cabinet Rabiou Saley" />
     <meta property="og:description" content="Cabinet Rabiou Saley - Plateforme d'expertise Data Science & Agents IA en télétravail international, avec studio professionnel de création de CV & Lettres de motivation et abonnements d'accès aux outils pro." />
     <meta property="og:image" content="/app-logo.png" />
     <meta property="og:type" content="website" />

@@ -35,12 +35,15 @@ import { db, uploadFileToStorage, deleteFileFromStorage } from '../services/fire
 import { storeLocalFileBlob, getLocalFileBlob } from '../services/localFileStorage';
 import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 import { downloadNDAContract } from '../services/ndaDownloader';
+import { UserActivityStatsVisualizer } from '../components/UserActivityStatsVisualizer';
+import { recordActivityEvent } from '../services/userActivityStats';
 
 interface DashboardScreenProps {
   onNavigateTab: (tab: string) => void;
+  onOpenChat?: () => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab, onOpenChat }) => {
   const { firebaseUser, profile, logout, isAdmin } = useUserProfile();
   const { t, isRtl } = useI18n();
   const { isInstallable, isInstalled, install } = usePWAInstall();
@@ -165,6 +168,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
       }
 
       setFiles((prev) => [newFile, ...prev]);
+      recordActivityEvent('document_vault', selectedFile.name, { client: targetClient, category: selectedCat });
       setSuccessMsg(`Fichier "${selectedFile.name}" sécurisé avec succès dans votre coffre-fort.`);
       setSelectedFile(null);
       setTargetClient('');
@@ -433,6 +437,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab 
           </div>
         </div>
       )}
+
+      {/* User Activity & Deliverables Visualization Analytics (Recharts) */}
+      <UserActivityStatsVisualizer
+        vaultFiles={files}
+        onOpenChat={onOpenChat}
+        onNavigateTab={onNavigateTab}
+      />
 
       {/* Dedicated Home Screen Download / Install Banner Card */}
       {!isInstalled && (

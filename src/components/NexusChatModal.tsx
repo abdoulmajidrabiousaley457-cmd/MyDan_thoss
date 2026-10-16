@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Bot, Sparkles, Trash2, ExternalLink, Globe, Laptop, MessageSquare } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import { CABINET_INFO } from '../data/cabinetData';
+import { recordActivityEvent } from '../services/userActivityStats';
 
 interface Message {
   id: string;
@@ -88,6 +89,7 @@ export const NexusChatModal: React.FC<NexusChatModalProps> = ({
     setMessages(updatedMessages);
     setInput('');
     setIsThinking(true);
+    recordActivityEvent('assistant_chat', query);
 
     try {
       const res = await fetch('/api/chat', {

@@ -1,4 +1,5 @@
 import { CABINET_INFO } from '../data/cabinetData';
+import { recordActivityEvent } from './userActivityStats';
 
 export interface NDAPartyInfo {
   clientName: string;
@@ -438,6 +439,7 @@ export function downloadNDAContract(
     // Create Blob
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
+    recordActivityEvent('document_nda', `Contrat NDA - ${info?.clientName || 'Partenaire'}`);
 
     const isIOSDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
 

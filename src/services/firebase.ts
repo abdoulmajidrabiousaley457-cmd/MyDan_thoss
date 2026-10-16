@@ -3,11 +3,15 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  User,
+  UserCredential
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDocFromServer } from 'firebase/firestore';
 import { 
@@ -35,6 +39,27 @@ export const storage = getStorage(
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// Google Web SDK & Identity Services configuration
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Project Information for diagnostics and console configuration
+export const FIREBASE_PROJECT_INFO = {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  oAuthClientId: firebaseConfig.oAuthClientId,
+  storageBucket: firebaseConfig.storageBucket,
+  appId: firebaseConfig.appId,
+  consoleAuthUrl: `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings`,
+  consoleGeneralUrl: `https://console.firebase.google.com/project/${firebaseConfig.projectId}/settings/general`,
+  googleCloudCredentialsUrl: `https://console.cloud.google.com/apis/credentials?project=${firebaseConfig.projectId}`,
+  currentHost: typeof window !== 'undefined' ? window.location.hostname : 'my-dan-thoss-6zf3poqbb-portfolio-a372.vercel.app',
+  vercelDomain: 'my-dan-thoss-6zf3poqbb-portfolio-a372.vercel.app'
+};
 
 export enum OperationType {
   CREATE = 'create',
@@ -95,22 +120,81 @@ async function testConnection() {
 }
 testConnection();
 
+// Synchronize user profile in Firestore safely
+export async function syncFirebaseUserInFirestore(user: User) {
+  try {
+    const userDocRef = doc(db, 'users', user.uid);
+    await setDoc(userDocRef, {
+      id: user.uid,
+      name: user.displayName || 'Utilisateur',
+      email: user.email,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Firestore profile sync notice:', err);
+  }
+}
+
 // Authentication helpers
-export async function loginWithGoogle() {
+export async function loginWithGoogle(preferRedirect = false): Promise<UserCredential | null> {
+  // 1. If explicit redirect is requested, trigger signInWithRedirect
+  if (preferRedirect) {
+    try {
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    } catch (redirectError) {
+      console.warn('Explicit redirect sign-in error:', redirectError);
+      throw redirectError;
+    }
+  }
+
+  // 2. Default to signInWithPopup - this is the standard, state-preserving method across desktop & mobile
   try {
     const cred = await signInWithPopup(auth, googleProvider);
-    if (cred.user) {
-      const userDocRef = doc(db, 'users', cred.user.uid);
-      await setDoc(userDocRef, {
-        id: cred.user.uid,
-        name: cred.user.displayName || 'Utilisateur',
-        email: cred.user.email,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+    if (cred && cred.user) {
+      await syncFirebaseUserInFirestore(cred.user);
     }
     return cred;
-  } catch (error) {
+  } catch (error: any) {
+    const code = error?.code || '';
+
+    // If the user deliberately closed or cancelled the popup window, do NOT trigger a redirect loop
+    if (code === 'auth/popup-closed-by-user') {
+      console.info('Google Sign-In popup closed by user.');
+      return null;
+    }
+
+    if (code === 'auth/cancelled-popup-request') {
+      console.info('Google Sign-In popup cancelled because another popup is active.');
+      return null;
+    }
+
+    // Only if popup was strictly blocked by browser policy, try redirect as a fallback
+    if (code === 'auth/popup-blocked') {
+      console.warn('Popup blocked by browser, attempting signInWithRedirect fallback:', error);
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null;
+      } catch (redirectFallbackErr) {
+        throw redirectFallbackErr;
+      }
+    }
+
     console.error('Google Sign In Error:', error);
+    throw error;
+  }
+}
+
+export async function checkRedirectAuthResult(): Promise<UserCredential | null> {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      await syncFirebaseUserInFirestore(result.user);
+      return result;
+    }
+    return null;
+  } catch (error: any) {
+    console.warn('Redirect auth result check notice:', error);
     throw error;
   }
 }
@@ -284,11 +368,15 @@ export async function deleteFileFromStorage(storagePath: string, userId?: string
   // 2. Delete from Node.js server storage if userId and fileId are available
   if (userId && fileId) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       await fetch(`/api/vault/files/${encodeURIComponent(userId)}/${encodeURIComponent(fileId)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
     } catch {
-      // ignore
+      // non-blocking for static or serverless deployments
     }
   }
 

@@ -26,7 +26,8 @@ import {
   Users,
   ExternalLink,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Key
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -44,6 +45,7 @@ import { db, uploadFileToStorage, deleteFileFromStorage, handleFirestoreError, O
 import { storeLocalFileBlob, getLocalFileBlob } from '../services/localFileStorage';
 import { downloadVaultFile, shareVaultFile } from '../services/vaultFileDownloader';
 import { AuthScreen } from './AuthScreen';
+import { FirebaseGoogleConfigModal } from '../components/FirebaseGoogleConfigModal';
 
 interface ClientVaultScreenProps {
   onNavigateTab?: (tab: string) => void;
@@ -67,6 +69,7 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
   const [copiedLinkFileId, setCopiedLinkFileId] = useState<string | null>(null);
   const [fileToDelete, setFileToDelete] = useState<VaultFile | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
   // Upload Form State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +82,7 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
   // Client Portal Simulation Filter
   const [portalClientFilter, setPortalClientFilter] = useState('');
 
-  // Load files from Firestore when user is logged in
+  // Load files from Firestore or local storage when user is logged in
   useEffect(() => {
     if (!firebaseUser) {
       setFiles([]);
@@ -89,28 +92,43 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
 
     const fetchFiles = async () => {
       setLoading(true);
+      const uid = firebaseUser.uid;
+      const deletedKey = `rabiou_saley_deleted_files_${uid}`;
+      let deletedIds: string[] = [];
       try {
-        const vaultColRef = collection(db, 'users', firebaseUser.uid, 'vaultFiles');
+        deletedIds = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      } catch {}
+
+      try {
+        const vaultColRef = collection(db, 'users', uid, 'vaultFiles');
         const snapshot = await getDocs(vaultColRef);
         const loaded: VaultFile[] = [];
 
         snapshot.forEach((docSnap) => {
-          loaded.push(docSnap.data() as VaultFile);
+          const data = docSnap.data() as VaultFile;
+          if (!deletedIds.includes(data.id)) {
+            loaded.push(data);
+          }
         });
 
         // Sort by upload date descending
         loaded.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
         setFiles(loaded);
+
+        // Update local cache without large base64
+        const safeCache = loaded.map(({ fileContentBase64, ...rest }) => rest);
+        localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(safeCache));
       } catch (err) {
-        console.warn('Error fetching vault files from Firestore, loading local fallback:', err);
+        console.warn('Firestore fetch notice, loading local fallback:', err);
         // Fallback to localStorage if any
         try {
-          const cached = localStorage.getItem(`rabiou_saley_vault_${firebaseUser.uid}`);
+          const cached = localStorage.getItem(`rabiou_saley_vault_${uid}`);
           if (cached) {
-            setFiles(JSON.parse(cached));
+            const parsed: VaultFile[] = JSON.parse(cached);
+            setFiles(parsed.filter((f) => !deletedIds.includes(f.id)));
           } else {
-            // Seed sample files for high demonstration value
-            const sampleFiles = getSampleFiles(firebaseUser.uid);
+            // Seed sample files minus deleted ones
+            const sampleFiles = getSampleFiles(uid).filter((f) => !deletedIds.includes(f.id));
             setFiles(sampleFiles);
           }
         } catch {
@@ -124,13 +142,14 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
     fetchFiles();
   }, [firebaseUser]);
 
-  // Save to local cache whenever files change
+  // Save to local cache whenever files change (always persist, even if empty)
   useEffect(() => {
-    if (firebaseUser && files.length > 0) {
+    if (firebaseUser) {
       try {
-        localStorage.setItem(`rabiou_saley_vault_${firebaseUser.uid}`, JSON.stringify(files));
+        const safeCache = files.map(({ fileContentBase64, ...rest }) => rest);
+        localStorage.setItem(`rabiou_saley_vault_${firebaseUser.uid}`, JSON.stringify(safeCache));
       } catch (e) {
-        // quota exceeded for base64 storage, silently handle
+        // quota exceeded silently handled
       }
     }
   }, [files, firebaseUser]);
@@ -326,50 +345,48 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
   const handleConfirmDelete = async () => {
     if (!fileToDelete) return;
     const target = fileToDelete;
+    const uid = firebaseUser?.uid || target.userId || 'anonymous';
     setDeleting(true);
 
+    // 1. Immediately update UI state (optimistic removal)
+    setFiles((prev) => {
+      const updated = prev.filter((f) => f.id !== target.id);
+      try {
+        const safeCache = updated.map(({ fileContentBase64, ...rest }) => rest);
+        localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(safeCache));
+      } catch {}
+      return updated;
+    });
+
+    // 2. Mark this file ID as deleted so it never resurrects
     try {
-      const uid = firebaseUser?.uid || target.userId || 'anonymous';
-      await deleteFileFromStorage(target.storagePath || '', uid, target.id);
+      const deletedKey = `rabiou_saley_deleted_files_${uid}`;
+      const existingDeleted: string[] = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      if (!existingDeleted.includes(target.id)) {
+        existingDeleted.push(target.id);
+        localStorage.setItem(deletedKey, JSON.stringify(existingDeleted));
+      }
+    } catch {}
 
+    if (previewFile?.id === target.id) {
+      setPreviewFile(null);
+    }
+
+    // Close modal and notify user immediately
+    setFileToDelete(null);
+    setDeleting(false);
+    setSuccessMessage(`Fichier "${target.name}" supprimé définitivement du coffre-fort.`);
+    setTimeout(() => setSuccessMessage(null), 3500);
+
+    // 3. Perform background storage, server and Firestore deletion
+    try {
       if (firebaseUser) {
-        try {
-          const docRef = doc(db, 'users', firebaseUser.uid, 'vaultFiles', target.id);
-          await deleteDoc(docRef);
-        } catch (firestoreErr) {
-          console.warn('Firestore deletion notice:', firestoreErr);
-        }
+        const docRef = doc(db, 'users', firebaseUser.uid, 'vaultFiles', target.id);
+        deleteDoc(docRef).catch((e) => console.warn('Firestore doc deletion notice:', e));
       }
-
-      setFiles((prev) => {
-        const updated = prev.filter((f) => f.id !== target.id);
-        try {
-          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
-        } catch {}
-        return updated;
-      });
-
-      if (previewFile?.id === target.id) {
-        setPreviewFile(null);
-      }
-
-      setSuccessMessage(`Fichier "${target.name}" supprimé définitivement du coffre-fort.`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    } catch (err: any) {
-      console.warn('Error deleting file, removing locally:', err);
-      setFiles((prev) => {
-        const updated = prev.filter((f) => f.id !== target.id);
-        try {
-          const uid = firebaseUser?.uid || target.userId || 'anonymous';
-          localStorage.setItem(`rabiou_saley_vault_${uid}`, JSON.stringify(updated));
-        } catch {}
-        return updated;
-      });
-      setSuccessMessage(`Fichier "${target.name}" supprimé.`);
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } finally {
-      setDeleting(false);
-      setFileToDelete(null);
+      await deleteFileFromStorage(target.storagePath || '', uid, target.id);
+    } catch (err) {
+      console.warn('Background delete error (already removed locally):', err);
     }
   };
 
@@ -544,6 +561,15 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
             </button>
 
             <button
+              onClick={() => setIsConfigModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Configurer les domaines Vercel et l'empreinte SHA-1 Firebase"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span>Config Firebase & SHA-1</span>
+            </button>
+
+            <button
               onClick={logout}
               className="px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 hover:text-rose-300 text-slate-300 text-xs font-bold border border-slate-700 hover:border-rose-800/80 transition-all flex items-center gap-2 cursor-pointer"
               title="Déconnexion de votre compte"
@@ -694,6 +720,14 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
                     >
                       <Download className="w-3.5 h-3.5 text-slate-950" />
                       <span>Télécharger</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRequestDelete(file)}
+                      className="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
+                      title="Supprimer définitivement ce fichier"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -1283,6 +1317,12 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
           </div>
         </div>
       )}
+
+      {/* Firebase & Google Sign-In Diagnostic and Configuration Modal */}
+      <FirebaseGoogleConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+      />
     </div>
   );
 };

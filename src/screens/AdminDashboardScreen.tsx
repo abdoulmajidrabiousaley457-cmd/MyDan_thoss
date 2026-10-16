@@ -24,7 +24,8 @@ import {
   Copy,
   UserCheck,
   ShieldCheck,
-  Briefcase
+  Briefcase,
+  Key
 } from 'lucide-react';
 import { useUserProfile, ADMIN_USER_ID } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -33,6 +34,7 @@ import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db, deleteFileFromStorage } from '../services/firebase';
 import { getLocalFileBlob } from '../services/localFileStorage';
 import { downloadVaultFile } from '../services/vaultFileDownloader';
+import { FirebaseGoogleConfigModal } from '../components/FirebaseGoogleConfigModal';
 
 interface AdminUserSummary {
   id: string;
@@ -66,6 +68,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
   const [copiedUid, setCopiedUid] = useState<string | null>(null);
   const [globalFilesCount, setGlobalFilesCount] = useState(0);
   const [globalBytes, setGlobalBytes] = useState(0);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'all_files'>('users');
   const [allPlatformFiles, setAllPlatformFiles] = useState<Array<VaultFile & { ownerEmail?: string }>>([]);
   const [fileToDeleteAdmin, setFileToDeleteAdmin] = useState<VaultFile | null>(null);
@@ -249,30 +252,33 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
     const file = fileToDeleteAdmin;
     setDeletingAdmin(true);
 
+    // 1. Optimistic instant UI removal
+    setUserFiles((prev) => prev.filter((f) => f.id !== file.id));
+    setAllPlatformFiles((prev) => prev.filter((f) => f.id !== file.id));
+    if (previewFile?.id === file.id) setPreviewFile(null);
+
+    // 2. Mark deleted in persistent store for user
     try {
-      await deleteFileFromStorage(file.storagePath || '', file.userId, file.id);
-
-      try {
-        const docRef = doc(db, 'users', file.userId, 'vaultFiles', file.id);
-        await deleteDoc(docRef);
-      } catch {
-        // ignore
+      const deletedKey = `rabiou_saley_deleted_files_${file.userId}`;
+      const existingDeleted: string[] = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      if (!existingDeleted.includes(file.id)) {
+        existingDeleted.push(file.id);
+        localStorage.setItem(deletedKey, JSON.stringify(existingDeleted));
       }
+    } catch {}
 
-      setUserFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setAllPlatformFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setSuccessMessage(`Fichier "${file.name}" supprimé définitivement par l'administrateur.`);
-      if (previewFile?.id === file.id) setPreviewFile(null);
-      setTimeout(() => setSuccessMessage(null), 3500);
+    setFileToDeleteAdmin(null);
+    setDeletingAdmin(false);
+    setSuccessMessage(`Fichier "${file.name}" supprimé définitivement par l'administrateur.`);
+    setTimeout(() => setSuccessMessage(null), 3500);
+
+    // 3. Background deletion in storage and Firestore
+    try {
+      const docRef = doc(db, 'users', file.userId, 'vaultFiles', file.id);
+      deleteDoc(docRef).catch(() => {});
+      await deleteFileFromStorage(file.storagePath || '', file.userId, file.id);
     } catch (err) {
-      console.error('Admin delete error:', err);
-      setUserFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setAllPlatformFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setSuccessMessage(`Fichier "${file.name}" retiré de la liste.`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    } finally {
-      setDeletingAdmin(false);
-      setFileToDeleteAdmin(null);
+      console.warn('Admin background delete notice:', err);
     }
   };
 
@@ -351,6 +357,15 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
                 <span>Mon Espace Personnel</span>
               </button>
             )}
+
+            <button
+              onClick={() => setIsConfigModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Configurer les domaines Vercel, SDK Web et l'empreinte SHA-1"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span>Config Firebase & SHA-1</span>
+            </button>
 
             <button
               onClick={logout}
@@ -829,6 +844,12 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
           </div>
         </div>
       )}
+
+      {/* Firebase & Google Sign-In Diagnostic / Config Modal */}
+      <FirebaseGoogleConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+      />
     </div>
   );
 };

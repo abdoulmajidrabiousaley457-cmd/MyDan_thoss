@@ -137,7 +137,15 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
             </div>
             <button
               type="button"
-              onClick={loginGoogle}
+              onClick={async () => {
+                try {
+                  await loginGoogle();
+                } catch (e: any) {
+                  if (e?.code !== 'auth/popup-closed-by-user') {
+                    console.warn('Google sign-in notice in modal:', e);
+                  }
+                }
+              }}
               className="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
             >
               Connexion Google

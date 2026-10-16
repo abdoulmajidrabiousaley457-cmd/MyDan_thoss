@@ -101,7 +101,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </button>
             ) : (
               <button
-                onClick={loginGoogle}
+                onClick={async () => {
+                  try {
+                    await loginGoogle();
+                  } catch (e: any) {
+                    if (e?.code !== 'auth/popup-closed-by-user') {
+                      onNavigateTab('auth');
+                    }
+                  }
+                }}
                 className="px-4 py-2 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs shadow-md transition-colors cursor-pointer flex items-center gap-2"
               >
                 <span className="text-sm font-bold text-emerald-600">G</span>
