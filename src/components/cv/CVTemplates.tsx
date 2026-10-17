@@ -11,7 +11,7 @@ export const AIDataEngineerTemplate: React.FC<CVTemplateProps> = ({ data }) => {
   const accent = data.accentColor || '#16A34A';
 
   return (
-    <div className="bg-white text-slate-900 font-sans p-8 rounded-xl shadow-lg border border-slate-200 max-w-4xl mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:text-black">
+    <div className="bg-white text-slate-900 font-sans p-4 sm:p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:text-black">
       {/* Top Header with Dark Slate & Emerald Accent */}
       <div className="border-b-2 pb-6 mb-6" style={{ borderColor: accent }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -236,7 +236,7 @@ export const ExecutiveRemoteTemplate: React.FC<CVTemplateProps> = ({ data }) => 
   const accent = data.accentColor || '#0284C7';
 
   return (
-    <div className="bg-white text-slate-900 font-sans p-8 rounded-xl shadow-lg border border-slate-200 max-w-4xl mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
+    <div className="bg-white text-slate-900 font-sans p-4 sm:p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
       {/* Banner */}
       <div className="bg-slate-900 text-white p-6 rounded-lg mb-6 print:bg-slate-900 print:text-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -365,7 +365,7 @@ export const ExecutiveRemoteTemplate: React.FC<CVTemplateProps> = ({ data }) => 
 
 export const MinimalTechTemplate: React.FC<CVTemplateProps> = ({ data }) => {
   return (
-    <div className="bg-white text-neutral-900 font-mono p-8 rounded-xl shadow-lg border border-neutral-200 max-w-4xl mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none text-xs">
+    <div className="bg-white text-neutral-900 font-mono p-4 sm:p-6 md:p-8 rounded-xl shadow-lg border border-neutral-200 w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none text-xs">
       {/* Header */}
       <div className="border-b border-neutral-800 pb-4 mb-4">
         <h1 className="text-xl font-bold tracking-tight text-neutral-900 uppercase">{data.fullName}</h1>
@@ -456,7 +456,7 @@ export const MinimalTechTemplate: React.FC<CVTemplateProps> = ({ data }) => {
 
 export const AcademicResearchTemplate: React.FC<CVTemplateProps> = ({ data }) => {
   return (
-    <div className="bg-white text-slate-900 font-serif p-8 rounded-xl shadow-lg border border-slate-200 max-w-4xl mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none text-xs">
+    <div className="bg-white text-slate-900 font-serif p-4 sm:p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none text-xs">
       <div className="text-center border-b pb-4 mb-4">
         <h1 className="text-2xl font-bold tracking-normal uppercase">{data.fullName}</h1>
         <p className="italic text-slate-700 font-sans text-xs mt-1">{data.jobTitle}</p>

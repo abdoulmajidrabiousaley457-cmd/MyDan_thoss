@@ -58,31 +58,31 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 text-white shadow-lg sticky top-0 z-30 border-b border-emerald-800/40">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         {/* Left: Drawer toggle + Brand Logo & Title */}
-        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+        <div className="flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse min-w-0">
           <button
             onClick={onOpenDrawer}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shrink-0"
             aria-label="Menu"
           >
             <Menu className="w-5 h-5 text-emerald-300" />
           </button>
 
-          <div className="flex items-center space-x-2.5 rtl:space-x-reverse cursor-pointer" onClick={onOpenProfile}>
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-emerald-400/50 shadow-md bg-slate-950 shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-2.5 rtl:space-x-reverse cursor-pointer min-w-0" onClick={onOpenProfile}>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-emerald-400/50 shadow-md bg-slate-950 shrink-0">
               <img src="/app-logo.png" alt="Danthoss Logo" className="w-full h-full object-cover" />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-white font-extrabold text-base tracking-tight">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <span className="text-white font-extrabold text-sm sm:text-base tracking-tight truncate">
                   Danthoss
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.2 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                   {t('cabinetBadge', 'Cabinet IA')}
                 </span>
               </div>
-              <span className="text-emerald-300/80 text-[11px] leading-tight font-medium hidden sm:inline">
+              <span className="text-emerald-300/80 text-[10px] sm:text-[11px] leading-tight font-medium hidden sm:inline truncate">
                 {t('cabinetAuthor', 'Rabiou Saley • Data Science & Télétravail')}
               </span>
             </div>
@@ -112,12 +112,12 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Right: Actions, Language & Notifications */}
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse shrink-0">
           {/* Super Admin Badge Button */}
           {isAdmin && (
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'admin_dashboard' }))}
-              className="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md border border-amber-300 transition-all cursor-pointer animate-pulse"
+              className="px-2 py-1 sm:px-2.5 sm:py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs font-black flex items-center gap-1 sm:gap-1.5 shadow-md border border-amber-300 transition-all cursor-pointer animate-pulse"
               title="Tableau de Bord Administrateur (UID: zbc5lYSgQ9bIcKipYER68wbI1Er1)"
             >
               <ShieldAlert className="w-3.5 h-3.5 fill-slate-950 text-amber-500" />
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Quick Client Vault button */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'client_vault' }))}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
             title="Accéder au Coffre-fort Clients (Client Vault)"
           >
             <FolderLock className="w-3.5 h-3.5 text-emerald-400" />
@@ -145,28 +145,29 @@ export const Header: React.FC<HeaderProps> = ({
                   openInstallModal();
                 }
               }}
-              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-[11px] sm:text-xs font-black flex items-center gap-1 sm:gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
               title={t('installPhone', "Télécharger / Installer l'Application")}
             >
               <Download className="w-3.5 h-3.5 text-slate-950 animate-bounce" />
-              <span>{t('installPhone', "Installer l'App")}</span>
+              <span className="hidden xs:inline">{t('installPhone', "Installer l'App")}</span>
+              <span className="xs:hidden">App</span>
             </button>
           )}
 
           {/* User Profile Chip */}
           <button
             onClick={onOpenProfile}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200 transition-colors cursor-pointer"
             title={t('myProfile', 'Mon profil et compte')}
           >
-            <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+            <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden shrink-0">
               {firebaseUser?.photoURL ? (
                 <img src={firebaseUser.photoURL} alt="User" className="w-full h-full object-cover" />
               ) : (
                 profile.name?.slice(0, 1).toUpperCase() || 'U'
               )}
             </div>
-            <span className="font-semibold max-w-[100px] truncate hidden md:inline">
+            <span className="font-semibold max-w-[80px] sm:max-w-[100px] truncate hidden md:inline">
               {firebaseUser?.displayName?.split(' ')[0] || profile.name?.split(' ')[0] || t('myProfile', 'Profil')}
             </span>
           </button>
@@ -175,7 +176,7 @@ export const Header: React.FC<HeaderProps> = ({
           {firebaseUser && (
             <button
               onClick={logout}
-              className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 hover:text-rose-300 border border-slate-700 text-xs text-rose-400 font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 hover:text-rose-300 border border-slate-700 text-xs text-rose-400 font-bold transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs"
               title={t('logout', 'Déconnexion')}
             >
               <LogOut className="w-3.5 h-3.5" />

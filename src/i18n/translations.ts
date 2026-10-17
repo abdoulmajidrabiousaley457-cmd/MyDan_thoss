@@ -149,13 +149,13 @@ export const translations: Record<AppLanguage, Record<string, string>> = {
     remoteClients: "Clients en Télétravail",
     satisfactionRate: "Satisfaction Client",
 
-    // AI Assistant (Majid IA)
-    majidAiTitle: "Majid IA",
-    majidAiBadge: "Assistant Cabinet & IA",
-    majidAiDesc: "Posez toutes vos questions sur l'Intelligence Artificielle, le code, nos prestations ou le télétravail international.",
-    majidAiPlaceholder: "Posez votre question (IA, Python, télétravail, devis, code, etc.)...",
-    majidAiThinking: "Majid IA réfléchit...",
-    majidAiOmniBadge: "Agent Omni Studio Connecté",
+    // AI Assistant (Gemini AI)
+    majidAiTitle: "Gemini AI",
+    majidAiBadge: "Google Gemini 3.8 Flash • Cabinet IA",
+    majidAiDesc: "Posez toutes vos questions à Gemini AI : Intelligence Artificielle, programmation Python, devis ou télétravail international.",
+    majidAiPlaceholder: "Posez votre question à Gemini AI (Python, IA, devis, code, télétravail)...",
+    majidAiThinking: "Gemini AI analyse votre requête et prépare la réponse...",
+    majidAiOmniBadge: "Connecté à Google Gemini & Omni Studio",
     majidAiClear: "Effacer l'historique",
 
     // Currency Screen
@@ -334,13 +334,13 @@ export const translations: Record<AppLanguage, Record<string, string>> = {
     remoteClients: "Remote Clients",
     satisfactionRate: "Client Satisfaction",
 
-    // AI Assistant (Majid IA)
-    majidAiTitle: "Majid AI",
-    majidAiBadge: "Firm Assistant & AI",
-    majidAiDesc: "Ask any question about Artificial Intelligence, programming, consulting services, or international remote missions.",
-    majidAiPlaceholder: "Ask anything (AI, Python, remote work, quotes, code, etc.)...",
-    majidAiThinking: "Majid AI is thinking...",
-    majidAiOmniBadge: "Connected to Omni Studio Agent",
+    // AI Assistant (Gemini AI)
+    majidAiTitle: "Gemini AI",
+    majidAiBadge: "Google Gemini 3.8 Flash • Firm AI",
+    majidAiDesc: "Ask any question to Gemini AI: Artificial Intelligence, Python code, consulting quotes, or international remote missions.",
+    majidAiPlaceholder: "Ask Gemini AI anything (Python, AI agents, quotes, code, remote work)...",
+    majidAiThinking: "Gemini AI is processing your request and generating the response...",
+    majidAiOmniBadge: "Connected to Google Gemini & Omni Studio",
     majidAiClear: "Clear history",
 
     // Currency Screen
@@ -519,13 +519,13 @@ export const translations: Record<AppLanguage, Record<string, string>> = {
     remoteClients: "العملاء عن بعد",
     satisfactionRate: "نسبة رضا العملاء",
 
-    // AI Assistant (Majid IA)
-    majidAiTitle: "ماجد الذكي",
-    majidAiBadge: "مساعد المكتب والذكاء الاصطناعي",
-    majidAiDesc: "اطرح جميع أسئلتك حول الذكاء الاصطناعي، البرمجة، خدمات المكتب أو العمل عن بعد.",
-    majidAiPlaceholder: "اطرح سؤالك (ذكاء اصطناعي، بايثون، استشارات، إلخ)...",
-    majidAiThinking: "ماجد الذكي يفكر...",
-    majidAiOmniBadge: "متصل بوكيل Omni Studio",
+    // AI Assistant (Gemini AI)
+    majidAiTitle: "Gemini AI",
+    majidAiBadge: "Google Gemini 3.8 Flash • ذكاء اصطناعي",
+    majidAiDesc: "اطرح جميع أسئلتك على Gemini AI: الذكاء الاصطناعي، بايثون، خدمات المكتب أو العمل عن بعد.",
+    majidAiPlaceholder: "اطرح سؤالك على Gemini AI (بايثون، وكلاء أذكياء، استشارات، كود)...",
+    majidAiThinking: "Gemini AI يقوم بالتحليل وإعداد الإجابة...",
+    majidAiOmniBadge: "متصل بـ Google Gemini و Omni Studio",
     majidAiClear: "مسح السجل",
 
     // Currency Screen

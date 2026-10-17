@@ -8,7 +8,7 @@ interface CoverLetterViewProps {
 
 export const CoverLetterView: React.FC<CoverLetterViewProps> = ({ data, accentColor = '#16A34A' }) => {
   return (
-    <div className="bg-white text-slate-900 font-sans p-8 md:p-12 rounded-xl shadow-lg border border-slate-200 max-w-4xl mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:text-black">
+    <div className="bg-white text-slate-900 font-sans p-4 sm:p-6 md:p-10 rounded-xl shadow-lg border border-slate-200 w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:text-black">
       {/* Sender Header */}
       <div className="border-b-2 pb-6 mb-8" style={{ borderColor: accentColor }}>
         <h1 className="text-2xl font-bold text-slate-900">{data.senderName}</h1>

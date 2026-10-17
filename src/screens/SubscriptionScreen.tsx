@@ -70,7 +70,7 @@ export const SubscriptionScreen: React.FC = () => {
         { text: 'Exports PDF illimités sans filigrane', included: true },
         { text: 'Audit ATS complet avec checklist recruteurs', included: true },
         { text: 'Bibliothèque de pitchs IA et Data Science', included: true },
-        { text: 'Simulateur d\'entretien technique avec Majid IA', included: true },
+        { text: 'Simulateur d\'entretien technique avec Gemini AI', included: true },
         { text: 'Audit personnalisé par Rabiou Saley', included: false },
         { text: 'Sessions de coaching visio télétravail', included: false }
       ],

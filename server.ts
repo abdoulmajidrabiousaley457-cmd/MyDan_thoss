@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import JSZip from 'jszip';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +18,17 @@ if (portIdx !== -1 && process.argv[portIdx + 1]) {
 } else if (process.env.PORT) {
   PORT = parseInt(process.env.PORT, 10);
 }
+
+// CORS and Preflight Handling for iframe and preview environments
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-requested-with');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
@@ -327,12 +338,13 @@ app.get('/api/vault/admin/overview', (_req, res) => {
 });
 
 // Initialize GoogleGenAI SDK safely
-const geminiApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-let ai: GoogleGenAI | null = null;
-if (geminiApiKey) {
+// Initialize GoogleGenAI SDK safely
+const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+  if (!apiKey) return null;
   try {
-    ai = new GoogleGenAI({
-      apiKey: geminiApiKey,
+    return new GoogleGenAI({
+      apiKey,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
@@ -341,11 +353,12 @@ if (geminiApiKey) {
     });
   } catch (err) {
     console.warn('GoogleGenAI initialization warning:', err);
+    return null;
   }
-}
+};
 
-// Endpoint for AI Agent (Majid IA & Omni Studio Agent Integration)
-app.post('/api/chat', async (req, res) => {
+// Endpoint for Gemini AI Assistant (Cabinet Rabiou Saley / Majid IA)
+const handleGeminiChat = async (req: express.Request, res: express.Response) => {
   try {
     const { message, history, language = 'fr' } = req.body;
 
@@ -353,7 +366,8 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const systemInstruction = `Tu es Majid IA, l'agent d'Intelligence Artificielle d'élite du Cabinet Rabiou Saley.
+    const systemInstruction = `Tu es Gemini AI, l'assistant d'Intelligence Artificielle d'élite du Cabinet Rabiou Saley (créé par le fondateur Abdoul Majid Rabiou Saley).
+Tu es propulsé par la technologie Google Gemini.
 Fondateur & Consultant Référent : Abdoul Majid Rabiou Saley (Senior Data Scientist & Concepteur d'Agents IA Autonomes).
 - Portfolio Officiel en direct : https://mon-portfolio-fin-ten.vercel.app/
 - Agent Hébergé Omni Studio : https://omni-studio-abdoul.ai.studio
@@ -362,18 +376,19 @@ Fondateur & Consultant Référent : Abdoul Majid Rabiou Saley (Senior Data Scien
 - Localisation : Niamey, Niger / Disponible à 100% en Télétravail International (Full Remote - Fuseaux UTC, CET, EST).
 - Expertises clés : Systèmes Multi-Agents (LangGraph, CrewAI, AutoGen), RAG vectoriel, Modélisation prédictive & Machine Learning (XGBoost, Scikit-Learn), Computer Vision, FastAPI, Docker, MLOps.
 
-DIRECTIVE ESSENTIELLE : L'utilisateur a expressément demandé que l'agent "réponde à tout".
-Tu dois donc répondre avec rigueur, intelligence et bienveillance à TOUTES les questions posées par l'utilisateur :
-1. Questions techniques (programmation Python, TypeScript, React, SQL, architectures IA, LLMs, algorithmes).
-2. Questions sur le Cabinet Rabiou Saley, son portfolio en direct (https://mon-portfolio-fin-ten.vercel.app/), ses prestations en télétravail et ses devis.
-3. Questions générales de culture, de mathématiques, de carrière, de conseil ou d'analyse.
+DIRECTIVE ESSENTIELLE :
+En tant que Gemini AI, tu réponds avec un haut niveau de compétence, précision et pédagogie à TOUTES les questions posées :
+1. Questions techniques avancées (programmation Python, TypeScript, React, SQL, architectures IA, LLMs, algorithmes, déploiement cloud).
+2. Questions sur le Cabinet Rabiou Saley, son portfolio officiel (https://mon-portfolio-fin-ten.vercel.app/), ses devis et missions de télétravail international.
+3. Questions générales de culture, de mathématiques, d'analyse et de stratégie technologique.
 Réponds dans la langue demandée par l'utilisateur (Langue active: ${language === 'ar' ? 'Arabe' : language === 'en' ? 'Anglais' : 'Français'}). Formate tes réponses avec un style soigné, clair et professionnel en Markdown.`;
 
-    if (ai) {
+    const aiClient = getGeminiClient();
+    if (aiClient) {
       try {
         const contents: any[] = [];
         if (Array.isArray(history) && history.length > 0) {
-          for (const h of history.slice(-6)) {
+          for (const h of history.slice(-8)) {
             contents.push({
               role: h.sender === 'user' ? 'user' : 'model',
               parts: [{ text: h.text }],
@@ -386,47 +401,80 @@ Réponds dans la langue demandée par l'utilisateur (Langue active: ${language =
         });
 
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AI generation timeout')), 8000)
+          setTimeout(() => reject(new Error('AI generation timeout')), 18000)
         );
 
         const response: any = await Promise.race([
-          ai.models.generateContent({
+          aiClient.models.generateContent({
             model: 'gemini-3.8-flash',
             contents,
             config: {
               systemInstruction,
+              thinkingConfig: {
+                thinkingLevel: ThinkingLevel.LOW,
+              },
             },
           }),
           timeoutPromise
         ]);
 
-        const replyText = response.text || "Je suis à votre écoute pour toute question relative au cabinet, au code ou à l'intelligence artificielle.";
-        return res.json({ reply: replyText });
+        const replyText = response.text || "Bonjour ! Je suis Gemini AI, à votre écoute pour toute question relative au cabinet, au code ou à l'intelligence artificielle.";
+        return res.json({ reply: replyText, engine: 'gemini-3.8-flash' });
       } catch (genError: any) {
-        console.warn('Gemini generation error, utilizing fallback:', genError?.message || genError);
+        console.warn('Gemini generation notice:', genError?.message || genError);
       }
     }
 
-    // Graceful fallback response when key is unset, quota is reached, or network issue
+    // Graceful fallback response when API key is unset, quota is reached, or network issue
     const lower = message.toLowerCase();
-    let fallbackReply = `Bonjour ! Je suis Majid IA, l'assistant officiel du Cabinet Rabiou Saley.\n\n`;
+    let fallbackReply = `Bonjour ! Je suis **Gemini AI**, l'assistant d'Intelligence Artificielle du Cabinet Rabiou Saley.\n\n`;
 
-    if (lower.includes('portfolio') || lower.includes('projet') || lower.includes('lien')) {
+    if (lower.includes('python') || lower.includes('code') || lower.includes('script') || lower.includes('agent')) {
+      fallbackReply += `Voici une structure de référence pour un **Agent IA Autonome en Python** conçu selon les standards du Cabinet Rabiou Saley :\n\n` +
+        `\`\`\`python\n` +
+        `# Pipeline Agent IA - Cabinet Rabiou Saley\n` +
+        `from dataclasses import dataclass\n` +
+        `from typing import List, Dict, Any\n\n` +
+        `@dataclass\n` +
+        `class AgentContext:\n` +
+        `    user_query: str\n` +
+        `    memory: List[Dict[str, str]]\n\n` +
+        `class GeminiSpecialistAgent:\n` +
+        `    def __init__(self, name: str = "Gemini-RabiouSaley"):\n` +
+        `        self.name = name\n` +
+        `        self.expertises = ["RAG", "Data Science", "Agents Autonomes"]\n\n` +
+        `    def process_task(self, ctx: AgentContext) -> Dict[str, Any]:\n` +
+        `        # Traitement et inférence de la requête\n` +
+        `        return {\n` +
+        `            "status": "success",\n` +
+        `            "expert": "Abdoul Majid Rabiou Saley",\n` +
+        `            "portfolio": "https://mon-portfolio-fin-ten.vercel.app/",\n` +
+        `            "result": f"Tâche traitée avec succès pour : {ctx.user_query}"\n` +
+        `        }\n` +
+        `\`\`\`\n\n` +
+        `N'hésitez pas à tester également notre agent interactif en ligne sur [Omni Studio](https://omni-studio-abdoul.ai.studio) !`;
+    } else if (lower.includes('portfolio') || lower.includes('projet') || lower.includes('lien')) {
       fallbackReply += `Vous pouvez explorer le **Portfolio Officiel en direct** de Rabiou Saley à cette adresse : [https://mon-portfolio-fin-ten.vercel.app/](https://mon-portfolio-fin-ten.vercel.app/)\n\nVous y découvrirez l'ensemble des projets d'agents IA autonomes, démonstrations interactives et réalisations en télétravail international.`;
     } else if (lower.includes('agent') || lower.includes('omni')) {
       fallbackReply += `Mon agent IA hébergé est également accessible sur Omni Studio : [https://omni-studio-abdoul.ai.studio](https://omni-studio-abdoul.ai.studio). N'hésitez pas à vous y connecter !`;
-    } else if (lower.includes('contact') || lower.includes('whatsapp') || lower.includes('téléphone') || lower.includes('devis')) {
+    } else if (lower.includes('contact') || lower.includes('whatsapp') || lower.includes('téléphone') || lower.includes('devis') || lower.includes('prix')) {
       fallbackReply += `Pour toute mission ou devis, vous pouvez contacter directement Rabiou Saley par WhatsApp au **+227 96 49 99 06** ou par email à **abdoulmajidrabiousaley457@gmail.com**. Le cabinet est disponible immédiatement en Full Remote.`;
     } else {
-      fallbackReply += `Concernant votre demande : *" ${message} "*\n\nLe Cabinet Rabiou Saley et notre agent Omni Studio (https://omni-studio-abdoul.ai.studio) sont pleinement opérationnels. Nous accompagnons les entreprises dans la création de systèmes d'agents autonomes, de pipelines Data Science et de solutions cloud sur mesure.\n\nN'hésitez pas à consulter notre portfolio en direct sur [https://mon-portfolio-fin-ten.vercel.app/](https://mon-portfolio-fin-ten.vercel.app/) ou à nous contacter sur WhatsApp au **+227 96 49 99 06** !`;
+      fallbackReply += `Concernant votre demande : *" ${message} "*\n\nLe Cabinet Rabiou Saley et notre agent Omni Studio (https://omni-studio-abdoul.ai.studio) sont pleinement opérationnels. Nous concevons des systèmes d'agents autonomes, des pipelines de données et des solutions d'ingénierie IA sur mesure.\n\nN'hésitez pas à consulter notre portfolio en direct sur [https://mon-portfolio-fin-ten.vercel.app/](https://mon-portfolio-fin-ten.vercel.app/) ou à nous contacter sur WhatsApp au **+227 96 49 99 06** !`;
     }
 
-    return res.json({ reply: fallbackReply });
+    return res.json({ reply: fallbackReply, engine: 'gemini-fallback' });
   } catch (err: any) {
-    console.error('Chat endpoint error:', err);
-    return res.status(500).json({ error: 'Erreur lors du traitement de la requête IA.' });
+    console.warn('Gemini chat endpoint notice:', err?.message || err);
+    return res.json({
+      reply: "Bonjour ! Je suis Gemini AI, l'assistant d'Intelligence Artificielle du Cabinet Rabiou Saley. Je suis à votre écoute pour toute question relative au cabinet, au code ou à l'intelligence artificielle. Vous pouvez également consulter notre portfolio en direct : https://mon-portfolio-fin-ten.vercel.app/",
+      engine: 'gemini-safe-fallback'
+    });
   }
-});
+};
+
+app.post('/api/gemini/chat', handleGeminiChat);
+app.post('/api/chat', handleGeminiChat);
 
 // Setup Vite middleware in dev or static files in production
 async function startServer() {

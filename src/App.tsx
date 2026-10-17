@@ -149,7 +149,7 @@ export const AppContent: React.FC = () => {
         )}
       </main>
 
-      {/* Majid IA Assistant Modal */}
+      {/* Gemini AI Assistant Modal */}
       <NexusChatModal
         isOpen={nexusOpen}
         onClose={() => setNexusOpen(false)}

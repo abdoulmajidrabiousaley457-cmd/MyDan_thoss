@@ -182,9 +182,9 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                 }}
                 className="w-full flex items-center space-x-3 rtl:space-x-reverse px-3 py-2.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-200/60"
               >
-                <Bot className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="flex-1 text-left">Majid IA - Assistant Virtuel</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <Bot className="w-4 h-4 text-indigo-600 shrink-0" />
+                <span className="flex-1 text-left font-bold">Gemini AI</span>
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
               </button>
 
               <button

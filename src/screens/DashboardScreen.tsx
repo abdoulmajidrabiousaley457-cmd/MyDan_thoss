@@ -299,17 +299,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
   return (
     <div className="space-y-8 pb-16">
       {/* Welcome & User Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800">
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl border border-slate-800">
         <div className="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
+          <div className="space-y-2 max-w-xl min-w-0">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{t('authPortalBadge', 'Portail Sécurisé • Cabinet Rabiou Saley')}</span>
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{t('authPortalBadge', 'Portail Sécurisé • Cabinet Rabiou Saley')}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white truncate">
               {t('welcomeUser', 'Bienvenue,')} {firebaseUser?.displayName || profile.name}
             </h1>
 
@@ -317,8 +317,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
               {t('dashboardSubtitle', 'Vue d\'ensemble de votre espace de travail, de vos livrables et outils d\'ingénierie.')}
             </p>
 
-            <div className="flex items-center gap-2 pt-1 text-xs text-emerald-400 font-mono">
-              <span>{firebaseUser?.email}</span>
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-emerald-400 font-mono">
+              <span className="truncate max-w-[240px] sm:max-w-none">{firebaseUser?.email}</span>
               <span>•</span>
               <span className="font-sans font-bold text-slate-300">
                 {profile.tier === 'vip_cabinet' ? 'VIP Cabinet 👑' : profile.tier === 'pro' ? 'Pro ⭐' : 'Découverte'}
@@ -327,11 +327,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
           </div>
 
           {/* Action: Prominent Logout Button */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
             {isAdmin && (
               <button
                 onClick={() => onNavigateTab('admin_dashboard')}
-                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer border border-amber-300 animate-pulse"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer border border-amber-300 animate-pulse"
                 title="Accéder au Tableau de Bord Super Admin"
               >
                 <ShieldAlert className="w-4 h-4" />
@@ -348,7 +348,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
                     openInstallModal();
                   }
                 }}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
                 title="Télécharger et installer l'application sur votre écran"
               >
                 <Download className="w-4 h-4 text-slate-950" />
@@ -358,7 +358,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
 
             <button
               onClick={() => onNavigateTab('client_vault')}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer"
             >
               <FolderLock className="w-4 h-4" />
               <span>{t('navClientVault', 'Coffre-fort Clients')}</span>
@@ -366,7 +366,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
 
             <button
               onClick={logout}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-950/80 hover:text-rose-300 text-slate-300 text-xs font-bold border border-slate-700 hover:border-rose-800 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-rose-950/80 hover:text-rose-300 text-slate-300 text-xs font-bold border border-slate-700 hover:border-rose-800 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-sm"
               title={t('logout', 'Déconnexion')}
             >
               <LogOut className="w-4 h-4 text-rose-400" />
@@ -376,44 +376,44 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
         </div>
 
         {/* Real-time Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800 text-xs">
-          <div className="bg-slate-900/70 p-3.5 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-6 pt-6 border-t border-slate-800 text-xs">
+          <div className="bg-slate-900/70 p-2.5 sm:p-3.5 rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">{t('statsTotalFiles', 'Fichiers Sécurisés')}</span>
-              <span className="text-base font-black text-white">{files.length}</span>
+            <div className="min-w-0">
+              <span className="text-slate-400 block text-[9.5px] sm:text-[10px] uppercase font-bold truncate">{t('statsTotalFiles', 'Fichiers')}</span>
+              <span className="text-sm sm:text-base font-black text-white truncate block">{files.length}</span>
             </div>
           </div>
 
-          <div className="bg-slate-900/70 p-3.5 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+          <div className="bg-slate-900/70 p-2.5 sm:p-3.5 rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
               <HardDrive className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">{t('statsStorageUsed', 'Stockage Utilisé')}</span>
-              <span className="text-base font-black text-white">{formatBytes(totalSize)}</span>
+            <div className="min-w-0">
+              <span className="text-slate-400 block text-[9.5px] sm:text-[10px] uppercase font-bold truncate">{t('statsStorageUsed', 'Stockage')}</span>
+              <span className="text-sm sm:text-base font-black text-white truncate block">{formatBytes(totalSize)}</span>
             </div>
           </div>
 
-          <div className="bg-slate-900/70 p-3.5 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
+          <div className="bg-slate-900/70 p-2.5 sm:p-3.5 rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">{t('statsActiveClients', 'Clients Actifs')}</span>
-              <span className="text-base font-black text-white">{distinctClients}</span>
+            <div className="min-w-0">
+              <span className="text-slate-400 block text-[9.5px] sm:text-[10px] uppercase font-bold truncate">{t('statsActiveClients', 'Clients')}</span>
+              <span className="text-sm sm:text-base font-black text-white truncate block">{distinctClients}</span>
             </div>
           </div>
 
-          <div className="bg-slate-900/70 p-3.5 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0">
+          <div className="bg-slate-900/70 p-2.5 sm:p-3.5 rounded-2xl border border-slate-800 flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0">
               <Download className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">{t('statsTotalDownloads', 'Téléchargements')}</span>
-              <span className="text-base font-black text-white">{totalDownloads}</span>
+            <div className="min-w-0">
+              <span className="text-slate-400 block text-[9.5px] sm:text-[10px] uppercase font-bold truncate">{t('statsTotalDownloads', 'Téléchargés')}</span>
+              <span className="text-sm sm:text-base font-black text-white truncate block">{totalDownloads}</span>
             </div>
           </div>
         </div>

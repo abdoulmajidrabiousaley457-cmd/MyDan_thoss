@@ -119,34 +119,34 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
   };
 
   return (
-    <div className={`bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl text-white space-y-6 ${className}`}>
+    <div className={`bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 md:p-7 shadow-2xl text-white space-y-5 sm:space-y-6 w-full max-w-full overflow-hidden ${className}`}>
       
       {/* Header Bar: Title, Context and Functional Segmented Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
-        <div className="space-y-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-4 sm:pb-5">
+        <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
             <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Cabinet Rabiou Saley • Analytics Studio</span>
-            <span className="text-slate-600" aria-hidden="true">·</span>
-            <span className="text-slate-400 font-normal">Recharts Engine</span>
+            <span className="truncate">Cabinet Rabiou Saley • Analytics Studio</span>
+            <span className="text-slate-600 hidden xs:inline" aria-hidden="true">·</span>
+            <span className="text-slate-400 font-normal hidden xs:inline">Recharts Engine</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+          <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
             <span>Observatoire d'Activité & Métriques IA</span>
           </h2>
 
-          <p className="text-xs text-slate-400 max-w-2xl">
-            Suivi volumétrique en direct : génération de documents chiffrés (CV ATS, NDA, devis) et sollicitation de l'assistant intelligent Majid IA.
+          <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+            Suivi volumétrique en direct : génération de documents chiffrés (CV ATS, NDA, devis) et sollicitation de l'assistant intelligent Gemini AI.
           </p>
         </div>
 
         {/* Global Controls: Time Range & Refresh */}
-        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto shrink-0">
           {/* Time Range Segmented Control */}
           <div className="inline-flex items-center p-1 bg-slate-900 border border-slate-800 rounded-2xl">
             <button
               onClick={() => setTimeRange('7d')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 timeRange === '7d' 
                   ? 'bg-emerald-600 text-white shadow-md' 
                   : 'text-slate-400 hover:text-white'
@@ -156,7 +156,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
             </button>
             <button
               onClick={() => setTimeRange('30d')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 timeRange === '30d' 
                   ? 'bg-emerald-600 text-white shadow-md' 
                   : 'text-slate-400 hover:text-white'
@@ -166,7 +166,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
             </button>
             <button
               onClick={() => setTimeRange('90d')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 timeRange === '90d' 
                   ? 'bg-emerald-600 text-white shadow-md' 
                   : 'text-slate-400 hover:text-white'
@@ -179,94 +179,94 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
           {/* Refresh Action */}
           <button
             onClick={handleRefresh}
-            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
             title="Rafraîchir les métriques"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Top 4 Key Metric Stat Anchors */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Metric 1: Documents Generated */}
-        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-emerald-500/40 transition-colors">
+        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 relative overflow-hidden group hover:border-emerald-500/40 transition-colors min-w-0">
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded-lg border border-emerald-500/20">
               <ArrowUpRight className="w-3 h-3" />
               <span>+{data.summary.documentsGrowthPct}%</span>
             </div>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Documents Générés</span>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Documents Générés</span>
+            <div className="flex items-baseline gap-1.5 sm:gap-2 pt-0.5">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-mono truncate">
                 {data.summary.totalDocuments}
               </span>
-              <span className="text-[11px] text-slate-500 font-sans">livrables & CV</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-sans truncate">livrables</span>
             </div>
           </div>
         </div>
 
         {/* Metric 2: Assistant Interactions */}
-        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-indigo-500/40 transition-colors">
+        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 relative overflow-hidden group hover:border-indigo-500/40 transition-colors min-w-0">
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-lg border border-indigo-500/20">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 sm:px-2 py-0.5 rounded-lg border border-indigo-500/20">
               <ArrowUpRight className="w-3 h-3" />
               <span>+{data.summary.interactionsGrowthPct}%</span>
             </div>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Interactions Assistant IA</span>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Interactions IA</span>
+            <div className="flex items-baseline gap-1.5 sm:gap-2 pt-0.5">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-mono truncate">
                 {data.summary.totalAssistantInteractions}
               </span>
-              <span className="text-[11px] text-slate-500 font-sans">requêtes & audits</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-sans truncate">sessions</span>
             </div>
           </div>
         </div>
 
         {/* Metric 3: Engineering Hours Saved */}
-        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-teal-500/40 transition-colors">
+        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 relative overflow-hidden group hover:border-teal-500/40 transition-colors min-w-0">
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4" />
             </div>
-            <span className="text-[11px] text-slate-400 font-medium">Gain de Temps</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Gain Temps</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Heures Économisées</span>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Heures Économisées</span>
+            <div className="flex items-baseline gap-1.5 sm:gap-2 pt-0.5">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-mono truncate">
                 {data.summary.hoursSavedEstimated}h
               </span>
-              <span className="text-[11px] text-teal-400 font-bold">par automatisation</span>
+              <span className="text-[10px] sm:text-[11px] text-teal-400 font-bold truncate">estimées</span>
             </div>
           </div>
         </div>
 
         {/* Metric 4: Success & Automation Rate */}
-        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-amber-500/40 transition-colors">
+        <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 relative overflow-hidden group hover:border-amber-500/40 transition-colors min-w-0">
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4" />
             </div>
-            <span className="text-[11px] text-amber-300 font-medium">Précision IA</span>
+            <span className="text-[10px] sm:text-[11px] text-amber-300 font-medium truncate">Précision IA</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Taux de Réussite</span>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Taux de Réussite</span>
+            <div className="flex items-baseline gap-1.5 sm:gap-2 pt-0.5">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-mono truncate">
                 {data.summary.automationSuccessRate}%
               </span>
-              <span className="text-[11px] text-slate-500 font-sans">zéro régression</span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-sans truncate">zéro bug</span>
             </div>
           </div>
         </div>
@@ -275,52 +275,52 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
       {/* Visualization Navigation Tabs & Secondary Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         {/* Visual Mode Selector */}
-        <div className="inline-flex p-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto no-scrollbar">
+        <div className="inline-flex max-w-full p-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto no-scrollbar touch-pan-x">
           <button
             onClick={() => setViewMode('timeline')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
               viewMode === 'timeline'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <LineIcon className="w-3.5 h-3.5" />
+            <LineIcon className="w-3.5 h-3.5 shrink-0" />
             <span>Dynamique Temporelle</span>
           </button>
 
           <button
             onClick={() => setViewMode('documents')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
               viewMode === 'documents'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5" />
+            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
             <span>Types de Documents</span>
           </button>
 
           <button
             onClick={() => setViewMode('assistant')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
               viewMode === 'assistant'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <PieIcon className="w-3.5 h-3.5" />
+            <PieIcon className="w-3.5 h-3.5 shrink-0" />
             <span>Pôles Assistant IA</span>
           </button>
 
           <button
             onClick={() => setViewMode('combined')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
               viewMode === 'combined'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
+            <Layers className="w-3.5 h-3.5 shrink-0" />
             <span>Vue Panoramique</span>
           </button>
         </div>
@@ -398,7 +398,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
               </div>
             </div>
 
-            <div className="h-72 sm:h-80 w-full pt-2">
+            <div className="h-64 sm:h-72 md:h-80 w-full pt-2 min-w-0 overflow-hidden">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={data.timeline}
@@ -421,6 +421,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                     fontSize={11}
                     tickLine={false}
                     axisLine={{ stroke: '#334155' }}
+                    minTickGap={16}
                   />
                   <YAxis 
                     stroke="#64748b" 
@@ -472,7 +473,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                 </p>
               </div>
 
-              <div className="h-72 w-full pt-2">
+              <div className="h-64 sm:h-72 w-full pt-2 min-w-0 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={data.documentTypes}
@@ -487,6 +488,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                       axisLine={{ stroke: '#334155' }}
                       angle={-15}
                       textAnchor="end"
+                      minTickGap={10}
                     />
                     <YAxis 
                       stroke="#64748b" 
@@ -568,14 +570,14 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
             <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 sm:p-6 space-y-4">
               <div>
                 <h3 className="text-sm font-bold text-white">
-                  Répartition des Sollicitations de Majid IA
+                  Répartition des Sollicitations de Gemini AI
                 </h3>
                 <p className="text-xs text-slate-400">
                   Domaines d'intervention explorés lors des sessions de travail
                 </p>
               </div>
 
-              <div className="h-72 w-full flex items-center justify-center">
+              <div className="h-64 sm:h-72 w-full flex items-center justify-center min-w-0 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -623,10 +625,10 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                 <div className="pt-4 border-t border-slate-800/80">
                   <button
                     onClick={onOpenChat}
-                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-indigo-500 hover:from-emerald-400 hover:to-indigo-400 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/50 transition-all cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <MessageSquare className="w-4 h-4 text-slate-950" />
-                    <span>Lancer une Consultation Majid IA</span>
+                    <MessageSquare className="w-4 h-4 text-white" />
+                    <span>Lancer une Consultation Gemini AI</span>
                   </button>
                 </div>
               )}
@@ -650,7 +652,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                 </div>
               </div>
 
-              <div className="h-60 w-full">
+              <div className="h-56 sm:h-60 w-full min-w-0 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={data.timeline}
@@ -667,7 +669,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} />
+                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} minTickGap={16} />
                     <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTimelineTooltip />} />
                     <Area type="monotone" dataKey="documentsGenerated" name="Documents" stroke="#10b981" fill="url(#combDocs)" strokeWidth={2} />
@@ -682,11 +684,11 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
               {/* Left Bar Chart */}
               <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 space-y-3">
                 <h4 className="text-sm font-bold text-white">Catégories de Documents</h4>
-                <div className="h-52 w-full">
+                <div className="h-48 sm:h-52 w-full min-w-0 overflow-hidden">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.documentTypes} margin={{ top: 5, right: 5, left: -25, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                      <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} angle={-10} textAnchor="end" />
+                      <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} angle={-10} textAnchor="end" minTickGap={10} />
                       <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                       <Tooltip contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '0.75rem', color: '#fff' }} />
                       <Bar dataKey="count" radius={[6, 6, 0, 0]}>
@@ -702,7 +704,7 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
               {/* Right Donut Chart */}
               <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 space-y-3">
                 <h4 className="text-sm font-bold text-white">Thématiques de Consultation</h4>
-                <div className="h-52 w-full">
+                <div className="h-48 sm:h-52 w-full min-w-0 overflow-hidden">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -745,8 +747,8 @@ export const UserActivityStatsVisualizer: React.FC<UserActivityStatsVisualizerPr
               onClick={onOpenChat}
               className="font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <Bot className="w-3.5 h-3.5" />
-              <span>Consulter Majid IA ↗</span>
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Consulter Gemini AI ↗</span>
             </button>
           )}
 

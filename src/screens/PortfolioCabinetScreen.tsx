@@ -53,7 +53,7 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white p-8 md:p-12 shadow-2xl border border-slate-800">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white p-4 sm:p-7 md:p-12 shadow-2xl border border-slate-800">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
 
@@ -66,11 +66,12 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
 
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-install-modal'))}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-105 active:scale-95"
+              className="px-3.5 py-2 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer transform hover:scale-105 active:scale-95"
               title="Installer l'application sur votre téléphone avec son logo"
             >
               <Smartphone className="w-4 h-4" />
-              <span>Installer l'Appli Portable (Logo Officiel)</span>
+              <span className="hidden sm:inline">Installer l'Appli Portable (Logo Officiel)</span>
+              <span className="sm:hidden">Installer l'Appli</span>
             </button>
           </div>
 
