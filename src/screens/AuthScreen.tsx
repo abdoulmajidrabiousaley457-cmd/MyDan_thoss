@@ -17,7 +17,7 @@ import {
   Settings,
   HelpCircle
 } from 'lucide-react';
-import { useUserProfile } from '../context/UserProfileContext';
+import { useUserProfile, ADMIN_EMAIL } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
 import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
@@ -32,6 +32,7 @@ interface AuthScreenProps {
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab }) => {
   const { 
     firebaseUser, 
+    isAdmin,
     loginEmail, 
     registerEmail, 
     sendPasswordReset, 
@@ -53,6 +54,32 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
+  const [showAdminTools, setShowAdminTools] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('danthoss_admin_auth_tools') === 'true';
+  });
+  const [adminClickCount, setAdminClickCount] = useState(0);
+
+  // Strict admin check: logged-in admin, admin email entered, or admin unlocked
+  const isUserAdmin = Boolean(
+    isAdmin ||
+    (email && email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
+    showAdminTools
+  );
+
+  const handleAdminBadgeClick = () => {
+    const next = adminClickCount + 1;
+    setAdminClickCount(next);
+    if (next >= 3) {
+      setShowAdminTools((prev) => {
+        const val = !prev;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('danthoss_admin_auth_tools', String(val));
+        }
+        return val;
+      });
+      setAdminClickCount(0);
+    }
+  };
 
   const languages: { code: AppLanguage; label: string; flag: string }[] = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -141,20 +168,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
 
       if (isUnauthorizedDomain) {
         const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'votre domaine';
-        setErrorMsg(`Le domaine "${currentHost}" n'est pas encore autorisé dans Firebase Console. Cliquez sur "Configurer" pour voir la procédure.`);
-        setConfigError(`Erreur auth/unauthorized-domain : Le domaine "${currentHost}" (Vercel) doit être ajouté dans Firebase Console > Authentication > Settings > Authorized domains.`);
-        setIsConfigModalOpen(true);
+        if (isUserAdmin) {
+          setErrorMsg(`Le domaine "${currentHost}" n'est pas encore autorisé dans Firebase Console. Cliquez sur "Configurer" pour voir la procédure.`);
+          setConfigError(`Erreur auth/unauthorized-domain : Le domaine "${currentHost}" (Vercel) doit être ajouté dans Firebase Console > Authentication > Settings > Authorized domains.`);
+          setIsConfigModalOpen(true);
+        } else {
+          setErrorMsg('Service d\'authentification momentanément indisponible sur ce domaine. Veuillez réessayer plus tard ou utiliser la connexion par email.');
+        }
       } else if (code === 'auth/popup-blocked') {
         setErrorMsg('Le popup Google a été bloqué par votre navigateur. Tentative avec le mode redirection...');
         try {
           await loginGoogle(true);
         } catch {
-          setErrorMsg('Veuillez cliquer sur le bouton "Connexion Google (Redirection)" ci-dessous.');
+          setErrorMsg(isUserAdmin 
+            ? 'Veuillez utiliser le bouton "Mode Redirection" ci-dessous ou autoriser les popups.'
+            : 'Veuillez autoriser les fenêtres popups dans les paramètres de votre navigateur pour vous connecter avec Google.');
         }
       } else if (code === 'auth/operation-not-allowed') {
-        setErrorMsg('Le fournisseur Google est désactivé dans Firebase Console. Activez-le dans Authentication > Sign-in method.');
-        setConfigError('Erreur auth/operation-not-allowed : Activez le fournisseur Google dans Firebase Console > Authentication > Sign-in method > Google.');
-        setIsConfigModalOpen(true);
+        if (isUserAdmin) {
+          setErrorMsg('Le fournisseur Google est désactivé dans Firebase Console. Activez-le dans Authentication > Sign-in method.');
+          setConfigError('Erreur auth/operation-not-allowed : Activez le fournisseur Google dans Firebase Console > Authentication > Sign-in method > Google.');
+          setIsConfigModalOpen(true);
+        } else {
+          setErrorMsg('La connexion avec Google est temporairement indisponible. Veuillez vous connecter avec votre adresse email.');
+        }
       } else if (code === 'auth/popup-closed-by-user') {
         setErrorMsg('Connexion annulée : la fenêtre d\'authentification Google a été fermée.');
       } else {
@@ -201,6 +238,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
             <span>{t('navDashboard', 'Accéder au Tableau de Bord')}</span>
           </button>
 
+          {isAdmin && (
+            <button
+              onClick={() => setIsConfigModalOpen(true)}
+              className="w-full sm:w-auto px-5 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+              title="Configuration Firebase et SHA-1 réservée à l'administrateur"
+            >
+              <Key className="w-4 h-4 text-emerald-600" />
+              <span>Config Firebase & SHA-1</span>
+            </button>
+          )}
+
           <button
             onClick={logout}
             className="w-full sm:w-auto px-5 py-3 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -242,9 +290,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
 
       {/* Brand Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+        <div 
+          onClick={handleAdminBadgeClick}
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 select-none cursor-pointer"
+          title={isUserAdmin ? "Mode Administrateur actif" : "Portail Sécurisé • Cabinet Rabiou Saley"}
+        >
           <FolderLock className="w-3.5 h-3.5" />
           <span>{t('authPortalBadge', 'Portail Sécurisé • Cabinet Rabiou Saley')}</span>
+          {isUserAdmin && (
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-600 text-white font-bold ml-0.5">
+              Admin
+            </span>
+          )}
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
           {mode === 'login' && t('authLoginTitle', 'Connexion à votre Espace')}
@@ -398,27 +455,41 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
             <span>{t('googleSignIn', 'Continuer avec Google')}</span>
           </button>
 
-          {/* Fallback button for mobile browsers with strict popup blockers */}
-          <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
-            <button
-              type="button"
-              onClick={() => handleGoogleLogin(true)}
-              disabled={loading}
-              className="text-slate-500 hover:text-slate-800 underline flex items-center gap-1 cursor-pointer"
-              title="Utiliser la redirection si les popups sont bloqués sur iPhone/Android"
-            >
-              <span>📱 Mode Redirection (Mobile / Safari)</span>
-            </button>
+          {/* Admin Tools: Only visible to Administrator (Abdoul Majid Rabiou Saley) */}
+          {isUserAdmin && (
+            <div className="mt-3 p-3 bg-emerald-950/5 border border-emerald-500/20 rounded-2xl space-y-2 animate-in fade-in">
+              <div className="flex items-center justify-between text-[11px] font-black text-emerald-900">
+                <span className="flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Outils Administrateur (Abdoul Majid)</span>
+                </span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold uppercase tracking-wider">
+                  Admin
+                </span>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setIsConfigModalOpen(true)}
-              className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1 cursor-pointer"
-            >
-              <Key className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Config Firebase & SHA-1</span>
-            </button>
-          </div>
+              <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => handleGoogleLogin(true)}
+                  disabled={loading}
+                  className="text-slate-600 hover:text-slate-900 underline flex items-center gap-1 cursor-pointer font-medium"
+                  title="Utiliser la redirection si les popups sont bloqués sur iPhone/Android"
+                >
+                  <span>📱 Mode Redirection (Mobile / Safari)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsConfigModalOpen(true)}
+                  className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-xs"
+                >
+                  <Key className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Config Firebase & SHA-1</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Toggle Mode */}
