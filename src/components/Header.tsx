@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   LayoutGrid,
   BookOpen,
-  User
+  User,
+  Mail
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -37,13 +38,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenDevis
 }) => {
-  const { unreadCount, profile, firebaseUser, logout, isAdmin } = useUserProfile();
+  const { unreadCount, unreadEmailsCount, profile, firebaseUser, logout, isAdmin } = useUserProfile();
   const { language, setLanguage, t } = useI18n();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { isInstallable, install, isInstalled } = usePWAInstall();
 
   const desktopNavItems = [
     { id: 'dashboard', label: t('navDashboard', 'Dashboard'), icon: ShieldCheck },
+    { id: 'webmail', label: t('navWebmail', 'Email Pro'), icon: Mail },
     { id: 'client_vault', label: t('navClientVault', 'Client Vault'), icon: FolderLock },
     { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & CV'), icon: LayoutGrid },
     { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
@@ -63,10 +65,13 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse min-w-0">
           <button
             onClick={onOpenDrawer}
-            className="p-1.5 sm:p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shrink-0 relative"
             aria-label="Menu"
           >
             <Menu className="w-5 h-5 text-emerald-300" />
+            {unreadEmailsCount > 0 && (
+              <span className="sm:hidden absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-emerald-950" />
+            )}
           </button>
 
           <div className="flex items-center space-x-2 sm:space-x-2.5 rtl:space-x-reverse cursor-pointer min-w-0" onClick={onOpenProfile}>
@@ -106,6 +111,11 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{item.label}</span>
+                {item.id === 'webmail' && unreadEmailsCount > 0 && (
+                  <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    {unreadEmailsCount}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -215,6 +225,25 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Corporate Webmail quick button (tablet/desktop) */}
+          <button
+            onClick={() => onSelectTab && onSelectTab('webmail')}
+            className={`hidden sm:flex p-2 rounded-xl transition-colors relative cursor-pointer ${
+              activeTab === 'webmail'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white/10 hover:bg-white/20 text-emerald-200'
+            }`}
+            title="Messagerie Professionnelle (contact@danthoss-cabinet.com)"
+            aria-label="Messagerie Professionnelle"
+          >
+            <Mail className="w-5 h-5" />
+            {unreadEmailsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                {unreadEmailsCount}
+              </span>
+            )}
+          </button>
 
           {/* Notifications button */}
           <button

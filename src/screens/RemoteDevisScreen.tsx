@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { CABINET_INFO, CABINET_SERVICES } from '../data/cabinetData';
 import { doc, setDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../services/firebase';
+import { db } from '../services/firebase';
+import { useUserProfile, CORPORATE_EMAIL } from '../context/UserProfileContext';
+import { sendCorporateEmail } from '../services/corporateMailService';
 import { 
   Laptop, 
   Calculator, 
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export const RemoteDevisScreen: React.FC = () => {
+  const { firebaseUser } = useUserProfile();
   const [selectedServiceId, setSelectedServiceId] = useState<string>('srv_agents_ia');
   const [workFormat, setWorkFormat] = useState<'project' | 'full_time' | 'part_time'>('project');
   const [durationWeeks, setDurationWeeks] = useState<number>(4);
@@ -89,6 +92,49 @@ export const RemoteDevisScreen: React.FC = () => {
       await setDoc(doc(db, 'devisRequests', devisId), devisData);
     } catch (err) {
       console.warn('Firestore submission fallback:', err);
+    }
+
+    // Deliver an official real-time email directly to contact@danthoss-cabinet.com (CC devis@danthoss-cabinet.com)
+    try {
+      const selectedService = CABINET_SERVICES.find((s) => s.id === selectedServiceId);
+      const emailSubject = `[Nouveau Devis #${devisId.slice(-6)}] ${selectedService?.title || selectedServiceId} — ${clientCompany.trim() || clientName.trim()}`;
+      const emailBody = [
+        `Bonjour M. Rabiou Saley (${CORPORATE_EMAIL}),`,
+        ``,
+        `Une nouvelle demande de cadrage et devis télétravail vient d'être soumise sur la plateforme :`,
+        ``,
+        `• Référence : ${devisId}`,
+        `• Client : ${clientName.trim()}${clientCompany.trim() ? ` (${clientCompany.trim()})` : ''}`,
+        `• Email Client : ${clientEmail.trim()}`,
+        `• Téléphone / WhatsApp : ${clientPhone.trim() || 'Non renseigné'}`,
+        `• Prestation : ${selectedService?.title || selectedServiceId}`,
+        `• Format : ${workFormat === 'project' ? 'Projet au Forfait' : workFormat === 'full_time' ? 'Télétravail Temps Plein' : 'Télétravail Temps Partiel'}`,
+        `• Durée estimée : ${durationWeeks} semaines (~${totalHours} heures) • Complexité : ${complexity.toUpperCase()}`,
+        `• Budget prévisionnel : ${estimatedTotalEUR.toLocaleString('fr-FR')} € (${estimatedTotalXOF.toLocaleString('fr-FR')} FCFA)`,
+        `• Accord NDA préalable demandé : ${ndaRequested ? 'OUI' : 'NON'}`,
+        ``,
+        `Description du projet / besoin :`,
+        `${projectDescription.trim() || 'Aucune description complémentaire fournie.'}`,
+        ``,
+        `---`,
+        `Routage direct temps réel • ${CORPORATE_EMAIL}`
+      ].join('\n');
+
+      await sendCorporateEmail({
+        id: `mail_devis_${devisId}`,
+        senderUid: firebaseUser?.uid || 'public_visitor',
+        isAdminSender: false,
+        fromName: clientName.trim() || 'Client Devis',
+        fromEmail: clientEmail.trim(),
+        toName: 'Cabinet Rabiou Saley',
+        toEmail: CORPORATE_EMAIL,
+        ccEmail: 'devis@danthoss-cabinet.com',
+        subject: emailSubject,
+        body: emailBody,
+        category: 'devis'
+      });
+    } catch (mailErr) {
+      console.warn('Corporate mail dispatch notice:', mailErr);
     } finally {
       setIsSubmitting(false);
       setSubmitted(true);
@@ -372,13 +418,14 @@ export const RemoteDevisScreen: React.FC = () => {
                 <MessageSquare className="w-4 h-4" />
                 <span>Discuter sur WhatsApp Pro</span>
               </a>
-              <a
-                href="mailto:abdoulmajidrabiousaley457@gmail.com?subject=Demande%20de%20mission%20télétravail%20-%20Data%20Science%20/%20IA"
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 flex items-center justify-center gap-2 transition-colors"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'webmail' }))}
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
-                <Mail className="w-4 h-4" />
-                <span>Envoyer un email direct</span>
-              </a>
+                <Mail className="w-4 h-4 text-emerald-400" />
+                <span>Écrire à {CABINET_INFO.email}</span>
+              </button>
             </div>
 
             <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">

@@ -445,13 +445,18 @@ export const PortfolioCabinetScreen: React.FC<PortfolioCabinetScreenProps> = ({ 
             <span className="w-2 h-2 rounded-full bg-slate-950"></span>
             <span>Ouvrir WhatsApp ({CABINET_INFO.phone})</span>
           </a>
-          <a
-            href="mailto:abdoulmajidrabiousaley457@gmail.com"
-            className="px-4 py-2.5 rounded-xl bg-white text-emerald-950 font-bold text-xs flex items-center gap-2 hover:bg-emerald-50 transition-colors"
+          <button
+            type="button"
+            onClick={() =>
+              onNavigateTab
+                ? onNavigateTab('webmail')
+                : window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'webmail' }))
+            }
+            className="px-4 py-2.5 rounded-xl bg-white text-emerald-950 font-bold text-xs flex items-center gap-2 hover:bg-emerald-50 transition-colors cursor-pointer"
           >
             <Mail className="w-4 h-4 text-emerald-700" />
-            <span>Email Direct</span>
-          </a>
+            <span>Écrire à {CABINET_INFO.email}</span>
+          </button>
           <a
             href={CABINET_INFO.twitterUrl}
             target="_blank"

@@ -15,14 +15,17 @@ import {
   Key,
   ExternalLink,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Send,
+  X
 } from 'lucide-react';
-import { useUserProfile, ADMIN_EMAIL } from '../context/UserProfileContext';
+import { useUserProfile, isAdminEmailAddress, CORPORATE_EMAIL } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { AppLanguage } from '../types';
 import { usePWAInstall, openInstallModal } from '../hooks/usePWAInstall';
 import { FirebaseGoogleConfigModal } from '../components/FirebaseGoogleConfigModal';
 import { FIREBASE_PROJECT_INFO } from '../services/firebase';
+import { sendCorporateEmail } from '../services/corporateMailService';
 
 interface AuthScreenProps {
   onSuccess?: () => void;
@@ -59,10 +62,49 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
   });
   const [adminClickCount, setAdminClickCount] = useState(0);
 
-  // Strict admin check: logged-in admin, admin email entered, or admin unlocked
+  // Public Client Direct Message Modal (writes straight to contact@danthoss-cabinet.com)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [visitorName, setVisitorName] = useState('');
+  const [visitorEmail, setVisitorEmail] = useState('');
+  const [visitorSubject, setVisitorSubject] = useState('');
+  const [visitorMessage, setVisitorMessage] = useState('');
+  const [sendingVisitorMail, setSendingVisitorMail] = useState(false);
+  const [visitorMailSent, setVisitorMailSent] = useState(false);
+  const [visitorMailError, setVisitorMailError] = useState<string | null>(null);
+
+  const handleSendPublicMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!visitorName.trim() || !visitorEmail.trim() || !visitorSubject.trim() || !visitorMessage.trim()) {
+      return;
+    }
+    setSendingVisitorMail(true);
+    setVisitorMailError(null);
+    try {
+      await sendCorporateEmail({
+        senderUid: 'public_visitor',
+        isAdminSender: false,
+        fromName: visitorName.trim(),
+        fromEmail: visitorEmail.trim(),
+        toName: 'Cabinet Rabiou Saley',
+        toEmail: CORPORATE_EMAIL,
+        subject: visitorSubject.trim(),
+        body: visitorMessage.trim(),
+        category: 'general'
+      });
+      setVisitorMailSent(true);
+      setVisitorSubject('');
+      setVisitorMessage('');
+    } catch (err: any) {
+      setVisitorMailError(err?.message || 'Impossible de transmettre le message. Réessayez.');
+    } finally {
+      setSendingVisitorMail(false);
+    }
+  };
+
+  // Strict admin check: logged-in admin, corporate/founder admin email entered, or admin unlocked
   const isUserAdmin = Boolean(
     isAdmin ||
-    (email && email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
+    isAdminEmailAddress(email) ||
     showAdminTools
   );
 
@@ -569,6 +611,140 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
               <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
               <span>Guide</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Direct Contact Card to contact@danthoss-cabinet.com for Clients */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-xs font-bold text-slate-900">Besoin de contacter le Cabinet ?</div>
+          <div className="text-[11px] font-mono text-emerald-700 truncate">{CORPORATE_EMAIL}</div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setVisitorMailSent(false);
+            setVisitorMailError(null);
+            setIsContactModalOpen(true);
+          }}
+          className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer transition-colors"
+        >
+          <Mail className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Écrire au Cabinet</span>
+        </button>
+      </div>
+
+      {/* Public Client Direct Message Modal */}
+      {isContactModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="px-5 py-4 bg-slate-950 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-emerald-400" />
+                <span className="font-bold text-sm">Contacter {CORPORATE_EMAIL}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsContactModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {visitorMailSent ? (
+              <div className="p-6 text-center space-y-3">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <h3 className="font-bold text-base text-slate-900">Message reçu par le Cabinet !</h3>
+                <p className="text-xs text-slate-600">
+                  Votre message a été délivré en direct dans la boîte professionnelle{' '}
+                  <strong className="font-mono text-slate-900">{CORPORATE_EMAIL}</strong>. Créez un compte ou connectez-vous avec{' '}
+                  <strong>{visitorEmail}</strong> pour suivre la réponse en temps réel.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsContactModalOpen(false)}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSendPublicMessage} className="p-5 space-y-3.5 text-left">
+                {visitorMailError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+                    {visitorMailError}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Votre Nom *</label>
+                    <input
+                      type="text"
+                      required
+                      value={visitorName}
+                      onChange={(e) => setVisitorName(e.target.value)}
+                      placeholder="Ex: Claire Moreau"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Votre Email *</label>
+                    <input
+                      type="email"
+                      required
+                      value={visitorEmail}
+                      onChange={(e) => setVisitorEmail(e.target.value)}
+                      placeholder="contact@entreprise.com"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Objet *</label>
+                  <input
+                    type="text"
+                    required
+                    value={visitorSubject}
+                    onChange={(e) => setVisitorSubject(e.target.value)}
+                    placeholder="Ex: Demande de mission IA / Devis télétravail"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Message *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={visitorMessage}
+                    onChange={(e) => setVisitorMessage(e.target.value)}
+                    placeholder="Décrivez votre besoin..."
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsContactModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingVisitorMail}
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{sendingVisitorMail ? 'Envoi...' : `Envoyer à ${CORPORATE_EMAIL}`}</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

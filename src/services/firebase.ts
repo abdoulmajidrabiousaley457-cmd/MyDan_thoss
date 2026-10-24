@@ -227,14 +227,21 @@ export async function registerWithEmail(email: string, pass: string, name?: stri
     if (user) {
       await updateProfile(user, { displayName: cleanName });
 
+      const isCabinetFounder = [
+        'abdoulmajidrabiousaley457@gmail.com',
+        'contact@danthoss-cabinet.com',
+        'direction@danthoss-cabinet.com',
+        'rabiou.saley@danthoss-cabinet.com'
+      ].includes(cleanEmail.toLowerCase());
+
       // Explicitly initialize user profile document in Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
         id: user.uid,
-        name: cleanName,
+        name: isCabinetFounder ? (name?.trim() || 'Rabiou Saley Abdoul Majid') : cleanName,
         email: cleanEmail,
-        tier: cleanEmail === 'abdoulmajidrabiousaley457@gmail.com' ? 'vip_cabinet' : 'free',
-        role: 'Consultant & Pigiste',
+        tier: isCabinetFounder ? 'vip_cabinet' : 'free',
+        role: isCabinetFounder ? 'Fondateur & Administrateur Référent' : 'Consultant & Pigiste',
         country: 'Niger / International',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

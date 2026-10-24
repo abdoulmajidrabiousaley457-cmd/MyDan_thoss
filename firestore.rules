@@ -17,12 +17,51 @@ service cloud.firestore {
     function isCabinetAdmin() {
       return isSignedIn() && (
         request.auth.uid == 'zbc5lYSgQ9bIcKipYER68wbI1Er1' ||
-        request.auth.token.email == 'abdoulmajidrabiousaley457@gmail.com'
+        request.auth.token.email in [
+          'abdoulmajidrabiousaley457@gmail.com',
+          'contact@danthoss-cabinet.com',
+          'direction@danthoss-cabinet.com',
+          'devis@danthoss-cabinet.com',
+          'support@danthoss-cabinet.com',
+          'rabiou.saley@danthoss-cabinet.com'
+        ]
       );
     }
 
+    function isCorporateDestination(email) {
+      return email in [
+        'contact@danthoss-cabinet.com',
+        'direction@danthoss-cabinet.com',
+        'devis@danthoss-cabinet.com',
+        'support@danthoss-cabinet.com',
+        'rabiou.saley@danthoss-cabinet.com',
+        'abdoulmajidrabiousaley457@gmail.com'
+      ];
+    }
+
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidCorporateEmail(data) {
+      return data.keys().hasAll(['id', 'fromName', 'fromEmail', 'toEmail', 'subject', 'body', 'folder', 'read', 'starred', 'createdAt'])
+        && data.keys().hasOnly(['id', 'senderUid', 'fromName', 'fromEmail', 'toName', 'toEmail', 'ccEmail', 'subject', 'body', 'folder', 'category', 'read', 'starred', 'smtpMessageId', 'smtpPreviewUrl', 'createdAt'])
+        && data.id is string && data.id.size() >= 1 && data.id.size() <= 128
+        && (!('senderUid' in data) || (data.senderUid is string && data.senderUid.size() <= 128))
+        && data.fromName is string && data.fromName.size() >= 1 && data.fromName.size() <= 120
+        && data.fromEmail is string && data.fromEmail.size() >= 3 && data.fromEmail.size() <= 150
+        && (!('toName' in data) || (data.toName is string && data.toName.size() <= 120))
+        && data.toEmail is string && data.toEmail.size() >= 3 && data.toEmail.size() <= 150
+        && (!('ccEmail' in data) || (data.ccEmail is string && data.ccEmail.size() <= 150))
+        && data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 250
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 15000
+        && data.folder in ['inbox', 'sent', 'drafts', 'trash']
+        && (!('category' in data) || data.category in ['general', 'devis', 'livrable', 'support', 'system'])
+        && data.read is bool
+        && data.starred is bool
+        && (!('smtpMessageId' in data) || (data.smtpMessageId is string && data.smtpMessageId.size() <= 250))
+        && (!('smtpPreviewUrl' in data) || (data.smtpPreviewUrl is string && data.smtpPreviewUrl.size() <= 500))
+        && data.createdAt is string && data.createdAt.size() >= 1 && data.createdAt.size() <= 50;
     }
 
     // User profile document
@@ -41,7 +80,6 @@ service cloud.firestore {
 
       // User Client Vault files
       match /vaultFiles/{fileId} {
-        // Admin has read access to all files of all users; regular users can only read/write their own
         allow read: if (isOwner(userId) || isCabinetAdmin()) && isValidId(fileId);
         allow write: if (isOwner(userId) || isCabinetAdmin()) && isValidId(fileId);
       }
@@ -54,16 +92,59 @@ service cloud.firestore {
 
     // Quote requests submitted to the Cabinet
     match /devisRequests/{devisId} {
-      // Anyone can submit a quote request with valid data
-      allow create: if isValidId(devisId) 
-        && request.resource.data.clientName is string 
+      allow create: if isValidId(devisId)
+        && request.resource.data.clientName is string
         && request.resource.data.clientName.size() <= 120
-        && request.resource.data.clientEmail is string 
+        && request.resource.data.clientEmail is string
         && request.resource.data.clientEmail.size() <= 150;
-      
-      // Only the cabinet admin or the client who submitted it can read/update
+
       allow read: if isCabinetAdmin() || (isSignedIn() && resource.data.clientEmail == request.auth.token.email);
       allow update, delete: if isCabinetAdmin();
+    }
+
+    // Operational Corporate Email messages (/corporateEmails/{emailId})
+    match /corporateEmails/{emailId} {
+      allow get: if isCabinetAdmin() || (
+        isSignedIn() && isValidId(emailId) && (
+          resource.data.senderUid == request.auth.uid ||
+          resource.data.toEmail == request.auth.token.email ||
+          resource.data.fromEmail == request.auth.token.email
+        )
+      );
+      allow list: if isCabinetAdmin() || (
+        isSignedIn() && (
+          resource.data.senderUid == request.auth.uid ||
+          resource.data.toEmail == request.auth.token.email ||
+          resource.data.fromEmail == request.auth.token.email
+        )
+      );
+      allow create: if isValidId(emailId) && isValidCorporateEmail(request.resource.data) && (
+        isCabinetAdmin() ||
+        (
+          isSignedIn() &&
+          request.resource.data.senderUid == request.auth.uid &&
+          request.resource.data.folder == 'inbox' &&
+          request.resource.data.read == false &&
+          isCorporateDestination(request.resource.data.toEmail)
+        ) ||
+        (
+          !isSignedIn() &&
+          request.resource.data.senderUid == 'public_visitor' &&
+          request.resource.data.folder == 'inbox' &&
+          request.resource.data.read == false &&
+          request.resource.data.starred == false &&
+          isCorporateDestination(request.resource.data.toEmail)
+        )
+      );
+      allow update: if isValidId(emailId) && isValidCorporateEmail(request.resource.data) && (
+        isCabinetAdmin() ||
+        (
+          isSignedIn() &&
+          resource.data.toEmail == request.auth.token.email &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        )
+      );
+      allow delete: if isCabinetAdmin() && isValidId(emailId);
     }
   }
 }

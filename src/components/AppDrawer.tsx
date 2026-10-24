@@ -47,7 +47,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onOpenSecurity,
   onOpenNotifications,
 }) => {
-  const { profile, firebaseUser, logout, isAdmin } = useUserProfile();
+  const { profile, firebaseUser, logout, isAdmin, unreadEmailsCount } = useUserProfile();
   const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWAInstall();
 
@@ -56,6 +56,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const navItems = [
     ...(isAdmin ? [{ id: 'admin_dashboard', label: '⭐ Tableau de Bord Super Admin', icon: ShieldAlert, isAdminItem: true }] : []),
     { id: 'dashboard', label: t('navDashboard', 'Tableau de Bord'), icon: ShieldCheck },
+    { id: 'webmail', label: 'Messagerie Pro (Email Officiel)', icon: Mail },
     { id: 'client_vault', label: t('navClientVault', 'Coffre-fort Clients (Client Vault)'), icon: FolderLock },
     { id: 'portfolio', label: t('navCabinet', 'Cabinet & Portfolio Télétravail'), icon: Briefcase },
     { id: 'cv_builder', label: t('navPortfolios', 'Portfolios, Projets & CV'), icon: LayoutGrid },
@@ -162,7 +163,12 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate flex-1 text-left">{item.label}</span>
+                    {item.id === 'webmail' && unreadEmailsCount > 0 && (
+                      <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0">
+                        {unreadEmailsCount}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -271,6 +277,22 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               </span>
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
+
+            {/* Corporate Professional Email Direct */}
+            <button
+              type="button"
+              onClick={() => {
+                onSelectTab('webmail');
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-900 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-900 transition-colors cursor-pointer"
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="truncate">{CABINET_INFO.email}</span>
+              </span>
+              <span className="text-[10px] font-bold text-emerald-700 shrink-0">Ouvrir</span>
+            </button>
 
             {/* WhatsApp Direct */}
             <a

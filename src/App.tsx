@@ -23,6 +23,7 @@ import { ClientVaultScreen } from './screens/ClientVaultScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { AdminDashboardScreen } from './screens/AdminDashboardScreen';
+import { ProfessionalEmailScreen } from './screens/ProfessionalEmailScreen';
 import { useUserProfile } from './context/UserProfileContext';
 import { useI18n } from './i18n/I18nContext';
 
@@ -30,7 +31,7 @@ export const AppContent: React.FC = () => {
   const { firebaseUser, authLoading, isAdmin } = useUserProfile();
   const { t } = useI18n();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'admin_dashboard' | 'client_vault' | 'portfolio' | 'cv_builder' | 'currency' | 'library' | 'subscription' | 'remote_devis' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'admin_dashboard' | 'webmail' | 'client_vault' | 'portfolio' | 'cv_builder' | 'currency' | 'library' | 'subscription' | 'remote_devis' | 'profile'>('dashboard');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nexusOpen, setNexusOpen] = useState(false);
   const [activeOverlay, setActiveOverlay] = useState<'security' | 'notifications' | null>(null);
@@ -126,6 +127,9 @@ export const AppContent: React.FC = () => {
                 onNavigateTab={handleSelectTab} 
                 onOpenChat={() => setNexusOpen(true)} 
               />
+            )}
+            {activeTab === 'webmail' && (
+              <ProfessionalEmailScreen />
             )}
             {activeTab === 'client_vault' && (
               <ClientVaultScreen onNavigateTab={handleSelectTab} />

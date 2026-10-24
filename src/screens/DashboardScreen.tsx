@@ -25,9 +25,10 @@ import {
   FileArchive,
   Image as ImageIcon,
   ShieldAlert,
-  Smartphone
+  Smartphone,
+  Mail
 } from 'lucide-react';
-import { useUserProfile, ADMIN_USER_ID } from '../context/UserProfileContext';
+import { useUserProfile, ADMIN_USER_ID, CORPORATE_EMAIL } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { VaultFile } from '../types';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
@@ -44,7 +45,7 @@ interface DashboardScreenProps {
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab, onOpenChat }) => {
-  const { firebaseUser, profile, logout, isAdmin } = useUserProfile();
+  const { firebaseUser, profile, logout, isAdmin, unreadEmailsCount } = useUserProfile();
   const { t, isRtl } = useI18n();
   const { isInstallable, isInstalled, install } = usePWAInstall();
 
@@ -357,6 +358,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
             )}
 
             <button
+              onClick={() => onNavigateTab('webmail')}
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer"
+              title={`Messagerie Professionnelle (${CORPORATE_EMAIL})`}
+            >
+              <Mail className="w-4 h-4 text-emerald-700" />
+              <span>Messagerie Pro</span>
+              {unreadEmailsCount > 0 && (
+                <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                  {unreadEmailsCount}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => onNavigateTab('client_vault')}
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer"
             >
@@ -512,6 +527,28 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Card 0: Corporate Professional Email */}
+          <div
+            onClick={() => onNavigateTab('webmail')}
+            className="p-5 rounded-2xl bg-slate-950 text-white border border-emerald-500/40 hover:border-emerald-400 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+                Messagerie Pro • {CORPORATE_EMAIL}
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Boîte de réception et d'envoi officielle SMTP du Cabinet (contact@, devis@, direction@, support@) avec rédaction assistée par Gemini AI.
+              </p>
+            </div>
+            <div className="pt-3 flex items-center text-xs font-bold text-emerald-400 gap-1">
+              <span>Ouvrir le Webmail Pro</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform rtl:group-hover:-translate-x-1" />
+            </div>
+          </div>
+
           {/* Card 1: Client Vault */}
           <div
             onClick={() => onNavigateTab('client_vault')}

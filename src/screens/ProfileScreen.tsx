@@ -136,10 +136,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         {/* Quick Contact & Details */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 mt-6 border-t border-slate-800 text-xs">
-          <a href={`mailto:${profile.email}`} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={() => onNavigateTab('webmail')}
+            className="flex items-center gap-2 text-emerald-300 hover:text-white font-semibold transition-colors cursor-pointer text-left"
+            title="Ouvrir la Messagerie Professionnelle Danthoss"
+          >
             <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="truncate">{profile.email}</span>
-          </a>
+            <span className="truncate">{CABINET_INFO.email}</span>
+          </button>
           <a
             href={CABINET_INFO.whatsappUrl}
             target="_blank"
@@ -251,7 +256,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Account Navigation Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* CV & Carrière */}
+        {/* Messagerie Professionnelle Officielle */}
+        <div
+          onClick={() => onNavigateTab('webmail')}
+          className="bg-slate-950 text-white rounded-2xl p-5 border border-emerald-500/40 shadow-sm hover:border-emerald-400 transition-all cursor-pointer flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Mail className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-sm text-white truncate">Messagerie Pro • {CABINET_INFO.email}</h3>
+              <p className="text-xs text-emerald-200/90 truncate">Boîte email opérationnelle SMTP, alias & brouillons IA</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-emerald-400 shrink-0" />
+        </div>
+
         {/* Portfolio & Projets */}
         <div
           onClick={() => onNavigateTab('cv_builder')}

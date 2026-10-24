@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, ArrowRightLeft, BookOpen, User, FolderLock, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { LayoutGrid, User, FolderLock, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import { useUserProfile } from '../context/UserProfileContext';
 
@@ -15,10 +15,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
   const tabs = [
     ...(isAdmin ? [{ id: 'admin_dashboard', label: 'Admin', icon: ShieldAlert }] : []),
     { id: 'dashboard', label: t('navDashboard', 'Dashboard'), icon: ShieldCheck },
-    { id: 'client_vault', label: t('navClientVault', 'Client Vault'), icon: FolderLock },
-    { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & CV'), icon: LayoutGrid },
-    { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
-    { id: 'profile', label: t('navProfile', 'Mon Espace'), icon: User },
+    { id: 'client_vault', label: t('navClientVault', 'Vault'), icon: FolderLock },
+    { id: 'cv_builder', label: t('navPortfolios', 'CV & Port.'), icon: LayoutGrid },
+    { id: 'profile', label: t('navProfile', 'Profil'), icon: User },
   ];
 
   return (
@@ -40,7 +39,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
                   <span className="absolute -top-1 sm:-top-1.5 w-5 sm:w-8 h-1 bg-emerald-600 rounded-full" />
                 )}
                 <div
-                  className={`p-1 sm:p-1.5 rounded-xl transition-transform ${
+                  className={`p-1 sm:p-1.5 rounded-xl transition-transform relative ${
                     isActive ? 'scale-110 bg-emerald-50 text-emerald-700' : ''
                   }`}
                 >

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "mail_welcome_pro_01",
+    "fromName": "Infrastructure Messagerie Danthoss",
+    "fromEmail": "postmaster@danthoss-cabinet.com",
+    "toName": "Rabiou Saley Abdoul Majid",
+    "toEmail": "contact@danthoss-cabinet.com",
+    "subject": "Activation opérationnelle de votre compte professionnel contact@danthoss-cabinet.com",
+    "body": "Bonjour M. Rabiou Saley Abdoul Majid,\n\nVotre compte de messagerie professionnelle dédié à l'application Danthoss est désormais actif et pleinement opérationnel.\n\nRécapitulatif de votre infrastructure :\n• Adresse principale : contact@danthoss-cabinet.com\n• Alias Direction : direction@danthoss-cabinet.com\n• Alias Devis & Missions : devis@danthoss-cabinet.com\n• Alias Support Client Vault : support@danthoss-cabinet.com\n• Synchronisation Administrateur : abdoulmajidrabiousaley457@gmail.com\n\nFonctionnalités actives :\n1. Envoi et réception d'e-mails professionnels avec relais SMTP TLS vérifié et identifiant RFC-5322.\n2. Routage automatique des demandes de devis soumises depuis le Simulateur de Devis Télétravail vers devis@danthoss-cabinet.com.\n3. Rédaction assistée par Gemini AI et export standard au format .eml compatible Outlook / Apple Mail / Thunderbird.\n\nCordialement,\nService Messagerie Danthoss • Cabinet Rabiou Saley",
+    "folder": "inbox",
+    "category": "system",
+    "read": false,
+    "starred": true,
+    "smtpMessageId": "<activation-1792842554123@danthoss-cabinet.com>",
+    "createdAt": "2026-10-24T11:49:14.123Z"
+  },
+  {
+    "id": "mail_sample_client_02",
+    "fromName": "Claire Moreau • Directrice Data Europe",
+    "fromEmail": "c.moreau@fintech-paris-demo.fr",
+    "toName": "Service Devis Cabinet Rabiou Saley",
+    "toEmail": "devis@danthoss-cabinet.com",
+    "subject": "Demande de cadrage — Architecture Multi-Agents RAG (Full Remote)",
+    "body": "Bonjour Cabinet Rabiou Saley,\n\nNous avons consulté votre portfolio d'ingénierie IA et souhaitons organiser un point de cadrage cette semaine concernant le déploiement d'un pipeline RAG multi-agents sous LangGraph & FastAPI pour notre direction juridique.\n\nFormat souhaité : Mission Full Remote (fuseau CET), démarrage sous 15 jours avec signature de votre accord NDA.\n\nPourriez-vous nous confirmer vos disponibilités depuis votre adresse professionnelle ?\n\nBien cordialement,\nClaire Moreau\nDirectrice Innovation & Data",
+    "folder": "inbox",
+    "category": "devis",
+    "read": false,
+    "starred": false,
+    "smtpMessageId": "<inquiry-1792835354123@fintech-paris-demo.fr>",
+    "createdAt": "2026-10-24T09:49:14.123Z"
+  }
+]

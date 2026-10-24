@@ -3,6 +3,7 @@ import { UserProfile, NotificationItem, CVData, CoverLetterData, SubscriptionTie
 import { onAuthStateChanged, User, UserCredential } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, loginWithGoogle, checkRedirectAuthResult, loginWithEmail, registerWithEmail, resetPassword, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
+import { subscribeToCorporateMailbox } from '../services/corporateMailService';
 
 export const initialCVData: CVData = {
   fullName: 'Rabiou Saley Abdoul Majid',
@@ -221,7 +222,7 @@ const initialNotifications: NotificationItem[] = [
 
 const defaultProfile: UserProfile = {
   name: 'Rabiou Saley Abdoul Majid',
-  email: 'abdoulmajidrabiousaley457@gmail.com',
+  email: 'contact@danthoss-cabinet.com',
   phone: '+227 96 49 99 06',
   role: 'Expert Consultant Data Science & Concepteur d\'Agents IA',
   country: 'Niger / International Remote',
@@ -232,6 +233,21 @@ const defaultProfile: UserProfile = {
 
 export const ADMIN_USER_ID = 'zbc5lYSgQ9bIcKipYER68wbI1Er1';
 export const ADMIN_EMAIL = 'abdoulmajidrabiousaley457@gmail.com';
+export const CORPORATE_EMAIL = 'contact@danthoss-cabinet.com';
+export const ADMIN_EMAILS = [
+  'abdoulmajidrabiousaley457@gmail.com',
+  'contact@danthoss-cabinet.com',
+  'direction@danthoss-cabinet.com',
+  'devis@danthoss-cabinet.com',
+  'support@danthoss-cabinet.com',
+  'rabiou.saley@danthoss-cabinet.com'
+];
+
+export const isAdminEmailAddress = (email?: string | null): boolean => {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return normalized.endsWith('@danthoss-cabinet.com') || ADMIN_EMAILS.includes(normalized);
+};
 
 interface UserProfileContextType {
   profile: UserProfile;
@@ -248,6 +264,7 @@ interface UserProfileContextType {
   saveCVToFirestore: (title?: string) => Promise<boolean>;
   notifications: NotificationItem[];
   unreadCount: number;
+  unreadEmailsCount: number;
   cvData: CVData;
   coverLetterData: CoverLetterData;
   activeLanguage: AppLanguage;
@@ -284,6 +301,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   });
 
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const [unreadEmailsCount, setUnreadEmailsCount] = useState<number>(0);
+  const knownMailIdsRef = React.useRef<Set<string>>(new Set());
+  const mailInitialLoadedRef = React.useRef<boolean>(false);
   const [activeLanguage, setActiveLanguageState] = useState<AppLanguage>(() => {
     return (localStorage.getItem('mydanthoss_lang') as AppLanguage) || 'fr';
   });
@@ -334,36 +354,64 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       if (user) {
         setAuthError(null);
-        // Sync or fetch profile from Firestore
+        const userIsAdmin = user.uid === ADMIN_USER_ID || isAdminEmailAddress(user.email);
+        const fallbackClientName =
+          user.displayName || (user.email ? user.email.split('@')[0] : 'Membre Danthoss');
+
+        // Sync or fetch profile from Firestore without contaminating client accounts with founder email
         const userDocRef = doc(db, 'users', user.uid);
         try {
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const data = userDoc.data();
+            const cleanStoredEmail =
+              !userIsAdmin && isAdminEmailAddress(data.email) ? user.email || '' : data.email;
+            const cleanStoredName =
+              !userIsAdmin && data.name === defaultProfile.name ? fallbackClientName : data.name;
+
             setProfile((prev) => ({
               ...prev,
-              name: data.name || user.displayName || prev.name,
-              email: data.email || user.email || prev.email,
-              tier: data.tier || (user.email === 'abdoulmajidrabiousaley457@gmail.com' ? 'vip_cabinet' : prev.tier),
-              role: data.role || prev.role,
+              name: userIsAdmin
+                ? data.name || user.displayName || defaultProfile.name
+                : cleanStoredName || fallbackClientName,
+              email: userIsAdmin
+                ? user.email || data.email || CORPORATE_EMAIL
+                : user.email || cleanStoredEmail || '',
+              tier: userIsAdmin ? 'vip_cabinet' : data.tier || 'free',
+              role: userIsAdmin
+                ? data.role || 'Fondateur & Administrateur Référent'
+                : data.role && !data.role.includes('Agents IA')
+                ? data.role
+                : 'Client & Partenaire',
               country: data.country || prev.country
             }));
           } else {
-            // Create user document in Firestore
             const initialDoc = {
               id: user.uid,
-              name: user.displayName || profile.name,
-              email: user.email || profile.email,
-              tier: user.email === 'abdoulmajidrabiousaley457@gmail.com' ? 'vip_cabinet' : profile.tier,
-              role: profile.role,
-              country: profile.country,
+              name: userIsAdmin ? user.displayName || defaultProfile.name : fallbackClientName,
+              email: user.email || (userIsAdmin ? CORPORATE_EMAIL : ''),
+              tier: userIsAdmin ? 'vip_cabinet' : ('free' as SubscriptionTier),
+              role: userIsAdmin ? 'Fondateur & Administrateur Référent' : 'Client & Partenaire',
+              country: 'Niger / International',
               updatedAt: new Date().toISOString()
             };
+            setProfile((prev) => ({
+              ...prev,
+              name: initialDoc.name,
+              email: initialDoc.email,
+              tier: initialDoc.tier,
+              role: initialDoc.role,
+              country: initialDoc.country
+            }));
             await setDoc(userDocRef, initialDoc);
           }
         } catch (error) {
           handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
         }
+      } else {
+        setUnreadEmailsCount(0);
+        knownMailIdsRef.current.clear();
+        mailInitialLoadedRef.current = false;
       }
     });
 
@@ -552,8 +600,56 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const isAdmin = Boolean(
-    firebaseUser && (firebaseUser.uid === ADMIN_USER_ID || firebaseUser.email === ADMIN_EMAIL)
+    firebaseUser && (firebaseUser.uid === ADMIN_USER_ID || isAdminEmailAddress(firebaseUser.email))
   );
+
+  // Real-time corporate email unread counter & instant notification alert
+  useEffect(() => {
+    if (!firebaseUser) {
+      setUnreadEmailsCount(0);
+      return;
+    }
+
+    const unsub = subscribeToCorporateMailbox({
+      userUid: firebaseUser.uid,
+      userEmail: firebaseUser.email || '',
+      isAdmin,
+      onMessages: (msgs) => {
+        if (isAdmin) {
+          const unreadInbox = msgs.filter((m) => m.folder === 'inbox' && !m.read);
+          setUnreadEmailsCount(unreadInbox.length);
+
+          if (mailInitialLoadedRef.current) {
+            for (const m of unreadInbox) {
+              if (!knownMailIdsRef.current.has(m.id)) {
+                setNotifications((prev) => [
+                  {
+                    id: `notif_${m.id}`,
+                    title: `Nouveau message client • ${CORPORATE_EMAIL}`,
+                    message: `De ${m.fromName} (${m.fromEmail}) : "${m.subject}"`,
+                    time: 'À l\'instant',
+                    category: 'cabinet',
+                    read: false
+                  },
+                  ...prev
+                ]);
+              }
+            }
+          }
+          msgs.forEach((m) => knownMailIdsRef.current.add(m.id));
+          mailInitialLoadedRef.current = true;
+        } else {
+          const myEmail = (firebaseUser.email || '').toLowerCase();
+          const unreadReplies = msgs.filter(
+            (m) => m.toEmail.toLowerCase() === myEmail && !m.read
+          );
+          setUnreadEmailsCount(unreadReplies.length);
+        }
+      }
+    });
+
+    return () => unsub();
+  }, [firebaseUser, isAdmin]);
 
   return (
     <UserProfileContext.Provider
@@ -572,6 +668,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         saveCVToFirestore,
         notifications,
         unreadCount,
+        unreadEmailsCount,
         cvData,
         coverLetterData,
         activeLanguage,

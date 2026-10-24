@@ -5,7 +5,15 @@ export const CABINET_INFO = {
   fullName: 'Rabiou Saley Abdoul Majid',
   title: 'Consultant Expert Data Science & Concepteur d\'Agents IA Autonomes',
   statusBadge: '🟢 Disponible pour missions en Télétravail International (Full Remote)',
-  email: 'abdoulmajidrabiousaley457@gmail.com',
+  email: 'contact@danthoss-cabinet.com',
+  professionalEmail: 'contact@danthoss-cabinet.com',
+  backupEmail: 'abdoulmajidrabiousaley457@gmail.com',
+  emailAliases: [
+    { email: 'contact@danthoss-cabinet.com', label: 'Direction & Contact Général' },
+    { email: 'devis@danthoss-cabinet.com', label: 'Missions & Devis Télétravail' },
+    { email: 'direction@danthoss-cabinet.com', label: 'Cabinet Rabiou Saley (Direction)' },
+    { email: 'support@danthoss-cabinet.com', label: 'Support Technique & Client Vault' }
+  ],
   phone: '+227 96 49 99 06',
   whatsappUrl: 'https://wa.me/22796499906?text=Bonjour%20Cabinet%20Rabiou%20Saley%2C%20je%20souhaite%20collaborer%20avec%20vous%20sur%20un%20projet%20en%20t%C3%A9l%C3%A9travail',
   whatsappRaw: '+22796499906',

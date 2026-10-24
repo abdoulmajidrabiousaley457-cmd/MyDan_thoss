@@ -25,9 +25,10 @@ import {
   UserCheck,
   ShieldCheck,
   Briefcase,
-  Key
+  Key,
+  Mail
 } from 'lucide-react';
-import { useUserProfile, ADMIN_USER_ID } from '../context/UserProfileContext';
+import { useUserProfile, ADMIN_USER_ID, CORPORATE_EMAIL } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
 import { VaultFile } from '../types';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
@@ -53,7 +54,7 @@ interface AdminDashboardScreenProps {
 }
 
 export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNavigateTab }) => {
-  const { firebaseUser, logout } = useUserProfile();
+  const { firebaseUser, logout, unreadEmailsCount } = useUserProfile();
   const { t } = useI18n();
 
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
@@ -350,12 +351,27 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ onNa
             </button>
 
             {onNavigateTab && (
-              <button
-                onClick={() => onNavigateTab('dashboard')}
-                className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <span>Mon Espace Personnel</span>
-              </button>
+              <>
+                <button
+                  onClick={() => onNavigateTab('webmail')}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center gap-2 shadow-md cursor-pointer"
+                  title={`Ouvrir la boîte email professionnelle (${CORPORATE_EMAIL})`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Boîte Email Pro</span>
+                  {unreadEmailsCount > 0 && (
+                    <span className="bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                      {unreadEmailsCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => onNavigateTab('dashboard')}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Mon Espace Personnel</span>
+                </button>
+              </>
             )}
 
             <button

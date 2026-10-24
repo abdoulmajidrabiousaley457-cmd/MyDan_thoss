@@ -249,6 +249,92 @@
         }
       },
       "required": ["id", "userId", "name", "size", "uploadedAt"]
+    },
+    "CorporateEmail": {
+      "title": "CorporateEmail",
+      "description": "Operational corporate email message sent or received by Danthoss Cabinet professional account",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message identifier",
+          "maxLength": 128
+        },
+        "senderUid": {
+          "type": "string",
+          "description": "Authenticated Firebase UID of sender if logged in",
+          "maxLength": 128
+        },
+        "fromName": {
+          "type": "string",
+          "description": "Display name of sender",
+          "maxLength": 120
+        },
+        "fromEmail": {
+          "type": "string",
+          "description": "Email address of sender",
+          "maxLength": 150
+        },
+        "toName": {
+          "type": "string",
+          "description": "Display name of recipient",
+          "maxLength": 120
+        },
+        "toEmail": {
+          "type": "string",
+          "description": "Email address of recipient",
+          "maxLength": 150
+        },
+        "ccEmail": {
+          "type": "string",
+          "description": "Optional CC email address",
+          "maxLength": 150
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject line of the email",
+          "maxLength": 250
+        },
+        "body": {
+          "type": "string",
+          "description": "Plain text or formatted body of the email",
+          "maxLength": 15000
+        },
+        "folder": {
+          "type": "string",
+          "description": "Mailbox folder",
+          "enum": ["inbox", "sent", "drafts", "trash"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Message category",
+          "enum": ["general", "devis", "livrable", "support", "system"]
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Whether message has been read"
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Whether message is starred"
+        },
+        "smtpMessageId": {
+          "type": "string",
+          "description": "RFC-5322 Message-ID returned by SMTP server",
+          "maxLength": 250
+        },
+        "smtpPreviewUrl": {
+          "type": "string",
+          "description": "Verification URL if sent via SMTP test relay",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of message creation",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "fromName", "fromEmail", "toEmail", "subject", "body", "folder", "read", "starred", "createdAt"]
     }
   },
   "firestore": {
@@ -267,6 +353,10 @@
     "/devisRequests/{devisId}": {
       "schema": "DevisRequest",
       "description": "Stores remote mission quote requests submitted to Cabinet Rabiou Saley"
+    },
+    "/corporateEmails/{emailId}": {
+      "schema": "CorporateEmail",
+      "description": "Stores operational corporate emails for contact@danthoss-cabinet.com and client threads"
     }
   }
 }
