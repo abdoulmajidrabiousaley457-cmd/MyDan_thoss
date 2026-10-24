@@ -25,6 +25,8 @@ export interface NotificationItem {
   time: string;
   category: 'career' | 'cabinet' | 'account' | 'remote';
   read: boolean;
+  audience?: 'client' | 'admin';
+  recipientUid?: string;
 }
 
 // ========================

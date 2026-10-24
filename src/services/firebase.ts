@@ -55,6 +55,7 @@ export const FIREBASE_PROJECT_INFO = {
   storageBucket: firebaseConfig.storageBucket,
   appId: firebaseConfig.appId,
   consoleAuthUrl: `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings`,
+  consoleProvidersUrl: `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers`,
   consoleGeneralUrl: `https://console.firebase.google.com/project/${firebaseConfig.projectId}/settings/general`,
   googleCloudCredentialsUrl: `https://console.cloud.google.com/apis/credentials?project=${firebaseConfig.projectId}`,
   currentHost: typeof window !== 'undefined' ? window.location.hostname : 'my-dan-thoss-6zf3poqbb-portfolio-a372.vercel.app',
@@ -180,7 +181,7 @@ export async function loginWithGoogle(preferRedirect = false): Promise<UserCrede
       }
     }
 
-    console.error('Google Sign In Error:', error);
+    console.warn('Google Sign In notice:', code || error);
     throw error;
   }
 }
@@ -199,66 +200,91 @@ export async function checkRedirectAuthResult(): Promise<UserCredential | null> 
   }
 }
 
+const FOUNDER_ADMIN_EMAILS = [
+  'abdoulmajidrabiousaley457@gmail.com',
+  'contact@danthoss-cabinet.com',
+  'direction@danthoss-cabinet.com',
+  'devis@danthoss-cabinet.com',
+  'support@danthoss-cabinet.com',
+  'rabiou.saley@danthoss-cabinet.com'
+];
+
 export async function loginWithEmail(email: string, pass: string) {
   try {
-    const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
+    const cleanEmail = email.trim().toLowerCase();
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
     if (cred.user) {
+      const isCabinetFounder = FOUNDER_ADMIN_EMAILS.includes(cleanEmail);
+      if (isCabinetFounder && !cred.user.displayName) {
+        await updateProfile(cred.user, { displayName: 'Rabiou Saley Abdoul Majid' }).catch(() => {});
+      }
       const userDocRef = doc(db, 'users', cred.user.uid);
-      await setDoc(userDocRef, {
-        id: cred.user.uid,
-        email: cred.user.email,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      await setDoc(
+        userDocRef,
+        {
+          id: cred.user.uid,
+          email: cred.user.email || cleanEmail,
+          ...(isCabinetFounder
+            ? {
+                name: cred.user.displayName || 'Rabiou Saley Abdoul Majid',
+                tier: 'vip_cabinet',
+                role: 'Fondateur & Administrateur Référent'
+              }
+            : {}),
+          updatedAt: new Date().toISOString()
+        },
+        { merge: true }
+      );
     }
     return cred;
-  } catch (error) {
-    console.error('Email Sign In Error:', error);
+  } catch (error: any) {
+    console.warn('Email Sign In notice:', error?.code || error?.message || error);
     throw error;
   }
 }
 
 export async function registerWithEmail(email: string, pass: string, name?: string) {
   try {
-    const cleanEmail = email.trim();
-    const cleanName = name?.trim() || cleanEmail.split('@')[0] || 'Membre Pro';
+    const cleanEmail = email.trim().toLowerCase();
+    const isCabinetFounder = FOUNDER_ADMIN_EMAILS.includes(cleanEmail);
+    const cleanName =
+      name?.trim() ||
+      (isCabinetFounder ? 'Rabiou Saley Abdoul Majid' : cleanEmail.split('@')[0] || 'Membre Pro');
     const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
     const user = userCredential.user;
 
     if (user) {
       await updateProfile(user, { displayName: cleanName });
 
-      const isCabinetFounder = [
-        'abdoulmajidrabiousaley457@gmail.com',
-        'contact@danthoss-cabinet.com',
-        'direction@danthoss-cabinet.com',
-        'rabiou.saley@danthoss-cabinet.com'
-      ].includes(cleanEmail.toLowerCase());
-
       // Explicitly initialize user profile document in Firestore
       const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, {
-        id: user.uid,
-        name: isCabinetFounder ? (name?.trim() || 'Rabiou Saley Abdoul Majid') : cleanName,
-        email: cleanEmail,
-        tier: isCabinetFounder ? 'vip_cabinet' : 'free',
-        role: isCabinetFounder ? 'Fondateur & Administrateur Référent' : 'Consultant & Pigiste',
-        country: 'Niger / International',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      await setDoc(
+        userDocRef,
+        {
+          id: user.uid,
+          name: cleanName,
+          email: cleanEmail,
+          tier: isCabinetFounder ? 'vip_cabinet' : 'free',
+          role: isCabinetFounder ? 'Fondateur & Administrateur Référent' : 'Consultant & Pigiste',
+          country: 'Niger / International',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        { merge: true }
+      );
     }
     return userCredential;
-  } catch (error) {
-    console.error('Email Registration Error:', error);
+  } catch (error: any) {
+    console.warn('Email Registration notice:', error?.code || error?.message || error);
     throw error;
   }
 }
 
 export async function resetPassword(email: string) {
   try {
-    return await sendPasswordResetEmail(auth, email.trim());
-  } catch (error) {
-    console.error('Password Reset Error:', error);
+    return await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+  } catch (error: any) {
+    console.warn('Password Reset notice:', error?.code || error?.message || error);
     throw error;
   }
 }

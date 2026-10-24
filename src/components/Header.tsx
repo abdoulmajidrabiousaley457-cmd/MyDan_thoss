@@ -45,8 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const desktopNavItems = [
     { id: 'dashboard', label: t('navDashboard', 'Dashboard'), icon: ShieldCheck },
-    { id: 'webmail', label: t('navWebmail', 'Email Pro'), icon: Mail },
-    { id: 'client_vault', label: t('navClientVault', 'Client Vault'), icon: FolderLock },
+    ...(isAdmin ? [{ id: 'webmail', label: t('navWebmail', 'Email Pro'), icon: Mail }] : []),
+    { id: 'client_vault', label: isAdmin ? t('navClientVault', 'Client Vault') : 'Mon Coffre-fort', icon: FolderLock },
     { id: 'cv_builder', label: t('navPortfolios', 'Portfolios & CV'), icon: LayoutGrid },
     { id: 'library', label: t('navLibrary', 'Bibliothèque'), icon: BookOpen },
     { id: 'profile', label: t('navProfile', 'Mon Espace'), icon: User },
@@ -139,10 +139,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'client_vault' }))}
             className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
-            title="Accéder au Coffre-fort Clients (Client Vault)"
+            title={isAdmin ? 'Accéder au Coffre-fort Clients (Client Vault)' : 'Accéder à votre Coffre-fort Personnel'}
           >
             <FolderLock className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Client Vault</span>
+            <span>{isAdmin ? 'Client Vault' : 'Mon Coffre'}</span>
           </button>
 
           {/* Install Mobile / PWA Button */}
@@ -226,24 +226,26 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Corporate Webmail quick button (tablet/desktop) */}
-          <button
-            onClick={() => onSelectTab && onSelectTab('webmail')}
-            className={`hidden sm:flex p-2 rounded-xl transition-colors relative cursor-pointer ${
-              activeTab === 'webmail'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white/10 hover:bg-white/20 text-emerald-200'
-            }`}
-            title="Messagerie Professionnelle (contact@danthoss-cabinet.com)"
-            aria-label="Messagerie Professionnelle"
-          >
-            <Mail className="w-5 h-5" />
-            {unreadEmailsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                {unreadEmailsCount}
-              </span>
-            )}
-          </button>
+          {/* Corporate Webmail quick button (Admin Only) */}
+          {isAdmin && (
+            <button
+              onClick={() => onSelectTab && onSelectTab('webmail')}
+              className={`hidden sm:flex p-2 rounded-xl transition-colors relative cursor-pointer ${
+                activeTab === 'webmail'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-white/10 hover:bg-white/20 text-emerald-200'
+              }`}
+              title="Messagerie Professionnelle Administrateur (contact@danthoss-cabinet.com)"
+              aria-label="Messagerie Professionnelle"
+            >
+              <Mail className="w-5 h-5" />
+              {unreadEmailsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  {unreadEmailsCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Notifications button */}
           <button

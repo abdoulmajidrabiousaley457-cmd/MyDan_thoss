@@ -26,6 +26,10 @@ export interface CorporateEmailMessage {
   starred: boolean;
   smtpMessageId?: string;
   smtpPreviewUrl?: string;
+  externalSource?: 'platform' | 'gmail' | 'smtp';
+  gmailMessageId?: string;
+  gmailThreadId?: string;
+  gmailForwarded?: boolean;
   createdAt: string;
 }
 
@@ -64,6 +68,12 @@ function sanitizeEmailDoc(msg: CorporateEmailMessage): Record<string, any> {
     starred: Boolean(msg.starred),
     smtpMessageId: String(msg.smtpMessageId || '').slice(0, 250),
     smtpPreviewUrl: String(msg.smtpPreviewUrl || '').slice(0, 500),
+    externalSource: ['platform', 'gmail', 'smtp'].includes(msg.externalSource || '')
+      ? msg.externalSource
+      : 'platform',
+    gmailMessageId: String(msg.gmailMessageId || '').slice(0, 128),
+    gmailThreadId: String(msg.gmailThreadId || '').slice(0, 128),
+    gmailForwarded: Boolean(msg.gmailForwarded),
     createdAt: String(msg.createdAt || new Date().toISOString()).slice(0, 50)
   };
 }
@@ -80,6 +90,10 @@ export interface SendCorporateEmailInput {
   subject: string;
   body: string;
   category?: 'general' | 'devis' | 'livrable' | 'support' | 'system';
+  externalSource?: 'platform' | 'gmail' | 'smtp';
+  gmailMessageId?: string;
+  gmailThreadId?: string;
+  gmailForwarded?: boolean;
 }
 
 export interface SendCorporateEmailResult {
@@ -144,10 +158,14 @@ export async function sendCorporateEmail(
     body: String(input.body || '').trim().slice(0, 15000),
     folder: isAdminSender ? 'sent' : 'inbox',
     category: input.category || 'general',
-    read: isAdminSender ? true : false,
+    read: isAdminSender ? isCorporateAddress(cleanToEmail) : false,
     starred: false,
     smtpMessageId,
     smtpPreviewUrl: '',
+    externalSource: input.externalSource || 'platform',
+    gmailMessageId: input.gmailMessageId || '',
+    gmailThreadId: input.gmailThreadId || '',
+    gmailForwarded: Boolean(input.gmailForwarded),
     createdAt: nowIso
   };
 
@@ -197,9 +215,12 @@ export async function sendCorporateEmail(
 
       primaryMessage.smtpMessageId = smtpMessageId;
       primaryMessage.smtpPreviewUrl = smtpPreviewUrl;
+      if (data?.gmailForwarded) {
+        primaryMessage.gmailForwarded = true;
+      }
 
       // Update Firestore record with real SMTP certificate metadata if we have write permission
-      if (isAdminSender && (smtpPreviewUrl || smtpMessageId)) {
+      if (isAdminSender && (smtpPreviewUrl || smtpMessageId || data?.gmailForwarded)) {
         await setDoc(
           doc(db, 'corporateEmails', primaryMessage.id),
           sanitizeEmailDoc(primaryMessage)
@@ -230,9 +251,23 @@ export async function sendCorporateEmail(
   };
 }
 
+export async function upsertCorporateEmailRecord(msg: CorporateEmailMessage): Promise<void> {
+  await setDoc(doc(db, 'corporateEmails', msg.id), sanitizeEmailDoc(msg));
+  fetch('/api/mail/sync-external', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(sanitizeEmailDoc(msg))
+  }).catch(() => {});
+}
+
 export async function updateCorporateEmailMetadata(
   msg: CorporateEmailMessage,
-  updates: Partial<Pick<CorporateEmailMessage, 'read' | 'starred' | 'folder'>>,
+  updates: Partial<
+    Pick<
+      CorporateEmailMessage,
+      'read' | 'starred' | 'folder' | 'gmailForwarded' | 'gmailMessageId' | 'gmailThreadId'
+    >
+  >,
   isAdmin: boolean
 ): Promise<void> {
   const updated: CorporateEmailMessage = {
@@ -364,31 +399,50 @@ export function subscribeToCorporateMailbox(options: {
     onMessages(sorted);
   };
 
-  // Optional initial fetch from local server /api/mail/messages (merges seed & local SMTP messages)
-  fetch(
-    `/api/mail/messages?userEmail=${encodeURIComponent(
-      isAdmin ? CORPORATE_PRIMARY_EMAIL : cleanEmail
-    )}&isAdmin=${isAdmin ? 'true' : 'false'}`
-  )
-    .then(async (res) => {
-      const ct = res.headers.get('content-type') || '';
-      if (res.ok && ct.includes('application/json')) {
-        const data = await res.json();
-        if (Array.isArray(data?.messages)) {
-          const nextServer = new Map<string, CorporateEmailMessage>();
-          for (const item of data.messages as CorporateEmailMessage[]) {
-            nextServer.set(item.id, item);
-            // Seed welcome message into Firestore for Admin if not yet stored in cloud
-            if (isAdmin && item.id.startsWith('mail_welcome_') && !cloudMap.has(item.id)) {
-              setDoc(doc(db, 'corporateEmails', item.id), sanitizeEmailDoc(item)).catch(() => {});
+  // Initial fetch from local server /api/mail/messages (Admin gets corporate mailbox; Client gets strictly their own exchanges)
+  if (isAdmin || (cleanEmail && !isCorporateAddress(cleanEmail))) {
+    fetch(
+      `/api/mail/messages?userEmail=${encodeURIComponent(
+        isAdmin ? CORPORATE_PRIMARY_EMAIL : cleanEmail
+      )}&isAdmin=${isAdmin ? 'true' : 'false'}`
+    )
+      .then(async (res) => {
+        const ct = res.headers.get('content-type') || '';
+        if (res.ok && ct.includes('application/json')) {
+          const data = await res.json();
+          if (Array.isArray(data?.messages)) {
+            const nextServer = new Map<string, CorporateEmailMessage>();
+            for (const item of data.messages as CorporateEmailMessage[]) {
+              if (!isAdmin) {
+                if (
+                  item.folder === 'trash' ||
+                  item.folder === 'drafts' ||
+                  item.id.startsWith('mail_welcome_') ||
+                  item.id.startsWith('mail_sample_')
+                ) {
+                  continue;
+                }
+                const sentByThisClient =
+                  item.fromEmail.toLowerCase() === cleanEmail && item.folder === 'inbox';
+                const replyToThisClient =
+                  item.toEmail.toLowerCase() === cleanEmail && item.folder === 'sent';
+                if (!sentByThisClient && !replyToThisClient) {
+                  continue;
+                }
+              }
+              nextServer.set(item.id, item);
+              // Seed welcome message into Firestore for Admin if not yet stored in cloud
+              if (isAdmin && item.id.startsWith('mail_welcome_') && !cloudMap.has(item.id)) {
+                setDoc(doc(db, 'corporateEmails', item.id), sanitizeEmailDoc(item)).catch(() => {});
+              }
             }
+            serverMap = nextServer;
+            emitMerged();
           }
-          serverMap = nextServer;
-          emitMerged();
         }
-      }
-    })
-    .catch(() => {});
+      })
+      .catch(() => {});
+  }
 
   const unsubscribers: Unsubscribe[] = [];
 
@@ -453,6 +507,8 @@ export function subscribeToCorporateMailbox(options: {
             category: 'devis',
             read: false,
             starred: true,
+            externalSource: 'platform',
+            gmailForwarded: false,
             createdAt: q.createdAt || new Date().toISOString()
           };
           nextDevis.set(syntheticId, syntheticEmail);
@@ -471,13 +527,28 @@ export function subscribeToCorporateMailbox(options: {
     let sentByClientMap = new Map<string, CorporateEmailMessage>();
     let receivedByClientMap = new Map<string, CorporateEmailMessage>();
 
+    const isSafeClientRecord = (v: CorporateEmailMessage) =>
+      v.folder !== 'trash' &&
+      v.folder !== 'drafts' &&
+      !v.id.startsWith('mail_welcome_') &&
+      !v.id.startsWith('mail_sample_');
+
     const syncClientMaps = () => {
       const merged = new Map<string, CorporateEmailMessage>();
       sentByClientMap.forEach((v, k) => {
-        if (v.folder !== 'trash') merged.set(k, v);
+        if (isSafeClientRecord(v) && v.senderUid === userUid) {
+          merged.set(k, v);
+        }
       });
       receivedByClientMap.forEach((v, k) => {
-        if (v.folder !== 'trash') merged.set(k, v);
+        if (
+          isSafeClientRecord(v) &&
+          v.folder === 'sent' &&
+          cleanEmail &&
+          v.toEmail.toLowerCase() === cleanEmail
+        ) {
+          merged.set(k, v);
+        }
       });
       cloudMap = merged;
       emitMerged();
@@ -500,8 +571,8 @@ export function subscribeToCorporateMailbox(options: {
     );
     unsubscribers.push(unsubSent);
 
-    // 2. Replies sent BY contact@danthoss-cabinet.com TO this client's email
-    if (cleanEmail) {
+    // 2. Official replies sent BY contact@danthoss-cabinet.com TO this client's personal email
+    if (cleanEmail && !isCorporateAddress(cleanEmail)) {
       const qReceived = query(
         collection(db, 'corporateEmails'),
         where('toEmail', '==', cleanEmail)

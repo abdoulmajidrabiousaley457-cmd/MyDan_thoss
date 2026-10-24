@@ -56,8 +56,18 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const navItems = [
     ...(isAdmin ? [{ id: 'admin_dashboard', label: '⭐ Tableau de Bord Super Admin', icon: ShieldAlert, isAdminItem: true }] : []),
     { id: 'dashboard', label: t('navDashboard', 'Tableau de Bord'), icon: ShieldCheck },
-    { id: 'webmail', label: 'Messagerie Pro (Email Officiel)', icon: Mail },
-    { id: 'client_vault', label: t('navClientVault', 'Coffre-fort Clients (Client Vault)'), icon: FolderLock },
+    {
+      id: 'webmail',
+      label: isAdmin ? 'Messagerie Pro (Email Officiel)' : 'Contacter le Cabinet (Mes Messages)',
+      icon: Mail,
+    },
+    {
+      id: 'client_vault',
+      label: isAdmin
+        ? t('navClientVault', 'Coffre-fort Clients (Client Vault)')
+        : 'Mon Coffre-fort Personnel',
+      icon: FolderLock,
+    },
     { id: 'portfolio', label: t('navCabinet', 'Cabinet & Portfolio Télétravail'), icon: Briefcase },
     { id: 'cv_builder', label: t('navPortfolios', 'Portfolios, Projets & CV'), icon: LayoutGrid },
     { id: 'currency', label: t('navCurrencies', 'Convertisseur de Devises Mondiales'), icon: ArrowRightLeft },
@@ -98,13 +108,23 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
 
         {/* User Card */}
         <div className="p-4 border-b border-slate-100 bg-slate-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-bold text-xs text-slate-900">{profile.name}</div>
-              <div className="text-[11px] text-slate-500 truncate max-w-[170px]">{profile.email}</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-bold text-xs text-slate-900 truncate">
+                {firebaseUser?.displayName || profile.name}
+              </div>
+              <div className="text-[11px] text-slate-500 truncate max-w-[175px]">
+                {firebaseUser?.email || profile.email || 'Espace Client'}
+              </div>
             </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-              {profile.tier === 'vip_cabinet' ? 'VIP Cabinet 👑' : profile.tier === 'pro' ? 'Pro ⭐' : 'Découverte'}
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+              {isAdmin
+                ? 'Admin 👑'
+                : profile.tier === 'vip_cabinet'
+                ? 'VIP Cabinet 👑'
+                : profile.tier === 'pro'
+                ? 'Pro ⭐'
+                : 'Client'}
             </span>
           </div>
         </div>
@@ -278,7 +298,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
 
-            {/* Corporate Professional Email Direct */}
+            {/* Contact Cabinet Direct */}
             <button
               type="button"
               onClick={() => {
@@ -289,9 +309,13 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
             >
               <span className="flex items-center gap-2 min-w-0">
                 <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="truncate">{CABINET_INFO.email}</span>
+                <span className="truncate">
+                  {isAdmin ? CABINET_INFO.email : `Écrire à ${CABINET_INFO.email}`}
+                </span>
               </span>
-              <span className="text-[10px] font-bold text-emerald-700 shrink-0">Ouvrir</span>
+              <span className="text-[10px] font-bold text-emerald-700 shrink-0">
+                {isAdmin ? 'Ouvrir' : 'Contacter'}
+              </span>
             </button>
 
             {/* WhatsApp Direct */}

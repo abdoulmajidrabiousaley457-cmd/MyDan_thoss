@@ -26,8 +26,7 @@ import {
   Users,
   ExternalLink,
   Clock,
-  ArrowRight,
-  Key
+  ArrowRight
 } from 'lucide-react';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -45,14 +44,13 @@ import { db, uploadFileToStorage, deleteFileFromStorage, handleFirestoreError, O
 import { storeLocalFileBlob, getLocalFileBlob } from '../services/localFileStorage';
 import { downloadVaultFile, shareVaultFile } from '../services/vaultFileDownloader';
 import { AuthScreen } from './AuthScreen';
-import { FirebaseGoogleConfigModal } from '../components/FirebaseGoogleConfigModal';
 
 interface ClientVaultScreenProps {
   onNavigateTab?: (tab: string) => void;
 }
 
 export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigateTab }) => {
-  const { firebaseUser, logout } = useUserProfile();
+  const { firebaseUser, logout, isAdmin } = useUserProfile();
   const { t, isRtl } = useI18n();
 
   const [files, setFiles] = useState<VaultFile[]>([]);
@@ -69,7 +67,6 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
   const [copiedLinkFileId, setCopiedLinkFileId] = useState<string | null>(null);
   const [fileToDelete, setFileToDelete] = useState<VaultFile | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
   // Upload Form State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -126,10 +123,11 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
           if (cached) {
             const parsed: VaultFile[] = JSON.parse(cached);
             setFiles(parsed.filter((f) => !deletedIds.includes(f.id)));
-          } else {
-            // Seed sample files minus deleted ones
+          } else if (isAdmin) {
             const sampleFiles = getSampleFiles(uid).filter((f) => !deletedIds.includes(f.id));
             setFiles(sampleFiles);
+          } else {
+            setFiles([]);
           }
         } catch {
           // ignore
@@ -533,41 +531,43 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <FolderLock className="w-3.5 h-3.5" />
-              <span>Tableau de Bord Client Vault</span>
+              <span>{isAdmin ? 'Tableau de Bord Client Vault' : 'Mon Coffre-fort Sécurisé (Client Vault)'}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white">
-              Coffre-fort Fichiers Clients
+              {isAdmin ? 'Coffre-fort Fichiers Clients' : 'Mon Coffre-fort Personnel'}
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300">
-              Espace de partage de fichiers pour <strong>{firebaseUser.email}</strong>. 
-              Téléversez vos livrables et donnez accès à vos clients en toute sécurité.
+              {isAdmin ? (
+                <>
+                  Espace de partage de fichiers pour <strong>{firebaseUser.email}</strong>. 
+                  Téléversez vos livrables et donnez accès à vos clients en toute sécurité.
+                </>
+              ) : (
+                <>
+                  Espace chiffré dédié au compte <strong>{firebaseUser.email}</strong>. 
+                  Consultez vos livrables certifiés et déposez vos documents en toute confidentialité.
+                </>
+              )}
             </p>
           </div>
 
           {/* Quick Actions & Logout */}
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setActiveView(activeView === 'dashboard' ? 'client_portal' : 'dashboard')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
-                activeView === 'client_portal'
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
-                  : 'bg-slate-800/90 hover:bg-slate-800 text-slate-200 border-slate-700'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>{activeView === 'client_portal' ? 'Retour Dashboard' : 'Aperçu Portail Client'}</span>
-            </button>
-
-            <button
-              onClick={() => setIsConfigModalOpen(true)}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="Configurer les domaines Vercel et l'empreinte SHA-1 Firebase"
-            >
-              <Key className="w-3.5 h-3.5 text-amber-400" />
-              <span>Config Firebase & SHA-1</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveView(activeView === 'dashboard' ? 'client_portal' : 'dashboard')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                  activeView === 'client_portal'
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
+                    : 'bg-slate-800/90 hover:bg-slate-800 text-slate-200 border-slate-700'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>{activeView === 'client_portal' ? 'Retour Dashboard' : 'Aperçu Portail Client'}</span>
+              </button>
+            )}
 
             <button
               onClick={logout}
@@ -604,11 +604,15 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
 
           <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
-              <Users className="w-4 h-4" />
+              {isAdmin ? <Users className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Clients servis</span>
-              <span className="text-base font-black text-white">{distinctClients}</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                {isAdmin ? 'Clients servis' : 'Protection'}
+              </span>
+              <span className="text-base font-black text-white">
+                {isAdmin ? distinctClients : 'Isolé & Chiffré'}
+              </span>
             </div>
           </div>
 
@@ -1317,12 +1321,6 @@ export const ClientVaultScreen: React.FC<ClientVaultScreenProps> = ({ onNavigate
           </div>
         </div>
       )}
-
-      {/* Firebase & Google Sign-In Diagnostic and Configuration Modal */}
-      <FirebaseGoogleConfigModal
-        isOpen={isConfigModalOpen}
-        onClose={() => setIsConfigModalOpen(false)}
-      />
     </div>
   );
 };

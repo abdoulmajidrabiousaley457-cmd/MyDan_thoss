@@ -17,7 +17,10 @@ import {
   Settings,
   HelpCircle,
   Send,
-  X
+  X,
+  Eye,
+  EyeOff,
+  UserPlus
 } from 'lucide-react';
 import { useUserProfile, isAdminEmailAddress, CORPORATE_EMAIL } from '../context/UserProfileContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -51,16 +54,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [emailProviderDisabled, setEmailProviderDisabled] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
-  const [showAdminTools, setShowAdminTools] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && localStorage.getItem('danthoss_admin_auth_tools') === 'true';
-  });
-  const [adminClickCount, setAdminClickCount] = useState(0);
 
   // Public Client Direct Message Modal (writes straight to contact@danthoss-cabinet.com)
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -101,27 +103,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
     }
   };
 
-  // Strict admin check: logged-in admin, corporate/founder admin email entered, or admin unlocked
-  const isUserAdmin = Boolean(
-    isAdmin ||
-    isAdminEmailAddress(email) ||
-    showAdminTools
-  );
-
-  const handleAdminBadgeClick = () => {
-    const next = adminClickCount + 1;
-    setAdminClickCount(next);
-    if (next >= 3) {
-      setShowAdminTools((prev) => {
-        const val = !prev;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('danthoss_admin_auth_tools', String(val));
-        }
-        return val;
-      });
-      setAdminClickCount(0);
-    }
-  };
+  // Strict admin check: ONLY authenticated Administrator session
+  const isUserAdmin = Boolean(isAdmin);
 
   const languages: { code: AppLanguage; label: string; flag: string }[] = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -132,6 +115,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setErrorCode(null);
+    setEmailProviderDisabled(false);
     setSuccessMsg(null);
     setLoading(true);
 
@@ -172,16 +157,39 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
         setTimeout(() => setMode('login'), 3500);
       }
     } catch (err: any) {
-      console.error('Auth error:', err);
       const code = err?.code || '';
-      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-        setErrorMsg(language === 'ar' ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' : language === 'en' ? 'Invalid email or password.' : 'Adresse email ou mot de passe incorrect.');
+      setErrorCode(code);
+      if (code === 'auth/operation-not-allowed') {
+        setEmailProviderDisabled(true);
+        setErrorMsg(
+          language === 'ar'
+            ? 'تسجيل الدخول بالبريد الإلكتروني وكلمة المرور غير مفعل حالياً في Firebase. استخدم "المتابعة باستخدام Google" للدخول فوراً.'
+            : language === 'en'
+            ? 'Email/Password sign-in is not enabled yet in Firebase Console. Use "Continue with Google" to sign in immediately.'
+            : 'La méthode Email / Mot de passe n\'est pas encore activée dans Firebase Console. Cliquez sur « Continuer avec Google » pour vous connecter immédiatement.'
+        );
+      } else if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setErrorMsg(
+          language === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة، أو لم يتم إنشاء كلمة مرور لهذا الحساب بعد.'
+            : language === 'en'
+            ? 'Incorrect email or password, or no password has been created for this email yet.'
+            : 'Email ou mot de passe incorrect (ou aucun mot de passe n\'a encore été créé pour cette adresse).'
+        );
       } else if (code === 'auth/email-already-in-use') {
-        setErrorMsg(language === 'ar' ? 'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.' : language === 'en' ? 'Email is already in use. Please sign in.' : 'Cette adresse email est déjà associée à un compte.');
+        setErrorMsg(
+          language === 'ar'
+            ? 'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أو إعادة تعيين كلمة المرور.'
+            : language === 'en'
+            ? 'This email is already registered. Please sign in or reset your password.'
+            : 'Cette adresse email possède déjà un compte. Connectez-vous avec votre mot de passe ou réinitialisez-le.'
+        );
       } else if (code === 'auth/weak-password') {
         setErrorMsg(t('passwordHint', 'Le mot de passe doit comporter au moins 6 caractères.'));
       } else if (code === 'auth/invalid-email') {
         setErrorMsg(language === 'ar' ? 'صيغة البريد الإلكتروني غير صالحة.' : language === 'en' ? 'Invalid email format.' : 'Format d\'adresse email invalide.');
+      } else if (code === 'auth/too-many-requests') {
+        setErrorMsg(language === 'ar' ? 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً أو استخدام Google.' : language === 'en' ? 'Too many attempts. Please try again later or sign in with Google.' : 'Trop de tentatives. Veuillez patienter quelques instants ou vous connecter avec Google.');
       } else {
         setErrorMsg(err?.message || (language === 'ar' ? 'حدث خطأ أثناء المصادقة.' : language === 'en' ? 'An authentication error occurred.' : 'Une erreur est survenue lors de l\'authentification.'));
       }
@@ -192,6 +200,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
 
   const handleGoogleLogin = async (preferRedirect = false) => {
     setErrorMsg(null);
+    setErrorCode(null);
+    setEmailProviderDisabled(false);
     setLoading(true);
     try {
       const cred = await loginGoogle(preferRedirect);
@@ -204,7 +214,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
         setErrorMsg(null);
       }
     } catch (err: any) {
-      console.error('Google login error:', err);
       const code = err?.code || '';
       const isUnauthorizedDomain = code === 'auth/unauthorized-domain' || err?.message?.includes('authorized domain');
 
@@ -215,7 +224,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
           setConfigError(`Erreur auth/unauthorized-domain : Le domaine "${currentHost}" (Vercel) doit être ajouté dans Firebase Console > Authentication > Settings > Authorized domains.`);
           setIsConfigModalOpen(true);
         } else {
-          setErrorMsg('Service d\'authentification momentanément indisponible sur ce domaine. Veuillez réessayer plus tard ou utiliser la connexion par email.');
+          setErrorMsg('Service d\'authentification momentanément indisponible sur ce domaine. Veuillez réessayer plus tard.');
         }
       } else if (code === 'auth/popup-blocked') {
         setErrorMsg('Le popup Google a été bloqué par votre navigateur. Tentative avec le mode redirection...');
@@ -232,7 +241,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
           setConfigError('Erreur auth/operation-not-allowed : Activez le fournisseur Google dans Firebase Console > Authentication > Sign-in method > Google.');
           setIsConfigModalOpen(true);
         } else {
-          setErrorMsg('La connexion avec Google est temporairement indisponible. Veuillez vous connecter avec votre adresse email.');
+          setErrorMsg('La connexion avec Google est temporairement indisponible.');
         }
       } else if (code === 'auth/popup-closed-by-user') {
         setErrorMsg('Connexion annulée : la fenêtre d\'authentification Google a été fermée.');
@@ -332,10 +341,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
 
       {/* Brand Header */}
       <div className="text-center space-y-2">
-        <div 
-          onClick={handleAdminBadgeClick}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 select-none cursor-pointer"
-          title={isUserAdmin ? "Mode Administrateur actif" : "Portail Sécurisé • Cabinet Rabiou Saley"}
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 select-none"
+          title="Portail Sécurisé • Cabinet Rabiou Saley"
         >
           <FolderLock className="w-3.5 h-3.5" />
           <span>{t('authPortalBadge', 'Portail Sécurisé • Cabinet Rabiou Saley')}</span>
@@ -361,9 +369,108 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-5">
         {/* Alerts */}
         {errorMsg && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-            <span>{errorMsg}</span>
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+              <span className="leading-relaxed">{errorMsg}</span>
+            </div>
+
+            {emailProviderDisabled && (
+              <div className="pt-2 border-t border-rose-200/80 space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleGoogleLogin(false)}
+                  disabled={loading}
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Se connecter avec Google maintenant</span>
+                </button>
+
+                {isUserAdmin && (
+                  <div className="p-3 rounded-xl bg-white border border-rose-200 text-slate-700 space-y-1.5">
+                    <div className="font-bold text-[11px] text-slate-900">
+                      Activer Email / Mot de passe (Administrateur Firebase) :
+                    </div>
+                    <ol className="list-decimal list-inside text-[11px] text-slate-600 space-y-1">
+                      <li>Ouvrez la console Firebase du projet <code className="font-mono text-emerald-700">{FIREBASE_PROJECT_INFO.projectId}</code>.</li>
+                      <li>Dans <strong>Authentication &gt; Sign-in method</strong>, cliquez sur <strong>Adresse e-mail/mot de passe</strong>.</li>
+                      <li>Cochez <strong>Activer</strong> puis cliquez sur <strong>Enregistrer</strong>.</li>
+                    </ol>
+                    <a
+                      href={FIREBASE_PROJECT_INFO.consoleProvidersUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-colors"
+                    >
+                      <span>Ouvrir Sign-in method (Firebase Console)</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mode === 'login' &&
+              (errorCode === 'auth/invalid-credential' ||
+                errorCode === 'auth/user-not-found' ||
+                errorCode === 'auth/wrong-password') && (
+                <div className="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!name && isAdminEmailAddress(email)) {
+                        setName('Rabiou Saley Abdoul Majid');
+                      }
+                      setMode('register');
+                      setErrorMsg(null);
+                      setErrorCode(null);
+                    }}
+                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Première fois ? Créer ce compte</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot');
+                      setErrorMsg(null);
+                      setErrorCode(null);
+                    }}
+                    className="py-2 px-3 rounded-xl bg-white hover:bg-rose-100/60 text-rose-800 border border-rose-200 font-bold text-[11px] transition-colors cursor-pointer"
+                  >
+                    Réinitialiser le mot de passe
+                  </button>
+                </div>
+              )}
+
+            {mode === 'register' && errorCode === 'auth/email-already-in-use' && (
+              <div className="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setErrorMsg(null);
+                    setErrorCode(null);
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-colors cursor-pointer"
+                >
+                  Se connecter avec cet e-mail
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot');
+                    setErrorMsg(null);
+                    setErrorCode(null);
+                  }}
+                  className="py-2 px-3 rounded-xl bg-white hover:bg-rose-100/60 text-rose-800 border border-rose-200 font-bold text-[11px] transition-colors cursor-pointer"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -374,109 +481,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">{t('fullNameLabel', 'Nom Complet ou Entreprise')}</label>
-              <div className="relative">
-                <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Abdoul Majid Rabiou Saley"
-                  className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700">{t('emailLabel', 'Adresse Email Professionnelle')}</label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nom@entreprise.com"
-                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-              />
-            </div>
-          </div>
-
-          {mode !== 'forgot' && (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700">{t('passwordLabel', 'Mot de Passe')}</label>
-                {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('forgot');
-                      setErrorMsg(null);
-                      setSuccessMsg(null);
-                    }}
-                    className="text-[11px] font-semibold text-emerald-700 hover:underline cursor-pointer"
-                  >
-                    {t('forgotPasswordLink', 'Mot de passe oublié ?')}
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                />
-              </div>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
-          >
-            {loading ? (
-              <span className="animate-pulse">{t('loading', 'Chargement en cours...')}</span>
-            ) : (
-              <>
-                <span>
-                  {mode === 'login' && t('signInBtn', 'Se Connecter')}
-                  {mode === 'register' && t('signUpBtn', 'Créer mon Compte')}
-                  {mode === 'forgot' && t('sendResetBtn', 'Envoyer l\'email de réinitialisation')}
-                </span>
-                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Separator */}
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 w-full"></div>
-          <span className="bg-white px-3 text-[11px] uppercase font-bold text-slate-400 absolute">
-            {t('orSeparator', 'ou')}
-          </span>
-        </div>
-
-        {/* Google Login Options */}
+        {/* Primary Recommended Instant Google Sign-In */}
         <div className="space-y-2">
           <button
             type="button"
             onClick={() => handleGoogleLogin(false)}
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center justify-center gap-2.5 transition-all shadow-xs cursor-pointer"
+            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -499,7 +512,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
 
           {/* Admin Tools: Only visible to Administrator (Abdoul Majid Rabiou Saley) */}
           {isUserAdmin && (
-            <div className="mt-3 p-3 bg-emerald-950/5 border border-emerald-500/20 rounded-2xl space-y-2 animate-in fade-in">
+            <div className="mt-2 p-3 bg-emerald-950/5 border border-emerald-500/20 rounded-2xl space-y-2 animate-in fade-in">
               <div className="flex items-center justify-between text-[11px] font-black text-emerald-900">
                 <span className="flex items-center gap-1.5">
                   <Key className="w-3.5 h-3.5 text-emerald-600" />
@@ -534,8 +547,156 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
           )}
         </div>
 
+        {/* Separator */}
+        <div className="relative flex items-center justify-center">
+          <div className="border-t border-slate-200 w-full"></div>
+          <span className="bg-white px-3 text-[11px] uppercase font-bold text-slate-400 absolute">
+            {t('orSeparator', 'ou par email')}
+          </span>
+        </div>
+
+        {/* Mode Tabs: Connexion / Inscription */}
+        {mode !== 'forgot' && (
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setErrorMsg(null);
+                setErrorCode(null);
+                setEmailProviderDisabled(false);
+                setSuccessMsg(null);
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                mode === 'login'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('signInLink', 'Se connecter')}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!name && isAdminEmailAddress(email)) {
+                  setName('Rabiou Saley Abdoul Majid');
+                }
+                setMode('register');
+                setErrorMsg(null);
+                setErrorCode(null);
+                setEmailProviderDisabled(false);
+                setSuccessMsg(null);
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                mode === 'register'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('createOneBtn', 'Créer un compte')}
+            </button>
+          </div>
+        )}
+
+        {/* Email / Password Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'register' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">{t('fullNameLabel', 'Nom Complet ou Entreprise')}</label>
+              <div className="relative">
+                <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Abdoul Majid Rabiou Saley"
+                  className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">{t('emailLabel', 'Adresse Email Professionnelle')}</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="contact@danthoss-cabinet.com ou nom@entreprise.com"
+                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          {mode !== 'forgot' && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700">{t('passwordLabel', 'Mot de Passe')}</label>
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot');
+                      setErrorMsg(null);
+                      setErrorCode(null);
+                      setEmailProviderDisabled(false);
+                      setSuccessMsg(null);
+                    }}
+                    className="text-[11px] font-semibold text-emerald-700 hover:underline cursor-pointer"
+                  >
+                    {t('forgotPasswordLink', 'Mot de passe oublié ?')}
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={mode === 'register' ? 6 : undefined}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'register' ? 'Minimum 6 caractères' : '••••••••••••'}
+                  className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rtl:right-auto rtl:left-3 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+          >
+            {loading ? (
+              <span className="animate-pulse">{t('loading', 'Chargement en cours...')}</span>
+            ) : (
+              <>
+                <span>
+                  {mode === 'login' && t('signInBtn', 'Se Connecter par Email')}
+                  {mode === 'register' && t('signUpBtn', 'Créer mon Compte')}
+                  {mode === 'forgot' && t('sendResetBtn', 'Envoyer l\'email de réinitialisation')}
+                </span>
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+              </>
+            )}
+          </button>
+        </form>
+
         {/* Toggle Mode */}
-        <div className="pt-2 text-center text-xs text-slate-600">
+        <div className="pt-1 text-center text-xs text-slate-600">
           {mode === 'login' ? (
             <p>
               {t('noAccountPrompt', 'Vous n\'avez pas encore de compte ?')}{' '}
@@ -544,6 +705,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
                 onClick={() => {
                   setMode('register');
                   setErrorMsg(null);
+                  setEmailProviderDisabled(false);
                   setSuccessMsg(null);
                 }}
                 className="font-bold text-emerald-700 hover:underline cursor-pointer"
@@ -559,6 +721,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
                 onClick={() => {
                   setMode('login');
                   setErrorMsg(null);
+                  setEmailProviderDisabled(false);
                   setSuccessMsg(null);
                 }}
                 className="font-bold text-emerald-700 hover:underline cursor-pointer"
@@ -749,16 +912,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onNavigateTab
         </div>
       )}
 
-      {/* Firebase & Google Sign-In Diagnostic / Config Modal */}
-      <FirebaseGoogleConfigModal
-        isOpen={isConfigModalOpen}
-        onClose={() => setIsConfigModalOpen(false)}
-        detectedError={configError}
-        onSuccessLogin={() => {
-          if (onSuccess) onSuccess();
-          if (onNavigateTab) onNavigateTab('dashboard');
-        }}
-      />
+      {/* Firebase & Google Sign-In Diagnostic / Config Modal (Admin Only) */}
+      {isAdmin && (
+        <FirebaseGoogleConfigModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          detectedError={configError}
+          onSuccessLogin={() => {
+            if (onSuccess) onSuccess();
+            if (onNavigateTab) onNavigateTab('dashboard');
+          }}
+        />
+      )}
     </div>
   );
 };

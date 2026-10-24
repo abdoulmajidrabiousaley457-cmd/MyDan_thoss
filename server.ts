@@ -520,6 +520,10 @@ interface StoredCorporateEmail {
   starred: boolean;
   smtpMessageId?: string;
   smtpPreviewUrl?: string;
+  externalSource?: 'platform' | 'gmail' | 'smtp';
+  gmailMessageId?: string;
+  gmailThreadId?: string;
+  gmailForwarded?: boolean;
   createdAt: string;
 }
 
@@ -594,24 +598,30 @@ async function getOperationalTransporter(): Promise<{
     return { transporter: cachedTransporter, mode: cachedTransportMode, accountUser: cachedSmtpAccountUser };
   }
 
-  // 1. Check if custom production SMTP credentials are provided via environment variables
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // 1. Check if Gmail App Password or custom production SMTP credentials are provided via environment variables
+  const forwardEmail = process.env.CORPORATE_FORWARD_EMAIL || 'abdoulmajidrabiousaley457@gmail.com';
+  const gmailAppPass = (process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '');
+  const smtpHost = process.env.SMTP_HOST || (gmailAppPass ? 'smtp.gmail.com' : '');
+  const smtpUser = process.env.SMTP_USER || (gmailAppPass ? forwardEmail : '');
+  const smtpPass = process.env.SMTP_PASS || gmailAppPass;
+
+  if (smtpHost && smtpUser && smtpPass) {
     try {
-      const port = parseInt(process.env.SMTP_PORT || '587', 10);
+      const port = parseInt(process.env.SMTP_PORT || (gmailAppPass && !process.env.SMTP_PORT ? '465' : '587'), 10);
       const secure = process.env.SMTP_SECURE === 'true' || port === 465;
       const customTransport = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
+        host: smtpHost,
         port,
         secure,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user: smtpUser,
+          pass: smtpPass,
         },
       });
       await customTransport.verify();
       cachedTransporter = customTransport;
       cachedTransportMode = 'custom_smtp';
-      cachedSmtpAccountUser = process.env.SMTP_USER;
+      cachedSmtpAccountUser = smtpUser;
       return { transporter: cachedTransporter, mode: cachedTransportMode, accountUser: cachedSmtpAccountUser };
     } catch (smtpErr: any) {
       console.warn('Custom SMTP verification fallback:', smtpErr?.message || smtpErr);
@@ -665,7 +675,7 @@ app.get('/api/mail/status', async (_req, res) => {
   });
 });
 
-// 2. List messages (RBAC filtered: Admin gets full corporate mailbox, Client gets their own exchanges)
+// 2. List messages (RBAC filtered: Admin gets full corporate mailbox, Client gets strictly their own exchanges)
 app.get('/api/mail/messages', (req, res) => {
   const userEmail = String(req.query.userEmail || '').trim().toLowerCase();
   const isAdminFlag = req.query.isAdmin === 'true' && ADMIN_ALLOWED_EMAILS.has(userEmail);
@@ -675,18 +685,26 @@ app.get('/api/mail/messages', (req, res) => {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  if (isAdminFlag || ADMIN_ALLOWED_EMAILS.has(userEmail)) {
+  if (isAdminFlag) {
     return res.json({ messages: sorted, isAdminMailbox: true });
   }
 
-  if (!userEmail) {
+  if (
+    !userEmail ||
+    ADMIN_ALLOWED_EMAILS.has(userEmail) ||
+    userEmail.endsWith(`@${CORPORATE_DOMAIN}`)
+  ) {
     return res.json({ messages: [], isAdminMailbox: false });
   }
 
   const clientMessages = sorted.filter(
     (m) =>
       m.folder !== 'trash' &&
-      (m.fromEmail.toLowerCase() === userEmail || m.toEmail.toLowerCase() === userEmail)
+      m.folder !== 'drafts' &&
+      !m.id.startsWith('mail_welcome_') &&
+      !m.id.startsWith('mail_sample_') &&
+      ((m.fromEmail.toLowerCase() === userEmail && m.folder === 'inbox') ||
+        (m.toEmail.toLowerCase() === userEmail && m.folder === 'sent'))
   );
   return res.json({ messages: clientMessages, isAdminMailbox: false });
 });
@@ -733,31 +751,49 @@ app.post('/api/mail/send', async (req, res) => {
       cleanToEmail.endsWith(`@${CORPORATE_DOMAIN}`) ||
       ADMIN_ALLOWED_EMAILS.has(cleanToEmail);
 
+    let gmailForwardedViaSmtp = false;
+
     if (transporter) {
       try {
         const htmlBody = `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
             <div style="border-bottom: 2px solid #059669; padding-bottom: 12px; margin-bottom: 20px;">
               <strong style="color: #065f46; font-size: 16px;">${String(fromName).replace(/</g, '&lt;')}</strong>
-              <div style="color: #64748b; font-size: 12px;">${cleanFromEmail}</div>
+              <div style="color: #64748b; font-size: 12px;">${cleanFromEmail} → ${cleanToEmail}</div>
             </div>
             <div style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #1e293b;">${cleanBody.replace(/</g, '&lt;')}</div>
             <div style="margin-top: 28px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
               <strong>Cabinet d'Expertise Rabiou Saley • Danthoss IA</strong><br/>
-              Email Pro : contact@danthoss-cabinet.com | WhatsApp : +227 96 49 99 06<br/>
+              Pont Messagerie : contact@danthoss-cabinet.com ↔ abdoulmajidrabiousaley457@gmail.com | WhatsApp : +227 96 49 99 06<br/>
               Portfolio : <a href="https://mon-portfolio-fin-ten.vercel.app/" style="color: #059669;">mon-portfolio-fin-ten.vercel.app</a>
             </div>
           </div>
         `;
 
         const forwardTarget = process.env.CORPORATE_FORWARD_EMAIL || 'abdoulmajidrabiousaley457@gmail.com';
+        // When real custom SMTP is active and a client writes to *@danthoss-cabinet.com, deliver directly into abdoulmajidrabiousaley457@gmail.com
+        const effectiveRecipient =
+          !isFromCorporate && mode === 'custom_smtp'
+            ? forwardTarget
+            : toName
+            ? `"${String(toName).replace(/"/g, '')}" <${cleanToEmail}>`
+            : cleanToEmail;
+
+        const effectiveSubject =
+          !isFromCorporate && mode === 'custom_smtp'
+            ? `[Danthoss Pro] ${cleanSubject}`
+            : cleanSubject;
+
         const info = await transporter.sendMail({
-          from: `"${String(fromName).replace(/"/g, '')}" <${cleanFromEmail}>`,
-          to: toName ? `"${String(toName).replace(/"/g, '')}" <${cleanToEmail}>` : cleanToEmail,
-          cc: cleanCcEmail || (!isFromCorporate && cleanToEmail !== 'contact@danthoss-cabinet.com' ? 'contact@danthoss-cabinet.com' : undefined),
-          bcc: !isFromCorporate && mode === 'custom_smtp' ? forwardTarget : undefined,
+          from:
+            mode === 'custom_smtp' && cachedSmtpAccountUser
+              ? `"${String(fromName).replace(/"/g, '')} (via Danthoss)" <${cachedSmtpAccountUser}>`
+              : `"${String(fromName).replace(/"/g, '')}" <${cleanFromEmail}>`,
+          to: effectiveRecipient,
+          cc: cleanCcEmail || undefined,
           replyTo: cleanFromEmail,
-          subject: cleanSubject,
+          headers: !isFromCorporate ? { 'X-Danthoss-Bridge': 'platform-forward' } : undefined,
+          subject: effectiveSubject,
           text: cleanBody,
           html: htmlBody,
         });
@@ -766,6 +802,9 @@ app.post('/api/mail/send', async (req, res) => {
         const preview = nodemailer.getTestMessageUrl(info);
         if (preview) smtpPreviewUrl = String(preview);
         smtpDelivered = true;
+        if (mode === 'custom_smtp' && !isFromCorporate) {
+          gmailForwardedViaSmtp = true;
+        }
       } catch (sendErr: any) {
         console.warn('SMTP dispatch notice (stored locally):', sendErr?.message || sendErr);
       }
@@ -794,7 +833,7 @@ app.post('/api/mail/send', async (req, res) => {
         body: cleanBody.slice(0, 15000),
         folder: 'sent',
         category: (['general', 'devis', 'livrable', 'support', 'system'].includes(category) ? category : 'general') as any,
-        read: true,
+        read: isToCorporate ? true : false,
         starred: false,
         smtpMessageId,
         smtpPreviewUrl,
@@ -837,6 +876,8 @@ app.post('/api/mail/send', async (req, res) => {
         starred: category === 'devis',
         smtpMessageId,
         smtpPreviewUrl,
+        externalSource: 'platform',
+        gmailForwarded: gmailForwardedViaSmtp,
         createdAt: timestampIso,
       };
       const existingIdx = messages.findIndex((m) => m.id === primaryRecord.id);
@@ -850,6 +891,7 @@ app.post('/api/mail/send', async (req, res) => {
       success: true,
       message: primaryRecord,
       smtpDelivered,
+      gmailForwarded: gmailForwardedViaSmtp,
       transportMode: mode,
       smtpMessageId,
       smtpPreviewUrl,
@@ -858,6 +900,45 @@ app.post('/api/mail/send', async (req, res) => {
     console.warn('Corporate mail send error:', err?.message || err);
     return res.status(500).json({ error: 'Erreur lors de l\'acheminement de l\'e-mail.' });
   }
+});
+
+// 3b. Sync external Gmail message into server mailbox cache
+app.post('/api/mail/sync-external', (req, res) => {
+  const incoming = req.body || {};
+  if (!incoming.id || !incoming.fromEmail || !incoming.toEmail) {
+    return res.status(400).json({ error: 'Message externe incomplet.' });
+  }
+  const messages = loadMailboxMessages();
+  const record: StoredCorporateEmail = {
+    id: String(incoming.id).slice(0, 128),
+    senderUid: String(incoming.senderUid || 'gmail_external').slice(0, 128),
+    fromName: String(incoming.fromName || 'Client Externe').slice(0, 120),
+    fromEmail: String(incoming.fromEmail).toLowerCase().slice(0, 150),
+    toName: String(incoming.toName || 'Cabinet Rabiou Saley').slice(0, 120),
+    toEmail: String(incoming.toEmail).toLowerCase().slice(0, 150),
+    ccEmail: String(incoming.ccEmail || '').toLowerCase().slice(0, 150),
+    subject: String(incoming.subject || '(Sans objet)').slice(0, 250),
+    body: String(incoming.body || ' ').slice(0, 15000),
+    folder: ['inbox', 'sent', 'drafts', 'trash'].includes(incoming.folder) ? incoming.folder : 'inbox',
+    category: ['general', 'devis', 'livrable', 'support', 'system'].includes(incoming.category)
+      ? incoming.category
+      : 'general',
+    read: Boolean(incoming.read),
+    starred: Boolean(incoming.starred),
+    smtpMessageId: String(incoming.smtpMessageId || '').slice(0, 250),
+    externalSource: 'gmail',
+    gmailMessageId: String(incoming.gmailMessageId || '').slice(0, 128),
+    gmailThreadId: String(incoming.gmailThreadId || '').slice(0, 128),
+    gmailForwarded: true,
+    createdAt: String(incoming.createdAt || new Date().toISOString()).slice(0, 50),
+  };
+
+  const idx = messages.findIndex((m) => m.id === record.id);
+  if (idx === -1) {
+    messages.unshift(record);
+    saveMailboxMessages(messages);
+  }
+  return res.json({ success: true, message: record });
 });
 
 // 4. Save or update Draft
@@ -913,10 +994,10 @@ app.post('/api/mail/draft', (req, res) => {
   return res.json({ success: true, draft: draftMsg });
 });
 
-// 5. Update message metadata (read, starred, folder)
+// 5. Update message metadata (read, starred, folder, gmailForwarded)
 app.patch('/api/mail/messages/:id', (req, res) => {
   const targetId = req.params.id;
-  const { read, starred, folder } = req.body || {};
+  const { read, starred, folder, gmailForwarded, gmailMessageId, gmailThreadId } = req.body || {};
   const messages = loadMailboxMessages();
   const idx = messages.findIndex((m) => m.id === targetId);
   if (idx === -1) {
@@ -925,6 +1006,9 @@ app.patch('/api/mail/messages/:id', (req, res) => {
 
   if (typeof read === 'boolean') messages[idx].read = read;
   if (typeof starred === 'boolean') messages[idx].starred = starred;
+  if (typeof gmailForwarded === 'boolean') messages[idx].gmailForwarded = gmailForwarded;
+  if (typeof gmailMessageId === 'string') messages[idx].gmailMessageId = gmailMessageId.slice(0, 128);
+  if (typeof gmailThreadId === 'string') messages[idx].gmailThreadId = gmailThreadId.slice(0, 128);
   if (folder && ['inbox', 'sent', 'drafts', 'trash'].includes(folder)) {
     messages[idx].folder = folder;
   }

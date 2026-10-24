@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { UserProfile, NotificationItem, CVData, CoverLetterData, SubscriptionTier, AppLanguage } from '../types';
 import { onAuthStateChanged, User, UserCredential } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db, loginWithGoogle, checkRedirectAuthResult, loginWithEmail, registerWithEmail, resetPassword, logoutUser, handleFirestoreError, OperationType } from '../services/firebase';
-import { subscribeToCorporateMailbox } from '../services/corporateMailService';
+import { subscribeToCorporateMailbox, isCorporateAddress } from '../services/corporateMailService';
 
 export const initialCVData: CVData = {
   fullName: 'Rabiou Saley Abdoul Majid',
@@ -98,7 +98,7 @@ export const initialCVData: CVData = {
       degree: 'Master en Ingénierie des Données & Systèmes Intelligents',
       field: 'Data Science & Intelligence Artificielle',
       location: 'Excellence Académique',
-      year: '2019 - 2021',
+      year: '2019 - 2019',
       details: 'Spécialisation : Réseaux de neurones profonds, Vision par ordinateur et Systèmes multi-agents.'
     },
     {
@@ -185,52 +185,6 @@ export const initialCoverLetterData: CoverLetterData = {
   signoff: 'Veuillez agréer, Madame, Monsieur, l\'expression de mes salutations distinguées.'
 };
 
-const initialNotifications: NotificationItem[] = [
-  {
-    id: 'n1',
-    title: 'Disponibilité Télétravail Confirmée',
-    message: 'Le Cabinet Rabiou Saley est ouvert aux nouvelles missions en télétravail international pour ce trimestre.',
-    time: 'Il y a 10m',
-    category: 'remote',
-    read: false,
-  },
-  {
-    id: 'n2',
-    title: 'Studio CV & Lettre de Motivation Pro Actif',
-    message: '4 modèles de CV professionnels certifiés ATS et un générateur de lettre de motivation sont prêts à l\'emploi.',
-    time: 'Il y a 1h',
-    category: 'career',
-    read: false,
-  },
-  {
-    id: 'n3',
-    title: 'Nouveau projet IA au Portfolio',
-    message: 'Découvrez NexusAgent, l\'architecture multi-agents RAG juridique & financière documentée sur le portfolio.',
-    time: 'Il y a 4h',
-    category: 'cabinet',
-    read: true,
-  },
-  {
-    id: 'n4',
-    title: 'Abonnement & Outils Carrière',
-    message: 'Passez au Plan Pro pour exporter des CVs illimités et bénéficier de l\'audit ATS IA de votre profil.',
-    time: 'Il y a 1j',
-    category: 'account',
-    read: true,
-  }
-];
-
-const defaultProfile: UserProfile = {
-  name: 'Rabiou Saley Abdoul Majid',
-  email: 'contact@danthoss-cabinet.com',
-  phone: '+227 96 49 99 06',
-  role: 'Expert Consultant Data Science & Concepteur d\'Agents IA',
-  country: 'Niger / International Remote',
-  tier: 'pro',
-  subscriptionEndDate: '2027-12-31',
-  remoteAvailable: true,
-};
-
 export const ADMIN_USER_ID = 'zbc5lYSgQ9bIcKipYER68wbI1Er1';
 export const ADMIN_EMAIL = 'abdoulmajidrabiousaley457@gmail.com';
 export const CORPORATE_EMAIL = 'contact@danthoss-cabinet.com';
@@ -246,8 +200,120 @@ export const ADMIN_EMAILS = [
 export const isAdminEmailAddress = (email?: string | null): boolean => {
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
-  return normalized.endsWith('@danthoss-cabinet.com') || ADMIN_EMAILS.includes(normalized);
+  return ADMIN_EMAILS.includes(normalized);
 };
+
+const adminDefaultProfile: UserProfile = {
+  name: 'Rabiou Saley Abdoul Majid',
+  email: CORPORATE_EMAIL,
+  phone: '+227 96 49 99 06',
+  role: 'Fondateur & Administrateur Référent',
+  country: 'Niger / International Remote',
+  tier: 'vip_cabinet',
+  subscriptionEndDate: '2027-12-31',
+  remoteAvailable: true
+};
+
+const guestClientDefaultProfile: UserProfile = {
+  name: 'Espace Client',
+  email: '',
+  phone: '',
+  role: 'Client & Partenaire',
+  country: 'International',
+  tier: 'free',
+  remoteAvailable: true
+};
+
+function buildDefaultClientNotifications(uid: string, clientName: string, clientEmail: string): NotificationItem[] {
+  return [
+    {
+      id: `client_welcome_${uid}`,
+      title: `Bienvenue dans votre espace personnel, ${clientName}`,
+      message: `Votre compte client (${clientEmail || 'vérifié'}) et votre coffre-fort Client Vault sont isolés et protégés.`,
+      time: 'Aujourd\'hui',
+      category: 'account',
+      read: false,
+      audience: 'client',
+      recipientUid: uid
+    },
+    {
+      id: `client_vault_ready_${uid}`,
+      title: 'Coffre-fort Client Vault opérationnel',
+      message: 'Retrouvez vos livrables certifiés ou déposez vos documents confidentiels dans votre coffre-fort personnel.',
+      time: 'Actif',
+      category: 'cabinet',
+      read: true,
+      audience: 'client',
+      recipientUid: uid
+    }
+  ];
+}
+
+function buildDefaultAdminNotifications(uid: string): NotificationItem[] {
+  return [
+    {
+      id: `admin_mailbox_active_${uid}`,
+      title: `Boîte Professionnelle Active • ${CORPORATE_EMAIL}`,
+      message: `Supervision administrateur active : tous les messages clients et demandes de devis arrivent en temps réel sur ${CORPORATE_EMAIL}.`,
+      time: 'En direct',
+      category: 'cabinet',
+      read: false,
+      audience: 'admin',
+      recipientUid: uid
+    },
+    {
+      id: `admin_vault_supervision_${uid}`,
+      title: 'Supervision Client Vault & Comptes',
+      message: 'Accès Super Admin actif sur les répertoires clients, livrables et demandes de missions.',
+      time: 'Actif',
+      category: 'remote',
+      read: true,
+      audience: 'admin',
+      recipientUid: uid
+    }
+  ];
+}
+
+function isAdminOnlyNotification(n: NotificationItem): boolean {
+  if (n.audience === 'admin') return true;
+  if (n.id.startsWith('admin_') || n.id.startsWith('notif_mail_in_')) return true;
+  const hay = `${n.title} ${n.message}`.toLowerCase();
+  if (
+    hay.includes('nouveau message client') ||
+    hay.includes('abdoulmajidrabiousaley457@gmail.com') ||
+    hay.includes('supervision')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function loadScopedNotifications(uid: string, userIsAdmin: boolean, clientName: string, clientEmail: string): NotificationItem[] {
+  const storageKey = userIsAdmin
+    ? `danthoss_notifs_admin_${uid}`
+    : `danthoss_notifs_client_${uid}`;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        if (userIsAdmin) {
+          return parsed.filter((n: NotificationItem) => n.audience !== 'client');
+        }
+        const sanitized = parsed.filter(
+          (n: NotificationItem) =>
+            !isAdminOnlyNotification(n) && (!n.recipientUid || n.recipientUid === uid)
+        );
+        if (sanitized.length > 0) return sanitized;
+      }
+    }
+  } catch {
+    // ignore storage parse error
+  }
+  return userIsAdmin
+    ? buildDefaultAdminNotifications(uid)
+    : buildDefaultClientNotifications(uid, clientName, clientEmail);
+}
 
 interface UserProfileContextType {
   profile: UserProfile;
@@ -285,10 +351,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('danthoss_cabinet_profile');
-    return saved ? JSON.parse(saved) : defaultProfile;
-  });
+  const [profile, setProfile] = useState<UserProfile>(guestClientDefaultProfile);
 
   const [cvData, setCVData] = useState<CVData>(() => {
     const saved = localStorage.getItem('danthoss_cabinet_cv');
@@ -300,13 +363,23 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return saved ? JSON.parse(saved) : initialCoverLetterData;
   });
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadEmailsCount, setUnreadEmailsCount] = useState<number>(0);
+
   const knownMailIdsRef = React.useRef<Set<string>>(new Set());
   const mailInitialLoadedRef = React.useRef<boolean>(false);
+  const knownVaultIdsRef = React.useRef<Set<string>>(new Set());
+  const vaultInitialLoadedRef = React.useRef<boolean>(false);
+  const knownDevisIdsRef = React.useRef<Set<string>>(new Set());
+  const devisInitialLoadedRef = React.useRef<boolean>(false);
+
   const [activeLanguage, setActiveLanguageState] = useState<AppLanguage>(() => {
     return (localStorage.getItem('mydanthoss_lang') as AppLanguage) || 'fr';
   });
+
+  const isAdmin = Boolean(
+    firebaseUser && (firebaseUser.uid === ADMIN_USER_ID || isAdminEmailAddress(firebaseUser.email))
+  );
 
   const setActiveLanguage = (lang: AppLanguage) => {
     setActiveLanguageState(lang);
@@ -326,9 +399,27 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => window.removeEventListener('language-change', handleLangChange);
   }, [activeLanguage]);
 
-  // Listen to Firebase Auth state & check redirect result
+  // Persist notifications strictly under per-UID + per-role key
   useEffect(() => {
-    // Check if user is returning from a redirect Google sign-in
+    if (!firebaseUser) return;
+    const storageKey = isAdmin
+      ? `danthoss_notifs_admin_${firebaseUser.uid}`
+      : `danthoss_notifs_client_${firebaseUser.uid}`;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, 60)));
+    } catch {
+      // ignore quota
+    }
+  }, [notifications, firebaseUser, isAdmin]);
+
+  // Listen to Firebase Auth state & isolate profile + notifications per user
+  useEffect(() => {
+    // Cleanup legacy shared profile key so old admin email never leaks across sessions
+    try {
+      localStorage.removeItem('danthoss_cabinet_profile');
+      localStorage.removeItem('danthoss_admin_auth_tools');
+    } catch {}
+
     checkRedirectAuthResult()
       .then((res) => {
         if (res && res.user) {
@@ -349,6 +440,15 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      // Reset per-session tracking refs immediately on user change
+      knownMailIdsRef.current.clear();
+      mailInitialLoadedRef.current = false;
+      knownVaultIdsRef.current.clear();
+      vaultInitialLoadedRef.current = false;
+      knownDevisIdsRef.current.clear();
+      devisInitialLoadedRef.current = false;
+      setUnreadEmailsCount(0);
+
       setFirebaseUser(user);
       setAuthLoading(false);
 
@@ -356,9 +456,44 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setAuthError(null);
         const userIsAdmin = user.uid === ADMIN_USER_ID || isAdminEmailAddress(user.email);
         const fallbackClientName =
-          user.displayName || (user.email ? user.email.split('@')[0] : 'Membre Danthoss');
+          user.displayName || (user.email ? user.email.split('@')[0] : 'Client Danthoss');
 
-        // Sync or fetch profile from Firestore without contaminating client accounts with founder email
+        // Immediately hydrate scoped profile & notifications before async Firestore round-trip
+        const initialScopedProfile: UserProfile = userIsAdmin
+          ? {
+              ...adminDefaultProfile,
+              name: user.displayName || adminDefaultProfile.name,
+              email: user.email || CORPORATE_EMAIL
+            }
+          : {
+              ...guestClientDefaultProfile,
+              name: fallbackClientName,
+              email: user.email || ''
+            };
+
+        try {
+          const cachedProfileRaw = localStorage.getItem(`danthoss_profile_${user.uid}`);
+          if (cachedProfileRaw) {
+            const cachedProfile = JSON.parse(cachedProfileRaw) as UserProfile;
+            setProfile({
+              ...initialScopedProfile,
+              ...cachedProfile,
+              email: userIsAdmin
+                ? user.email || cachedProfile.email || CORPORATE_EMAIL
+                : user.email || (!isAdminEmailAddress(cachedProfile.email) ? cachedProfile.email : '')
+            });
+          } else {
+            setProfile(initialScopedProfile);
+          }
+        } catch {
+          setProfile(initialScopedProfile);
+        }
+
+        setNotifications(
+          loadScopedNotifications(user.uid, userIsAdmin, fallbackClientName, user.email || '')
+        );
+
+        // Sync or fetch profile from Firestore without contaminating client accounts with admin data
         const userDocRef = doc(db, 'users', user.uid);
         try {
           const userDoc = await getDoc(userDocRef);
@@ -367,51 +502,67 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
             const cleanStoredEmail =
               !userIsAdmin && isAdminEmailAddress(data.email) ? user.email || '' : data.email;
             const cleanStoredName =
-              !userIsAdmin && data.name === defaultProfile.name ? fallbackClientName : data.name;
+              !userIsAdmin && data.name === adminDefaultProfile.name ? fallbackClientName : data.name;
+            const cleanStoredPhone =
+              !userIsAdmin && data.phone === adminDefaultProfile.phone ? '' : data.phone || '';
 
-            setProfile((prev) => ({
-              ...prev,
+            const nextProfile: UserProfile = {
               name: userIsAdmin
-                ? data.name || user.displayName || defaultProfile.name
+                ? data.name || user.displayName || adminDefaultProfile.name
                 : cleanStoredName || fallbackClientName,
               email: userIsAdmin
                 ? user.email || data.email || CORPORATE_EMAIL
                 : user.email || cleanStoredEmail || '',
+              phone: userIsAdmin ? data.phone || adminDefaultProfile.phone : cleanStoredPhone,
               tier: userIsAdmin ? 'vip_cabinet' : data.tier || 'free',
               role: userIsAdmin
                 ? data.role || 'Fondateur & Administrateur Référent'
-                : data.role && !data.role.includes('Agents IA')
+                : data.role && !data.role.includes('Agents IA') && !data.role.includes('Administrateur')
                 ? data.role
                 : 'Client & Partenaire',
-              country: data.country || prev.country
-            }));
+              country: data.country || (userIsAdmin ? adminDefaultProfile.country : 'International'),
+              bio: data.bio || undefined,
+              subscriptionEndDate: userIsAdmin ? '2027-12-31' : data.subscriptionEndDate,
+              remoteAvailable: true
+            };
+
+            setProfile(nextProfile);
+            try {
+              localStorage.setItem(`danthoss_profile_${user.uid}`, JSON.stringify(nextProfile));
+            } catch {}
           } else {
             const initialDoc = {
               id: user.uid,
-              name: userIsAdmin ? user.displayName || defaultProfile.name : fallbackClientName,
+              name: userIsAdmin ? user.displayName || adminDefaultProfile.name : fallbackClientName,
               email: user.email || (userIsAdmin ? CORPORATE_EMAIL : ''),
-              tier: userIsAdmin ? 'vip_cabinet' : ('free' as SubscriptionTier),
+              phone: userIsAdmin ? adminDefaultProfile.phone : '',
+              tier: userIsAdmin ? ('vip_cabinet' as SubscriptionTier) : ('free' as SubscriptionTier),
               role: userIsAdmin ? 'Fondateur & Administrateur Référent' : 'Client & Partenaire',
-              country: 'Niger / International',
+              country: userIsAdmin ? 'Niger / International' : 'International',
               updatedAt: new Date().toISOString()
             };
-            setProfile((prev) => ({
-              ...prev,
+            const nextProfile: UserProfile = {
               name: initialDoc.name,
               email: initialDoc.email,
+              phone: initialDoc.phone,
               tier: initialDoc.tier,
               role: initialDoc.role,
-              country: initialDoc.country
-            }));
+              country: initialDoc.country,
+              remoteAvailable: true
+            };
+            setProfile(nextProfile);
+            try {
+              localStorage.setItem(`danthoss_profile_${user.uid}`, JSON.stringify(nextProfile));
+            } catch {}
             await setDoc(userDocRef, initialDoc);
           }
         } catch (error) {
           handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
         }
       } else {
+        setProfile(guestClientDefaultProfile);
+        setNotifications([]);
         setUnreadEmailsCount(0);
-        knownMailIdsRef.current.clear();
-        mailInitialLoadedRef.current = false;
       }
     });
 
@@ -428,7 +579,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
       return res;
     } catch (err: any) {
-      console.error('Login error:', err);
       const code = err?.code || '';
       if (code === 'auth/unauthorized-domain') {
         const host = typeof window !== 'undefined' ? window.location.hostname : 'votre domaine';
@@ -441,44 +591,36 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const loginEmail = async (email: string, pass: string) => {
-    try {
-      await loginWithEmail(email, pass);
-    } catch (err) {
-      console.error('Email login error:', err);
-      throw err;
-    }
+    setAuthError(null);
+    await loginWithEmail(email, pass);
   };
 
   const registerEmail = async (email: string, pass: string, name?: string) => {
-    try {
-      await registerWithEmail(email, pass, name);
-    } catch (err) {
-      console.error('Email registration error:', err);
-      throw err;
-    }
+    setAuthError(null);
+    await registerWithEmail(email, pass, name);
   };
 
   const sendPasswordReset = async (email: string) => {
-    try {
-      await resetPassword(email);
-    } catch (err) {
-      console.error('Password reset error:', err);
-      throw err;
-    }
+    setAuthError(null);
+    await resetPassword(email);
   };
 
   const logout = async () => {
     try {
+      setNotifications([]);
+      setUnreadEmailsCount(0);
+      setProfile(guestClientDefaultProfile);
       await logoutUser();
     } catch (err) {
-      console.error('Logout error:', err);
+      console.warn('Logout notice:', err);
       throw err;
     }
   };
 
   const saveCVToFirestore = async (customTitle?: string): Promise<boolean> => {
     if (!firebaseUser) {
-      alert('Veuillez vous connecter avec votre compte Google pour sauvegarder dans Firebase.');
+      const msg = 'Veuillez vous connecter (par Email/Mot de passe ou Google) pour sauvegarder votre CV dans Firebase Cloud.';
+      setAuthError(msg);
       return false;
     }
 
@@ -498,11 +640,13 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       const newNotif: NotificationItem = {
         id: `cv_save_${Date.now()}`,
-        title: 'CV sauvegardé dans Firebase Cloud',
-        message: `Votre CV "${cvData.jobTitle}" a été synchronisé avec succès dans votre base de données.`,
+        title: 'Votre CV a été sauvegardé dans le Cloud',
+        message: `Le document "${cvData.jobTitle}" est enregistré dans votre espace personnel.`,
         time: 'À l\'instant',
         category: 'career',
-        read: false
+        read: false,
+        audience: isAdmin ? 'admin' : 'client',
+        recipientUid: firebaseUser.uid
       };
       setNotifications((prev) => [newNotif, ...prev]);
       return true;
@@ -513,8 +657,12 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   useEffect(() => {
-    localStorage.setItem('danthoss_cabinet_profile', JSON.stringify(profile));
-  }, [profile]);
+    if (firebaseUser) {
+      try {
+        localStorage.setItem(`danthoss_profile_${firebaseUser.uid}`, JSON.stringify(profile));
+      } catch {}
+    }
+  }, [profile, firebaseUser]);
 
   useEffect(() => {
     localStorage.setItem('danthoss_cabinet_cv', JSON.stringify(cvData));
@@ -524,7 +672,18 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     localStorage.setItem('danthoss_cabinet_cover_letter', JSON.stringify(coverLetterData));
   }, [coverLetterData]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Strict visible notifications filtered for the active user & role
+  const visibleNotifications = useMemo(() => {
+    if (!firebaseUser) return [];
+    if (isAdmin) {
+      return notifications.filter((n) => n.audience !== 'client');
+    }
+    return notifications.filter(
+      (n) => !isAdminOnlyNotification(n) && (!n.recipientUid || n.recipientUid === firebaseUser.uid)
+    );
+  }, [notifications, firebaseUser, isAdmin]);
+
+  const unreadCount = visibleNotifications.filter((n) => !n.read).length;
 
   const updateProfile = async (partial: Partial<UserProfile>) => {
     setProfile((prev) => {
@@ -534,9 +693,11 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           id: firebaseUser.uid,
           name: updated.name,
           email: updated.email,
+          phone: updated.phone || '',
           tier: updated.tier,
           role: updated.role,
           country: updated.country,
+          bio: updated.bio || '',
           updatedAt: new Date().toISOString()
         }, { merge: true }).catch((err) => {
           handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`);
@@ -573,15 +734,19 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return updated;
     });
 
-    const newNotif: NotificationItem = {
-      id: `sub_${Date.now()}`,
-      title: `Abonnement ${tier === 'vip_cabinet' ? 'Cabinet VIP & Mentorat' : 'Plan Pro'} Activé !`,
-      message: 'Toutes les fonctionnalités premium du cabinet, exports illimités et outils d\'audit sont désormais débloqués.',
-      time: 'À l\'instant',
-      category: 'account',
-      read: false
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
+    if (firebaseUser) {
+      const newNotif: NotificationItem = {
+        id: `sub_${Date.now()}`,
+        title: `Abonnement ${tier === 'vip_cabinet' ? 'Cabinet VIP & Mentorat' : 'Plan Pro'} Activé !`,
+        message: 'Vos fonctionnalités premium et exports illimités sont désormais actifs sur votre compte.',
+        time: 'À l\'instant',
+        category: 'account',
+        read: false,
+        audience: isAdmin ? 'admin' : 'client',
+        recipientUid: firebaseUser.uid
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
+    }
   };
 
   const markNotificationAsRead = (id: string) => {
@@ -599,56 +764,186 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCoverLetterData(initialCoverLetterData);
   };
 
-  const isAdmin = Boolean(
-    firebaseUser && (firebaseUser.uid === ADMIN_USER_ID || isAdminEmailAddress(firebaseUser.email))
-  );
-
-  // Real-time corporate email unread counter & instant notification alert
+  // Real-time email counter & role-isolated notifications
   useEffect(() => {
     if (!firebaseUser) {
       setUnreadEmailsCount(0);
       return;
     }
 
+    const uid = firebaseUser.uid;
+    const myEmail = (firebaseUser.email || '').trim().toLowerCase();
+
     const unsub = subscribeToCorporateMailbox({
-      userUid: firebaseUser.uid,
-      userEmail: firebaseUser.email || '',
+      userUid: uid,
+      userEmail: myEmail,
       isAdmin,
       onMessages: (msgs) => {
         if (isAdmin) {
+          // ADMIN ONLY: corporate inbox unread count & inbound client email notifications
           const unreadInbox = msgs.filter((m) => m.folder === 'inbox' && !m.read);
           setUnreadEmailsCount(unreadInbox.length);
 
           if (mailInitialLoadedRef.current) {
             for (const m of unreadInbox) {
               if (!knownMailIdsRef.current.has(m.id)) {
-                setNotifications((prev) => [
-                  {
-                    id: `notif_${m.id}`,
-                    title: `Nouveau message client • ${CORPORATE_EMAIL}`,
-                    message: `De ${m.fromName} (${m.fromEmail}) : "${m.subject}"`,
-                    time: 'À l\'instant',
-                    category: 'cabinet',
-                    read: false
-                  },
-                  ...prev
-                ]);
+                const adminAlertId = `admin_mail_${m.id}`;
+                setNotifications((prev) => {
+                  if (prev.some((p) => p.id === adminAlertId)) return prev;
+                  return [
+                    {
+                      id: adminAlertId,
+                      title: `Nouveau message client • ${CORPORATE_EMAIL}`,
+                      message: `De ${m.fromName} (${m.fromEmail}) : "${m.subject}"`,
+                      time: 'À l\'instant',
+                      category: 'cabinet',
+                      read: false,
+                      audience: 'admin',
+                      recipientUid: uid
+                    },
+                    ...prev
+                  ];
+                });
               }
             }
           }
           msgs.forEach((m) => knownMailIdsRef.current.add(m.id));
           mailInitialLoadedRef.current = true;
         } else {
-          const myEmail = (firebaseUser.email || '').toLowerCase();
+          // CLIENT ONLY: strictly replies sent BY the Cabinet TO this specific client's email
+          if (!myEmail || isAdminEmailAddress(myEmail)) {
+            setUnreadEmailsCount(0);
+            return;
+          }
+
           const unreadReplies = msgs.filter(
-            (m) => m.toEmail.toLowerCase() === myEmail && !m.read
+            (m) =>
+              m.folder === 'sent' &&
+              m.toEmail.toLowerCase() === myEmail &&
+              isCorporateAddress(m.fromEmail) &&
+              !m.read
           );
           setUnreadEmailsCount(unreadReplies.length);
+
+          if (mailInitialLoadedRef.current) {
+            for (const m of unreadReplies) {
+              if (!knownMailIdsRef.current.has(m.id)) {
+                const clientReplyNotifId = `client_reply_${m.id}`;
+                setNotifications((prev) => {
+                  if (prev.some((p) => p.id === clientReplyNotifId)) return prev;
+                  return [
+                    {
+                      id: clientReplyNotifId,
+                      title: 'Nouvelle réponse du Cabinet Danthoss',
+                      message: `Objet : "${m.subject}" — Consultez votre espace messages pour lire la réponse.`,
+                      time: 'À l\'instant',
+                      category: 'cabinet',
+                      read: false,
+                      audience: 'client',
+                      recipientUid: uid
+                    },
+                    ...prev
+                  ];
+                });
+              }
+            }
+          }
+          msgs.forEach((m) => knownMailIdsRef.current.add(m.id));
+          mailInitialLoadedRef.current = true;
         }
       }
     });
 
     return () => unsub();
+  }, [firebaseUser, isAdmin]);
+
+  // Real-time personal Client notifications for their own Vault deliverables & their own Devis
+  useEffect(() => {
+    if (!firebaseUser || isAdmin) return;
+
+    const uid = firebaseUser.uid;
+    const myEmail = (firebaseUser.email || '').trim().toLowerCase();
+    const unsubs: Array<() => void> = [];
+
+    // 1. Personal Client Vault listener (/users/{uid}/vaultFiles)
+    const unsubVault = onSnapshot(
+      collection(db, 'users', uid, 'vaultFiles'),
+      (snap) => {
+        if (vaultInitialLoadedRef.current) {
+          snap.docChanges().forEach((change) => {
+            if (change.type === 'added' && !knownVaultIdsRef.current.has(change.doc.id)) {
+              const fileData = change.doc.data() as any;
+              const notifId = `client_vault_file_${change.doc.id}`;
+              setNotifications((prev) => {
+                if (prev.some((p) => p.id === notifId)) return prev;
+                return [
+                  {
+                    id: notifId,
+                    title: 'Nouveau document dans votre Coffre-fort',
+                    message: `Le fichier "${fileData.name || 'Livrable'}" est disponible dans votre espace Client Vault.`,
+                    time: 'À l\'instant',
+                    category: 'cabinet',
+                    read: false,
+                    audience: 'client',
+                    recipientUid: uid
+                  },
+                  ...prev
+                ];
+              });
+            }
+          });
+        }
+        snap.forEach((d) => knownVaultIdsRef.current.add(d.id));
+        vaultInitialLoadedRef.current = true;
+      },
+      () => {}
+    );
+    unsubs.push(unsubVault);
+
+    // 2. Personal Client Devis listener (/devisRequests where clientEmail == myEmail)
+    if (myEmail && !isAdminEmailAddress(myEmail)) {
+      const qDevis = query(
+        collection(db, 'devisRequests'),
+        where('clientEmail', '==', myEmail)
+      );
+      const unsubDevis = onSnapshot(
+        qDevis,
+        (snap) => {
+          if (devisInitialLoadedRef.current) {
+            snap.docChanges().forEach((change) => {
+              if (change.type === 'added' && !knownDevisIdsRef.current.has(change.doc.id)) {
+                const qData = change.doc.data() as any;
+                const notifId = `client_devis_${change.doc.id}`;
+                setNotifications((prev) => {
+                  if (prev.some((p) => p.id === notifId)) return prev;
+                  return [
+                    {
+                      id: notifId,
+                      title: 'Votre demande de devis a bien été transmise',
+                      message: `Estimation enregistrée (${(qData.estimatedCostEUR || 0).toLocaleString('fr-FR')} €). Le Cabinet vous répondra sur ${myEmail}.`,
+                      time: 'À l\'instant',
+                      category: 'remote',
+                      read: false,
+                      audience: 'client',
+                      recipientUid: uid
+                    },
+                    ...prev
+                  ];
+                });
+              }
+            });
+          }
+          snap.forEach((d) => knownDevisIdsRef.current.add(d.id));
+          devisInitialLoadedRef.current = true;
+        },
+        () => {}
+      );
+      unsubs.push(unsubDevis);
+    }
+
+    return () => {
+      unsubs.forEach((u) => u());
+    };
   }, [firebaseUser, isAdmin]);
 
   return (
@@ -666,7 +961,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         sendPasswordReset,
         logout,
         saveCVToFirestore,
-        notifications,
+        notifications: visibleNotifications,
         unreadCount,
         unreadEmailsCount,
         cvData,

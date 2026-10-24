@@ -360,10 +360,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
             <button
               onClick={() => onNavigateTab('webmail')}
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer"
-              title={`Messagerie Professionnelle (${CORPORATE_EMAIL})`}
+              title={
+                isAdmin
+                  ? `Messagerie Professionnelle (${CORPORATE_EMAIL})`
+                  : `Contacter le Cabinet (${CORPORATE_EMAIL})`
+              }
             >
               <Mail className="w-4 h-4 text-emerald-700" />
-              <span>Messagerie Pro</span>
+              <span>{isAdmin ? 'Messagerie Pro' : 'Contacter le Cabinet'}</span>
               {unreadEmailsCount > 0 && (
                 <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
                   {unreadEmailsCount}
@@ -376,7 +380,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
               className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer"
             >
               <FolderLock className="w-4 h-4" />
-              <span>{t('navClientVault', 'Coffre-fort Clients')}</span>
+              <span>{isAdmin ? t('navClientVault', 'Coffre-fort Clients') : 'Mon Coffre-fort'}</span>
             </button>
 
             <button
@@ -527,7 +531,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Card 0: Corporate Professional Email */}
+          {/* Card 0: Corporate Email (Admin) OR Contact Cabinet (Client) */}
           <div
             onClick={() => onNavigateTab('webmail')}
             className="p-5 rounded-2xl bg-slate-950 text-white border border-emerald-500/40 hover:border-emerald-400 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between"
@@ -537,14 +541,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
                 <Mail className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
-                Messagerie Pro • {CORPORATE_EMAIL}
+                {isAdmin
+                  ? `Messagerie Pro • ${CORPORATE_EMAIL}`
+                  : 'Contacter le Cabinet & Mes Réponses'}
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Boîte de réception et d'envoi officielle SMTP du Cabinet (contact@, devis@, direction@, support@) avec rédaction assistée par Gemini AI.
+                {isAdmin
+                  ? "Boîte de réception et d'envoi officielle SMTP du Cabinet (contact@, devis@, direction@, support@) avec rédaction assistée par Gemini AI."
+                  : `Envoyez vos demandes directement à ${CORPORATE_EMAIL} et consultez uniquement les réponses personnelles adressées à votre compte.`}
               </p>
             </div>
             <div className="pt-3 flex items-center text-xs font-bold text-emerald-400 gap-1">
-              <span>Ouvrir le Webmail Pro</span>
+              <span>{isAdmin ? 'Ouvrir le Webmail Pro' : 'Écrire au Cabinet'}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform rtl:group-hover:-translate-x-1" />
             </div>
           </div>
@@ -559,14 +567,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateTab,
                 <FolderLock className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">
-                {t('openClientVault', 'Coffre-fort Clients (Client Vault)')}
+                {isAdmin
+                  ? t('openClientVault', 'Coffre-fort Clients (Client Vault)')
+                  : 'Mon Coffre-fort Personnel'}
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                {t('openClientVaultDesc', 'Téléversez et gérez les livrables sécurisés pour vos clients')}
+                {isAdmin
+                  ? t('openClientVaultDesc', 'Téléversez et gérez les livrables sécurisés pour vos clients')
+                  : 'Accédez à vos documents confidentiels et aux livrables déposés pour votre compte'}
               </p>
             </div>
             <div className="pt-3 flex items-center text-xs font-bold text-emerald-700 gap-1">
-              <span>Accéder au Coffre-fort</span>
+              <span>{isAdmin ? 'Accéder au Coffre-fort' : 'Ouvrir mon Coffre-fort'}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform rtl:group-hover:-translate-x-1" />
             </div>
           </div>

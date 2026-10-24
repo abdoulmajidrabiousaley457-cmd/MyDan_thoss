@@ -1,12 +1,12 @@
 {
-  "projectId": "elegant-hour-hf38q",
-  "appId": "1:132019238791:web:4525d28ee2fe51e24ac522",
-  "apiKey": "AIzaSyDrr3cRg-DP9qCxzGuQd-zxSUGvYE639H4",
-  "authDomain": "elegant-hour-hf38q.firebaseapp.com",
+  "projectId": "gen-lang-client-0328160562",
+  "appId": "1:473655114858:web:62229ce7c04c0f8b1a9e13",
+  "apiKey": "AIzaSyCEb8aob7RivMw-ghAAEbB5SPGBDF2BUw8",
+  "authDomain": "gen-lang-client-0328160562.firebaseapp.com",
   "firestoreDatabaseId": "ai-studio-mydanthoss-e4d67ed5-fdaf-41b9-8feb-2a082b874914",
-  "storageBucket": "elegant-hour-hf38q.firebasestorage.app",
-  "messagingSenderId": "132019238791",
+  "storageBucket": "gen-lang-client-0328160562.firebasestorage.app",
+  "messagingSenderId": "473655114858",
   "measurementId": "",
-  "oAuthClientId": "132019238791-rlrcjint34bbsrnk92g6gks6tdp4s98a.apps.googleusercontent.com",
+  "oAuthClientId": "473655114858-ouj6kec07pmagkk0kc8hhi3ltg621br6.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }

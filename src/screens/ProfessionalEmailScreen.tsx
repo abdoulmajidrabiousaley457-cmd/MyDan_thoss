@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Mail,
   Send,
@@ -22,7 +22,10 @@ import {
   KeyRound,
   X,
   MailOpen,
-  Zap
+  Zap,
+  ArrowRightLeft,
+  ShieldAlert,
+  Globe
 } from 'lucide-react';
 import { useUserProfile, CORPORATE_EMAIL } from '../context/UserProfileContext';
 import { CABINET_INFO } from '../data/cabinetData';
@@ -36,6 +39,16 @@ import {
   downloadMessageAsEml,
   isCorporateAddress
 } from '../services/corporateMailService';
+import {
+  GmailBridgeState,
+  LINKED_GMAIL_ADDRESS,
+  subscribeGmailBridgeState,
+  connectGmailBridge,
+  disconnectGmailBridge,
+  syncExternalGmailToCorporateMailbox,
+  forwardPlatformMessagesToGmail,
+  sendExternalEmailViaGmail
+} from '../services/gmailBridgeService';
 
 interface MailServerStatus {
   operational: boolean;
@@ -53,6 +66,25 @@ interface MailServerStatus {
     drafts: number;
   };
 }
+
+type PendingGmailConfirmation =
+  | {
+      mode: 'forward_to_gmail';
+      items: CorporateEmailMessage[];
+    }
+  | {
+      mode: 'send_external_gmail';
+      senderDisplayName: string;
+      fromAlias: string;
+      toEmail: string;
+      toName: string;
+      ccEmail: string;
+      subject: string;
+      body: string;
+      category: 'general' | 'devis' | 'livrable' | 'support';
+      inReplyToMessageId?: string;
+      gmailThreadId?: string;
+    };
 
 const EMAIL_TEMPLATES = [
   {
@@ -78,6 +110,33 @@ const EMAIL_TEMPLATES = [
   }
 ];
 
+const GoogleGIcon: React.FC = () => (
+  <svg
+    version="1.1"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 48 48"
+    className="w-4 h-4 shrink-0 block"
+  >
+    <path
+      fill="#EA4335"
+      d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+    />
+    <path
+      fill="#4285F4"
+      d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+    />
+    <path
+      fill="#34A853"
+      d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+    />
+    <path fill="none" d="M0 0h48v48H0z" />
+  </svg>
+);
+
 export const ProfessionalEmailScreen: React.FC = () => {
   const { firebaseUser, profile, isAdmin, registerEmail } = useUserProfile();
 
@@ -85,6 +144,23 @@ export const ProfessionalEmailScreen: React.FC = () => {
   const [serverStatus, setServerStatus] = useState<MailServerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Gmail External Bridge state (in-memory OAuth token state)
+  const [gmailBridge, setGmailBridge] = useState<GmailBridgeState>({
+    connected: false,
+    connectedEmail: null,
+    needsAuth: true,
+    lastSyncAt: null
+  });
+  const [connectingGmail, setConnectingGmail] = useState(false);
+  const [syncingGmail, setSyncingGmail] = useState(false);
+  const [confirmingGmailMutation, setConfirmingGmailMutation] = useState(false);
+  const [pendingConfirmation, setPendingConfirmation] = useState<PendingGmailConfirmation | null>(
+    null
+  );
+  const promptedForwardIdsRef = useRef<Set<string>>(new Set());
+  const latestMessagesRef = useRef<CorporateEmailMessage[]>([]);
+  latestMessagesRef.current = messages;
 
   // Navigation & filter state
   const [activeFolder, setActiveFolder] = useState<'inbox' | 'sent' | 'starred' | 'drafts' | 'trash'>('inbox');
@@ -107,6 +183,10 @@ export const ProfessionalEmailScreen: React.FC = () => {
   // Composer modal state
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [draftId, setDraftId] = useState<string | undefined>(undefined);
+  const [replyContext, setReplyContext] = useState<{
+    inReplyToMessageId?: string;
+    gmailThreadId?: string;
+  } | null>(null);
   const [fromAlias, setFromAlias] = useState<string>(
     isAdmin ? CORPORATE_EMAIL : activeUserEmail
   );
@@ -135,7 +215,60 @@ export const ProfessionalEmailScreen: React.FC = () => {
   const [activatingAuth, setActivatingAuth] = useState(false);
   const [authActivationMsg, setAuthActivationMsg] = useState<string | null>(null);
 
+  // Subscribe to Gmail Bridge state (Administrator only)
+  useEffect(() => {
+    if (!isAdmin) return;
+    const unsub = subscribeGmailBridgeState((nextState) => {
+      setGmailBridge(nextState);
+    });
+    return () => unsub();
+  }, [isAdmin]);
+
+  // Platform messages received on contact@danthoss-cabinet.com that have not yet been forwarded to abdoulmajidrabiousaley457@gmail.com
+  const pendingForwardMessages = useMemo(() => {
+    if (!isAdmin) return [];
+    return messages.filter(
+      (m) =>
+        m.folder === 'inbox' &&
+        m.externalSource !== 'gmail' &&
+        !m.gmailForwarded &&
+        !m.id.startsWith('mail_welcome_') &&
+        !m.id.startsWith('mail_sample_')
+    );
+  }, [messages, isAdmin]);
+
+  // Auto-prompt confirmation dialog when a brand-new platform message arrives while Gmail Bridge is connected
+  useEffect(() => {
+    if (!isAdmin || !gmailBridge.connected || pendingConfirmation || isComposerOpen) return;
+
+    const unprompted = pendingForwardMessages.filter(
+      (m) => !promptedForwardIdsRef.current.has(m.id)
+    );
+    if (unprompted.length > 0) {
+      unprompted.forEach((m) => promptedForwardIdsRef.current.add(m.id));
+      setPendingConfirmation({
+        mode: 'forward_to_gmail',
+        items: pendingForwardMessages
+      });
+    }
+  }, [isAdmin, gmailBridge.connected, pendingForwardMessages, pendingConfirmation, isComposerOpen]);
+
+  // Background read-only sync of external Gmail inbox every 45s while connected
+  useEffect(() => {
+    if (!isAdmin || !gmailBridge.connected) return;
+
+    const timer = setInterval(() => {
+      syncExternalGmailToCorporateMailbox(latestMessagesRef.current).catch(() => {});
+    }, 45000);
+
+    return () => clearInterval(timer);
+  }, [isAdmin, gmailBridge.connected]);
+
   const fetchServerStatus = async () => {
+    if (!isAdmin) {
+      setRefreshing(false);
+      return;
+    }
     setRefreshing(true);
     try {
       const res = await fetch('/api/mail/status');
@@ -143,6 +276,9 @@ export const ProfessionalEmailScreen: React.FC = () => {
       if (res.ok && ct.includes('application/json')) {
         const statusData = await res.json();
         setServerStatus(statusData);
+      }
+      if (gmailBridge.connected) {
+        await syncExternalGmailToCorporateMailbox(latestMessagesRef.current);
       }
     } catch {
       // Cloud Firestore remains active even if local Express status endpoint is unreachable
@@ -186,6 +322,144 @@ export const ProfessionalEmailScreen: React.FC = () => {
     }
   }, [isAdmin, activeUserEmail, firebaseUser?.displayName, profile.name]);
 
+  const handleConnectGmail = async () => {
+    if (connectingGmail) return;
+    setConnectingGmail(true);
+    setFeedbackBanner(null);
+    try {
+      const connected = await connectGmailBridge();
+      if (connected) {
+        setSyncingGmail(true);
+        const syncRes = await syncExternalGmailToCorporateMailbox(latestMessagesRef.current);
+        setSyncingGmail(false);
+
+        setFeedbackBanner({
+          type: 'success',
+          text:
+            syncRes.importedCount > 0
+              ? `Pont Gmail actif (${connected.gmailAddress} ↔ ${CORPORATE_EMAIL}) : ${syncRes.importedCount} e-mail(s) externe(s) importé(s) dans votre boîte pro !`
+              : `Pont Gmail relié avec succès (${connected.gmailAddress} ↔ ${CORPORATE_EMAIL}). Les e-mails externes s'afficheront automatiquement ici.`
+        });
+      }
+    } catch (err: any) {
+      setSyncingGmail(false);
+      setFeedbackBanner({
+        type: 'error',
+        text: err?.message || 'Erreur lors de la liaison avec Google Gmail.'
+      });
+    } finally {
+      setConnectingGmail(false);
+    }
+  };
+
+  const handleManualSyncGmail = async () => {
+    if (syncingGmail) return;
+    setSyncingGmail(true);
+    setFeedbackBanner(null);
+    try {
+      const syncRes = await syncExternalGmailToCorporateMailbox(latestMessagesRef.current);
+      setFeedbackBanner({
+        type: 'success',
+        text:
+          syncRes.importedCount > 0
+            ? `${syncRes.importedCount} nouvel(aux) e-mail(s) externe(s) reçu(s) depuis ${
+                gmailBridge.connectedEmail || LINKED_GMAIL_ADDRESS
+              } vers ${CORPORATE_EMAIL}.`
+            : `Synchronisation Gmail à jour (${syncRes.checkedCount} e-mails externes vérifiés).`
+      });
+    } catch (err: any) {
+      setFeedbackBanner({
+        type: 'error',
+        text: err?.message || 'Impossible de synchroniser votre boîte Gmail.'
+      });
+    } finally {
+      setSyncingGmail(false);
+    }
+  };
+
+  const handleRequestForwardToGmail = (itemsToForward: CorporateEmailMessage[]) => {
+    if (itemsToForward.length === 0) return;
+    setPendingConfirmation({
+      mode: 'forward_to_gmail',
+      items: itemsToForward
+    });
+  };
+
+  const handleConfirmGmailAction = async () => {
+    if (!pendingConfirmation || confirmingGmailMutation) return;
+    setConfirmingGmailMutation(true);
+    setFeedbackBanner(null);
+
+    try {
+      // Ensure Gmail OAuth token is active (prompt Google login if needed)
+      if (!gmailBridge.connected) {
+        const connected = await connectGmailBridge();
+        if (!connected) {
+          setConfirmingGmailMutation(false);
+          return;
+        }
+      }
+
+      if (pendingConfirmation.mode === 'forward_to_gmail') {
+        const res = await forwardPlatformMessagesToGmail(pendingConfirmation.items);
+        setPendingConfirmation(null);
+        setFeedbackBanner({
+          type: 'success',
+          text: `${res.forwardedCount} message(s) transféré(s) directement dans votre boîte Gmail réelle (${LINKED_GMAIL_ADDRESS}) !`
+        });
+      } else if (pendingConfirmation.mode === 'send_external_gmail') {
+        const p = pendingConfirmation;
+        const gmailSent = await sendExternalEmailViaGmail({
+          fromDisplayName: p.senderDisplayName,
+          fromCorporateAlias: p.fromAlias,
+          toEmail: p.toEmail,
+          toName: p.toName,
+          ccEmail: p.ccEmail,
+          subject: p.subject,
+          body: p.body,
+          inReplyToMessageId: p.inReplyToMessageId,
+          gmailThreadId: p.gmailThreadId
+        });
+
+        await sendCorporateEmail({
+          senderUid: firebaseUser?.uid || 'admin',
+          isAdminSender: true,
+          fromName: p.senderDisplayName,
+          fromEmail: p.fromAlias,
+          toName: p.toName,
+          toEmail: p.toEmail,
+          ccEmail: p.ccEmail,
+          subject: p.subject,
+          body: p.body,
+          category: p.category,
+          externalSource: 'gmail',
+          gmailMessageId: gmailSent.gmailId,
+          gmailThreadId: gmailSent.threadId,
+          gmailForwarded: true
+        });
+
+        if (draftId) {
+          await deleteCorporateEmailPermanent(draftId).catch(() => {});
+        }
+
+        setPendingConfirmation(null);
+        setIsComposerOpen(false);
+        setReplyContext(null);
+        setFeedbackBanner({
+          type: 'success',
+          text: `E-mail délivré en réel via Gmail (${LINKED_GMAIL_ADDRESS}) vers la boîte externe ${p.toEmail} !`
+        });
+      }
+    } catch (err: any) {
+      setFeedbackBanner({
+        type: 'error',
+        text: err?.message || 'Échec de l\'opération Gmail.'
+      });
+    } finally {
+      setConfirmingGmailMutation(false);
+    }
+  };
+
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
       if (isAdmin) {
@@ -195,12 +469,13 @@ export const ProfessionalEmailScreen: React.FC = () => {
           return false;
         }
 
-        if (selectedAliasFilter !== 'all') {
+        if (selectedAliasFilter === 'gmail_external') {
+          if (m.externalSource !== 'gmail') return false;
+        } else if (selectedAliasFilter !== 'all') {
           const targetAlias = selectedAliasFilter.toLowerCase();
           const toMatch = (m.toEmail || '').toLowerCase() === targetAlias;
           const fromMatch = (m.fromEmail || '').toLowerCase() === targetAlias;
           const ccMatch = (m.ccEmail || '').toLowerCase() === targetAlias;
-          // Master account contact@danthoss-cabinet.com also receives all inbound client messages addressed to any @danthoss-cabinet.com alias
           const isMasterCatchAll =
             targetAlias === CORPORATE_EMAIL.toLowerCase() &&
             m.folder === 'inbox' &&
@@ -229,6 +504,11 @@ export const ProfessionalEmailScreen: React.FC = () => {
 
   const unreadInboxCount = useMemo(
     () => messages.filter((m) => m.folder === 'inbox' && !m.read).length,
+    [messages]
+  );
+
+  const externalGmailCount = useMemo(
+    () => messages.filter((m) => m.folder !== 'trash' && m.externalSource === 'gmail').length,
     [messages]
   );
 
@@ -270,8 +550,14 @@ export const ProfessionalEmailScreen: React.FC = () => {
     }
   };
 
-  const openNewComposer = (presetTo?: string, presetSubject?: string, presetBody?: string) => {
+  const openNewComposer = (
+    presetTo?: string,
+    presetSubject?: string,
+    presetBody?: string,
+    presetReplyCtx?: { inReplyToMessageId?: string; gmailThreadId?: string } | null
+  ) => {
     setDraftId(undefined);
+    setReplyContext(presetReplyCtx || null);
     setFromAlias(isAdmin ? CORPORATE_EMAIL : activeUserEmail);
     setToEmail(presetTo !== undefined ? presetTo : isAdmin ? '' : CORPORATE_EMAIL);
     setToName(isAdmin ? '' : 'Cabinet Rabiou Saley');
@@ -290,19 +576,22 @@ export const ProfessionalEmailScreen: React.FC = () => {
 
   const handleReply = (msg: CorporateEmailMessage) => {
     const replyTarget = isAdmin
-      ? isCorporateAddress(msg.fromEmail)
+      ? isCorporateAddress(msg.fromEmail) && msg.fromEmail.toLowerCase() !== LINKED_GMAIL_ADDRESS
         ? msg.toEmail
         : msg.fromEmail
       : CORPORATE_EMAIL;
     const replySubject = msg.subject.toLowerCase().startsWith('re:') ? msg.subject : `Re: ${msg.subject}`;
     const quoted = `\n\n\n--- Message d'origine de ${msg.fromName} <${msg.fromEmail}> ---\n${msg.body}`;
-    openNewComposer(replyTarget, replySubject, quoted);
+    openNewComposer(replyTarget, replySubject, quoted, {
+      inReplyToMessageId: msg.smtpMessageId,
+      gmailThreadId: msg.gmailThreadId
+    });
   };
 
   const handleForward = (msg: CorporateEmailMessage) => {
     const fwdSubject = msg.subject.toLowerCase().startsWith('tr:') ? msg.subject : `Tr: ${msg.subject}`;
     const quoted = `\n\n---------- Message transféré ----------\nDe : ${msg.fromName} <${msg.fromEmail}>\nDate : ${new Date(msg.createdAt).toLocaleString('fr-FR')}\nObjet : ${msg.subject}\nÀ : ${msg.toEmail}\n\n${msg.body}`;
-    openNewComposer(isAdmin ? '' : CORPORATE_EMAIL, fwdSubject, quoted);
+    openNewComposer(isAdmin ? LINKED_GMAIL_ADDRESS : CORPORATE_EMAIL, fwdSubject, quoted);
   };
 
   const handleSaveDraft = async () => {
@@ -360,15 +649,55 @@ export const ProfessionalEmailScreen: React.FC = () => {
     e.preventDefault();
     if (!toEmail.trim() || !subject.trim() || !body.trim() || sending) return;
 
-    setSending(true);
-    setFeedbackBanner(null);
-
     const aliasObj = CABINET_INFO.emailAliases?.find((a) => a.email === fromAlias);
     const senderDisplayName = isAdmin
       ? aliasObj
         ? `Cabinet Rabiou Saley (${aliasObj.label})`
         : 'Rabiou Saley Abdoul Majid • Cabinet Danthoss'
       : clientSenderName.trim() || firebaseUser?.displayName || activeUserEmail.split('@')[0] || 'Client Danthoss';
+
+    const cleanRecipient = toEmail.trim().toLowerCase();
+    const isExternalRecipient =
+      !cleanRecipient.endsWith('@danthoss-cabinet.com') ||
+      cleanRecipient === LINKED_GMAIL_ADDRESS;
+
+    // If Admin is sending to an external inbox (e.g., Gmail, Outlook, client domain, or abdoulmajidrabiousaley457@gmail.com),
+    // present the mandatory explicit confirmation modal before dispatching via Gmail API
+    if (isAdmin && isExternalRecipient) {
+      setPendingConfirmation({
+        mode: 'send_external_gmail',
+        senderDisplayName,
+        fromAlias,
+        toEmail: toEmail.trim(),
+        toName,
+        ccEmail: ccEmail.trim(),
+        subject: subject.trim(),
+        body: body.trim(),
+        category,
+        inReplyToMessageId: replyContext?.inReplyToMessageId,
+        gmailThreadId: replyContext?.gmailThreadId
+      });
+      return;
+    }
+
+    await executePlatformSendOnly(senderDisplayName);
+  };
+
+  const executePlatformSendOnly = async (senderDisplayNameOverride?: string) => {
+    setSending(true);
+    setFeedbackBanner(null);
+
+    const aliasObj = CABINET_INFO.emailAliases?.find((a) => a.email === fromAlias);
+    const senderDisplayName =
+      senderDisplayNameOverride ||
+      (isAdmin
+        ? aliasObj
+          ? `Cabinet Rabiou Saley (${aliasObj.label})`
+          : 'Rabiou Saley Abdoul Majid • Cabinet Danthoss'
+        : clientSenderName.trim() ||
+          firebaseUser?.displayName ||
+          activeUserEmail.split('@')[0] ||
+          'Client Danthoss');
 
     try {
       const result = await sendCorporateEmail({
@@ -388,12 +717,14 @@ export const ProfessionalEmailScreen: React.FC = () => {
         await deleteCorporateEmailPermanent(draftId).catch(() => {});
       }
 
+      setPendingConfirmation(null);
       setIsComposerOpen(false);
+      setReplyContext(null);
       setFeedbackBanner({
         type: 'success',
         text: isAdmin
-          ? `E-mail envoyé avec succès depuis ${fromAlias} vers ${toEmail.trim()}.`
-          : `Votre message a bien été transmis en direct à ${CORPORATE_EMAIL}. Le Cabinet Rabiou Saley vous répondra directement ici.`,
+          ? `E-mail enregistré et acheminé depuis ${fromAlias} vers ${toEmail.trim()}.`
+          : `Votre message a bien été transmis en direct à ${CORPORATE_EMAIL} (et relié à la boîte du Cabinet).`,
         previewUrl: result.smtpPreviewUrl
       });
     } catch (err: any) {
@@ -406,7 +737,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
     }
   };
 
-  // Allows Admin to verify real-time inbound client reception on contact@danthoss-cabinet.com in 1 click
+  // Allows Admin to verify real-time inbound client reception on contact@danthoss-cabinet.com + Gmail forwarding
   const handleSimulateClientInbound = async () => {
     if (simulatingClient) return;
     setSimulatingClient(true);
@@ -414,12 +745,12 @@ export const ProfessionalEmailScreen: React.FC = () => {
       const result = await sendCorporateEmail({
         senderUid: firebaseUser?.uid || 'test_client',
         isAdminSender: false,
-        fromName: 'Client Test • Vérification Temps Réel',
-        fromEmail: 'client.verification@entreprise-partenaire.com',
+        fromName: 'Client Test • Pont Gmail & Danthoss',
+        fromEmail: 'client.externe@entreprise-partenaire.com',
         toName: 'Cabinet Rabiou Saley',
         toEmail: CORPORATE_EMAIL,
-        subject: `Vérification de réception client en direct — ${new Date().toLocaleTimeString('fr-FR')}`,
-        body: `Bonjour M. Rabiou Saley,\n\nCe message confirme que votre boîte professionnelle ${CORPORATE_EMAIL} reçoit instantanément en temps réel (Cloud Firestore + Relais SMTP) tous les messages envoyés par vos clients depuis n'importe quel appareil, navigateur ou lien partagé.\n\nVous pouvez cliquer sur « Répondre » pour tester la réponse directe vers le client.\n\nCordialement,\nSystème de Vérification Client Danthoss`,
+        subject: `Test Liaison Directe ${CORPORATE_EMAIL} → ${LINKED_GMAIL_ADDRESS} (${new Date().toLocaleTimeString('fr-FR')})`,
+        body: `Bonjour M. Rabiou Saley,\n\nCe message vérifie la liaison complète entre votre boîte professionnelle ${CORPORATE_EMAIL} et votre boîte Gmail personnelle ${LINKED_GMAIL_ADDRESS}.\n\n• Si votre Pont Gmail est connecté, confirmez l'invite pour recevoir instantanément cet e-mail dans votre application Gmail sur téléphone/ordinateur.\n\nCordialement,\nVérification Messagerie Danthoss`,
         category: 'general'
       });
 
@@ -428,7 +759,9 @@ export const ProfessionalEmailScreen: React.FC = () => {
       setIsSettingsOpen(false);
       setFeedbackBanner({
         type: 'success',
-        text: `Test réussi : nouveau message client reçu instantanément sur ${CORPORATE_EMAIL} !`,
+        text: gmailBridge.connected
+          ? `Message reçu sur ${CORPORATE_EMAIL} — Confirmez le transfert pour le recevoir sur ${LINKED_GMAIL_ADDRESS} !`
+          : `Message reçu sur ${CORPORATE_EMAIL}. Connectez votre Pont Gmail ci-dessous pour le recevoir directement sur ${LINKED_GMAIL_ADDRESS}.`,
         previewUrl: result.smtpPreviewUrl
       });
     } catch (err: any) {
@@ -479,25 +812,37 @@ export const ProfessionalEmailScreen: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-5 pb-12">
       {/* Top Corporate Header */}
       <div className="bg-slate-950 text-white rounded-2xl p-5 sm:p-6 border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-xs text-emerald-400 font-medium">
-            <span>Messagerie Professionnelle Danthoss</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono">{CORPORATE_EMAIL}</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-slate-300">Synchronisation Cloud Temps Réel & SMTP</span>
+            {isAdmin ? (
+              <>
+                <span>Messagerie Professionnelle Danthoss</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono">{CORPORATE_EMAIL}</span>
+                <span aria-hidden="true">↔</span>
+                <span className="font-mono text-sky-300">{LINKED_GMAIL_ADDRESS}</span>
+              </>
+            ) : (
+              <>
+                <span>Espace Client Sécurisé</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono text-emerald-300">
+                  {activeUserEmail || 'Messagerie Directe'}
+                </span>
+              </>
+            )}
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             {isAdmin
-              ? 'Webmail Professionnel — Cabinet Rabiou Saley'
+              ? 'Webmail Professionnel & Pont Gmail Externe'
               : 'Contacter le Cabinet — Messagerie Directe'}
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
             {isAdmin
-              ? `Recevez en temps réel tous les messages clients et demandes de devis adressés à ${CORPORATE_EMAIL}, quel que soit l'appareil ou le lien utilisé par vos clients.`
+              ? `Recevez sur ${CORPORATE_EMAIL} les messages envoyés depuis l'extérieur (application Gmail, Outlook, mobile) et transférez instantanément chaque message client vers votre Gmail ${LINKED_GMAIL_ADDRESS}.`
               : `Échangez directement avec le Cabinet Rabiou Saley (${CORPORATE_EMAIL}) et recevez vos réponses en temps réel dans cet espace.`}
           </p>
         </div>
@@ -520,7 +865,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 title="Simuler l'envoi d'un message client vers contact@danthoss-cabinet.com"
               >
                 <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{simulatingClient ? 'Test...' : 'Tester réception client'}</span>
+                <span>{simulatingClient ? 'Test...' : 'Tester réception'}</span>
               </button>
 
               <button
@@ -528,7 +873,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
               >
                 <Settings className="w-4 h-4 text-emerald-400" />
-                <span>Compte & Alias Pro</span>
+                <span>Compte & Alias</span>
               </button>
             </>
           )}
@@ -537,12 +882,124 @@ export const ProfessionalEmailScreen: React.FC = () => {
             onClick={fetchServerStatus}
             disabled={refreshing}
             className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors cursor-pointer"
-            title="Vérifier l'état du serveur SMTP"
+            title="Actualiser la messagerie"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
         </div>
       </div>
+
+      {/* Bidirectional Gmail External Bridge Card (Admin Only) */}
+      {isAdmin && (
+        <div
+          className={`rounded-2xl border p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${
+            gmailBridge.connected
+              ? 'bg-emerald-50/70 border-emerald-200'
+              : 'bg-white border-slate-200 shadow-xs'
+          }`}
+        >
+          <div className="flex items-start gap-3.5 min-w-0">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                gmailBridge.connected
+                  ? 'bg-white border-emerald-200 text-emerald-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            >
+              <ArrowRightLeft className="w-5 h-5" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                  Liaison Gmail Externe :{' '}
+                  <span className="font-mono text-emerald-700">{CORPORATE_EMAIL}</span>
+                  {' ↔ '}
+                  <span className="font-mono text-slate-800">{LINKED_GMAIL_ADDRESS}</span>
+                </h2>
+                {gmailBridge.connected && (
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                    Relié en direct
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {gmailBridge.connected ? (
+                  <>
+                    Compte relié :{' '}
+                    <strong className="font-mono text-slate-900">
+                      {gmailBridge.connectedEmail}
+                    </strong>
+                    . Les e-mails envoyés depuis l'extérieur (application Gmail, Outlook, mobile) se synchronisent ici, et vos messages plateforme peuvent être transférés directement sur votre Gmail.
+                    {gmailBridge.lastSyncAt && (
+                      <span className="text-slate-500">
+                        {' '}
+                        · Dernière synchro à{' '}
+                        {new Date(gmailBridge.lastSyncAt).toLocaleTimeString('fr-FR')}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    Connectez votre compte Google{' '}
+                    <strong className="font-mono text-slate-800">{LINKED_GMAIL_ADDRESS}</strong>{' '}
+                    pour recevoir les e-mails envoyés hors plateforme (application Gmail cliente) et recevoir vos messages{' '}
+                    <span className="font-mono">{CORPORATE_EMAIL}</span> directement sur votre boîte Gmail.
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {!gmailBridge.connected ? (
+              <button
+                type="button"
+                onClick={handleConnectGmail}
+                disabled={connectingGmail}
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-900 font-semibold text-xs sm:text-sm border border-slate-300 shadow-xs inline-flex items-center gap-2.5 transition-colors cursor-pointer"
+              >
+                <GoogleGIcon />
+                <span>
+                  {connectingGmail ? 'Connexion à Gmail...' : 'Connecter avec Google Gmail'}
+                </span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleManualSyncGmail}
+                  disabled={syncingGmail}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs border border-slate-300 inline-flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncingGmail ? 'animate-spin text-emerald-600' : ''}`} />
+                  <span>{syncingGmail ? 'Lecture Gmail...' : 'Synchroniser Gmail externe'}</span>
+                </button>
+
+                {pendingForwardMessages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRequestForwardToGmail(pendingForwardMessages)}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs inline-flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>
+                      Recevoir sur mon Gmail ({pendingForwardMessages.length})
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={disconnectGmailBridge}
+                  className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-emerald-100/60 transition-colors cursor-pointer"
+                >
+                  Déconnecter
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Feedback Banner after send / action */}
       {feedbackBanner && (
@@ -554,7 +1011,11 @@ export const ProfessionalEmailScreen: React.FC = () => {
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <CheckCircle2
+              className={`w-4 h-4 shrink-0 ${
+                feedbackBanner.type === 'success' ? 'text-emerald-600' : 'text-rose-600'
+              }`}
+            />
             <span className="font-medium">{feedbackBanner.text}</span>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -565,7 +1026,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-900 underline"
               >
-                <span>Voir l'accusé SMTP réel</span>
+                <span>Voir l'accusé SMTP</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
@@ -579,7 +1040,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Corporate Aliases Quick Bar (Admin Only) */}
+      {/* Corporate Aliases & External Gmail Quick Filter Bar (Admin Only) */}
       {isAdmin && (
         <div className="bg-white rounded-xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -593,6 +1054,19 @@ export const ProfessionalEmailScreen: React.FC = () => {
             >
               Toutes les boîtes ({messages.filter((m) => m.folder !== 'trash').length})
             </button>
+
+            <button
+              onClick={() => setSelectedAliasFilter('gmail_external')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+                selectedAliasFilter === 'gmail_external'
+                  ? 'bg-sky-600 text-white font-semibold'
+                  : 'text-sky-700 bg-sky-50 hover:bg-sky-100'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>E-mails Externes Gmail ({externalGmailCount})</span>
+            </button>
+
             {(CABINET_INFO.emailAliases || []).map((alias) => (
               <button
                 key={alias.email}
@@ -664,7 +1138,9 @@ export const ProfessionalEmailScreen: React.FC = () => {
                   {folder.badge > 0 && (
                     <span
                       className={`text-[11px] font-mono tabular-nums px-1.5 py-0.5 rounded-md ${
-                        active ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-rose-500 text-white font-bold'
+                        active
+                          ? 'bg-emerald-500 text-slate-950 font-bold'
+                          : 'bg-rose-500 text-white font-bold'
                       }`}
                     >
                       {folder.badge}
@@ -675,9 +1151,9 @@ export const ProfessionalEmailScreen: React.FC = () => {
             })}
 
             <div className="hidden lg:block mt-auto pt-6 border-t border-slate-200/80 text-[11px] text-slate-500 space-y-1 px-2">
-              <div className="font-semibold text-slate-700">Réception Temps Réel Active</div>
-              <div className="font-mono text-emerald-700">{CORPORATE_EMAIL}</div>
-              <div>Synchronisé multi-appareils & Cloud</div>
+              <div className="font-semibold text-slate-700">Pont Gmail & Cloud Actif</div>
+              <div className="font-mono text-emerald-700 truncate">{CORPORATE_EMAIL}</div>
+              <div className="font-mono text-slate-600 truncate">↔ {LINKED_GMAIL_ADDRESS}</div>
             </div>
           </div>
         )}
@@ -698,7 +1174,11 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher un client, e-mail, objet..."
+                placeholder={
+                  isAdmin
+                    ? 'Rechercher un client, e-mail Gmail, objet...'
+                    : 'Rechercher dans vos échanges avec le Cabinet...'
+                }
                 className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -708,7 +1188,9 @@ export const ProfessionalEmailScreen: React.FC = () => {
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[520px] lg:max-h-none">
             {loading ? (
               <div className="p-8 text-center text-xs text-slate-500">
-                Synchronisation temps réel de {CORPORATE_EMAIL}...
+                {isAdmin
+                  ? `Synchronisation temps réel de ${CORPORATE_EMAIL}...`
+                  : 'Chargement de vos échanges personnels...'}
               </div>
             ) : filteredMessages.length === 0 ? (
               <div className="p-10 text-center space-y-3">
@@ -716,15 +1198,27 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 <div className="text-sm font-semibold text-slate-700">Aucun message dans ce dossier</div>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto">
                   {isAdmin
-                    ? `Les messages envoyés par vos clients vers ${CORPORATE_EMAIL} s'affichent automatiquement ici en temps réel.`
+                    ? selectedAliasFilter === 'gmail_external' && !gmailBridge.connected
+                      ? `Connectez votre compte Gmail (${LINKED_GMAIL_ADDRESS}) ci-dessus pour importer automatiquement vos e-mails clients externes.`
+                      : `Les messages envoyés vers ${CORPORATE_EMAIL} ou ${LINKED_GMAIL_ADDRESS} s'affichent automatiquement ici.`
                     : `Envoyez un message direct à ${CORPORATE_EMAIL} pour échanger avec le Cabinet Rabiou Saley.`}
                 </p>
                 <button
                   type="button"
-                  onClick={() => (isAdmin ? handleSimulateClientInbound() : openNewComposer())}
+                  onClick={() =>
+                    isAdmin
+                      ? selectedAliasFilter === 'gmail_external' && !gmailBridge.connected
+                        ? handleConnectGmail()
+                        : handleSimulateClientInbound()
+                      : openNewComposer()
+                  }
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer"
                 >
-                  {isAdmin ? 'Tester la réception client' : `Écrire à ${CORPORATE_EMAIL}`}
+                  {isAdmin
+                    ? selectedAliasFilter === 'gmail_external' && !gmailBridge.connected
+                      ? 'Connecter Google Gmail'
+                      : 'Tester la réception client'
+                    : `Écrire à ${CORPORATE_EMAIL}`}
                 </button>
               </div>
             ) : (
@@ -798,7 +1292,26 @@ export const ProfessionalEmailScreen: React.FC = () => {
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                    {isAdmin && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {msg.externalSource === 'gmail' ? (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/80">
+                            Externe • Gmail
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                            Plateforme Danthoss
+                          </span>
+                        )}
+                        {msg.gmailForwarded && msg.externalSource !== 'gmail' && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                            Transféré sur Gmail ✓
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">
                       {msg.body}
                     </p>
                   </div>
@@ -817,7 +1330,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
           {selectedMessage ? (
             <div className="flex flex-col h-full">
               {/* Reader Toolbar */}
-              <div className="p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/50">
+              <div className="p-3 sm:p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
                 <button
                   onClick={() => setSelectedMessage(null)}
                   className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-950 cursor-pointer"
@@ -826,7 +1339,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                   <span>Retour</span>
                 </button>
 
-                <div className="flex items-center gap-1.5 ml-auto">
+                <div className="flex flex-wrap items-center gap-1.5 ml-auto">
                   {selectedMessage.folder === 'drafts' ? (
                     <button
                       onClick={() => {
@@ -851,6 +1364,22 @@ export const ProfessionalEmailScreen: React.FC = () => {
                         <Reply className="w-3.5 h-3.5" />
                         <span>Répondre</span>
                       </button>
+
+                      {isAdmin &&
+                        selectedMessage.folder === 'inbox' &&
+                        selectedMessage.externalSource !== 'gmail' &&
+                        !selectedMessage.gmailForwarded && (
+                          <button
+                            type="button"
+                            onClick={() => handleRequestForwardToGmail([selectedMessage])}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                            title={`Recevoir directement sur ${LINKED_GMAIL_ADDRESS}`}
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Envoyer sur mon Gmail</span>
+                          </button>
+                        )}
+
                       <button
                         onClick={() => handleForward(selectedMessage)}
                         className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer"
@@ -889,6 +1418,18 @@ export const ProfessionalEmailScreen: React.FC = () => {
               {/* Message Metadata & Content */}
               <div className="p-5 sm:p-6 space-y-5 flex-1 overflow-y-auto">
                 <div className="space-y-3 pb-4 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedMessage.externalSource === 'gmail' ? (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200">
+                        Reçu depuis une boîte externe via Gmail ({LINKED_GMAIL_ADDRESS})
+                      </span>
+                    ) : selectedMessage.gmailForwarded ? (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Synchronisé sur {LINKED_GMAIL_ADDRESS} ✓
+                      </span>
+                    ) : null}
+                  </div>
+
                   <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
                     {selectedMessage.subject}
                   </h2>
@@ -905,7 +1446,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                     </div>
                     {selectedMessage.ccEmail && (
                       <div>
-                        <span className="text-slate-400">Cc : </span>
+                        <span className="text-slate-400">Pont / Cc : </span>
                         <span className="font-mono text-slate-700">{selectedMessage.ccEmail}</span>
                       </div>
                     )}
@@ -949,8 +1490,24 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 Sélectionnez un e-mail pour l'afficher
               </div>
               <p className="text-xs max-w-sm">
-                Compte professionnel actif :{' '}
-                <span className="font-mono text-slate-800">{CORPORATE_EMAIL}</span>
+                {isAdmin ? (
+                  <>
+                    Compte professionnel actif :{' '}
+                    <span className="font-mono text-slate-800">{CORPORATE_EMAIL}</span>
+                    <br />
+                    Relié à : <span className="font-mono text-emerald-700">{LINKED_GMAIL_ADDRESS}</span>
+                  </>
+                ) : (
+                  <>
+                    Votre compte client :{' '}
+                    <span className="font-mono text-slate-800">
+                      {activeUserEmail || 'Connecté'}
+                    </span>
+                    <br />
+                    Destinataire officiel :{' '}
+                    <span className="font-mono text-emerald-700">{CORPORATE_EMAIL}</span>
+                  </>
+                )}
               </p>
             </div>
           )}
@@ -966,7 +1523,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 <Mail className="w-4 h-4 text-emerald-400" />
                 <h3 className="font-bold text-sm sm:text-base">
                   {isAdmin
-                    ? 'Nouveau Message Professionnel'
+                    ? 'Nouveau Message Professionnel (Plateforme & Gmail Externe)'
                     : `Envoyer un message à ${CORPORATE_EMAIL}`}
                 </h3>
               </div>
@@ -979,7 +1536,6 @@ export const ProfessionalEmailScreen: React.FC = () => {
             </div>
 
             <form onSubmit={handleSendEmail} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-              {/* Quick Templates & Gemini Assist Bar (Admin) */}
               {isAdmin && (
                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -1058,7 +1614,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    À (Destinataire) *
+                    À (Destinataire externe ou interne) *
                   </label>
                   {isAdmin ? (
                     <input
@@ -1066,7 +1622,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                       required
                       value={toEmail}
                       onChange={(e) => setToEmail(e.target.value)}
-                      placeholder="client@entreprise.com"
+                      placeholder="client@gmail.com ou entreprise@domaine.com"
                       className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   ) : (
@@ -1109,7 +1665,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
                   required
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Ex: Demande de mission IA / Question technique"
+                  placeholder="Ex: Proposition de mission IA / Réponse à votre demande"
                   className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -1166,6 +1722,121 @@ export const ProfessionalEmailScreen: React.FC = () => {
         </div>
       )}
 
+      {/* Mandatory Explicit User Confirmation Modal before Gmail Send / Forward Operations */}
+      {pendingConfirmation && (
+        <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="px-5 py-4 bg-slate-950 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-bold text-sm sm:text-base">
+                  {pendingConfirmation.mode === 'forward_to_gmail'
+                    ? 'Confirmer le transfert direct vers votre boîte Gmail'
+                    : 'Confirmer l\'envoi réel vers une boîte e-mail externe'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPendingConfirmation(null)}
+                disabled={confirmingGmailMutation}
+                className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs sm:text-sm text-slate-700">
+              {pendingConfirmation.mode === 'forward_to_gmail' ? (
+                <>
+                  <p className="leading-relaxed">
+                    Voulez-vous transférer{' '}
+                    <strong>{pendingConfirmation.items.length} message(s)</strong> reçu(s) sur{' '}
+                    <span className="font-mono text-slate-900">{CORPORATE_EMAIL}</span> directement
+                    dans votre boîte Gmail réelle{' '}
+                    <strong className="font-mono text-emerald-700">{LINKED_GMAIL_ADDRESS}</strong> ?
+                  </p>
+                  <div className="max-h-44 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-slate-50">
+                    {pendingConfirmation.items.map((item) => (
+                      <div key={item.id} className="p-2.5 space-y-0.5">
+                        <div className="font-semibold text-slate-900 text-xs truncate">
+                          {item.subject}
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">
+                          De : {item.fromName} &lt;{item.fromEmail}&gt;
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="leading-relaxed">
+                    Vous êtes sur le point d'envoyer un e-mail réel hors de la plateforme via votre
+                    compte Gmail relié (<span className="font-mono">{LINKED_GMAIL_ADDRESS}</span>) :
+                  </p>
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
+                    <div>
+                      <span className="text-slate-500">Destinataire externe : </span>
+                      <strong className="font-mono text-slate-900">
+                        {pendingConfirmation.toEmail}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Identité pro affichée : </span>
+                      <span className="text-slate-800">
+                        {pendingConfirmation.senderDisplayName} ({pendingConfirmation.fromAlias})
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Objet : </span>
+                      <strong className="text-slate-900">{pendingConfirmation.subject}</strong>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setPendingConfirmation(null)}
+                  disabled={confirmingGmailMutation}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Annuler
+                </button>
+
+                {pendingConfirmation.mode === 'send_external_gmail' && (
+                  <button
+                    type="button"
+                    onClick={() => executePlatformSendOnly(pendingConfirmation.senderDisplayName)}
+                    disabled={confirmingGmailMutation || sending}
+                    className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer"
+                  >
+                    Plateforme uniquement
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleConfirmGmailAction}
+                  disabled={confirmingGmailMutation}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <GoogleGIcon />
+                  <span>
+                    {confirmingGmailMutation
+                      ? 'Envoi Gmail en cours...'
+                      : pendingConfirmation.mode === 'forward_to_gmail'
+                      ? `Confirmer le transfert vers ${LINKED_GMAIL_ADDRESS}`
+                      : 'Confirmer l\'envoi réel via Gmail'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin Corporate Account & Firebase Auth Provisioning Modal */}
       {isAdmin && isSettingsOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
@@ -1174,7 +1845,7 @@ export const ProfessionalEmailScreen: React.FC = () => {
               <div className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-emerald-400" />
                 <h3 className="font-bold text-sm sm:text-base">
-                  Paramètres du Compte E-mail Professionnel
+                  Paramètres du Compte Pro & Pont Gmail
                 </h3>
               </div>
               <button
@@ -1186,7 +1857,6 @@ export const ProfessionalEmailScreen: React.FC = () => {
             </div>
 
             <div className="p-5 sm:p-6 space-y-6 overflow-y-auto text-xs sm:text-sm">
-              {/* Provisioned Addresses */}
               <div className="space-y-2.5">
                 <h4 className="font-bold text-slate-900">
                   1. Adresses professionnelles actives (@danthoss-cabinet.com)
@@ -1215,22 +1885,37 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Server & Cloud Sync Info */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                 <div className="font-bold text-slate-900">
-                  2. Réception Client Temps Réel & Relais SMTP
+                  2. Liaison Bidirectionnelle Gmail Externe
                 </div>
                 <div className="text-slate-600">
-                  Synchronisation entrante :{' '}
-                  <strong className="text-emerald-700">
-                    Cloud Firestore Temps Réel + Relais SMTP TLS ({serverStatus?.transportMode === 'custom_smtp' ? 'SMTP Dédié' : 'Actif'})
+                  Boîte Gmail reliée :{' '}
+                  <strong className="font-mono text-emerald-700">{LINKED_GMAIL_ADDRESS}</strong> (
+                  {gmailBridge.connected ? 'Connecté en direct' : 'Prêt à connecter'})
+                </div>
+                <div className="text-slate-600">
+                  Relais serveur :{' '}
+                  <strong className="text-slate-800">
+                    {serverStatus?.transportMode === 'custom_smtp'
+                      ? 'SMTP Gmail / Dédié Actif 24h/24'
+                      : 'Cloud Firestore + API Google Gmail'}
                   </strong>
                 </div>
-                <div className="text-slate-600">
-                  Compte de secours rattaché :{' '}
-                  <span className="font-mono text-slate-800">{CABINET_INFO.backupEmail}</span>
-                </div>
-                <div className="pt-1">
+                <div className="pt-1 flex flex-wrap gap-2">
+                  {!gmailBridge.connected && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSettingsOpen(false);
+                        handleConnectGmail();
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-900 font-semibold text-xs inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <GoogleGIcon />
+                      <span>Connecter Google Gmail</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleSimulateClientInbound}
@@ -1243,7 +1928,6 @@ export const ProfessionalEmailScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Direct Firebase Auth Login Activation for contact@danthoss-cabinet.com */}
               <form
                 onSubmit={handleActivateFirebaseCorporateLogin}
                 className="space-y-3 pt-2 border-t border-slate-200"

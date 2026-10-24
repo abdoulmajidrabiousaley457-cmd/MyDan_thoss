@@ -17,6 +17,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { FIREBASE_PROJECT_INFO, loginWithGoogle } from '../services/firebase';
+import { useUserProfile } from '../context/UserProfileContext';
 
 interface FirebaseGoogleConfigModalProps {
   isOpen: boolean;
@@ -31,12 +32,13 @@ export const FirebaseGoogleConfigModal: React.FC<FirebaseGoogleConfigModalProps>
   detectedError,
   onSuccessLogin
 }) => {
+  const { isAdmin } = useUserProfile();
   const [activeTab, setActiveTab] = useState<'domains' | 'web_sdk' | 'sha1' | 'diagnostics'>('domains');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen || !isAdmin) return null;
 
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'my-dan-thoss-6zf3poqbb-portfolio-a372.vercel.app';
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://my-dan-thoss-6zf3poqbb-portfolio-a372.vercel.app';
@@ -83,13 +85,13 @@ export const FirebaseGoogleConfigModal: React.FC<FirebaseGoogleConfigModalProps>
         });
       }
     } catch (err: any) {
-      console.error('Test Google Sign In:', err);
+      console.warn('Test Google Sign In notice:', err);
       const code = err?.code || '';
       let msg = err?.message || 'Erreur inconnue';
       if (code === 'auth/unauthorized-domain') {
         msg = `Le domaine "${currentHost}" n'est pas encore autorisé dans votre Firebase Console. Veuillez l'ajouter dans l'onglet Domaines Autorisés ci-dessous.`;
       } else if (code === 'auth/operation-not-allowed') {
-        msg = 'Le fournisseur Google Sign-in est désactivé dans la console Firebase. Activez-le dans Authentication > Sign-in method.';
+        msg = 'Le fournisseur sélectionné est désactivé dans la console Firebase. Activez-le dans Authentication > Sign-in method.';
       } else if (code === 'auth/popup-blocked') {
         msg = 'Le popup a été bloqué par votre navigateur. Cliquez sur le bouton "Mode Redirection" pour contourner le bloqueur.';
       }
@@ -328,7 +330,7 @@ export const FirebaseGoogleConfigModal: React.FC<FirebaseGoogleConfigModalProps>
                 </h4>
                 <ol className="list-decimal list-inside space-y-2 text-slate-300 text-[11px] leading-relaxed">
                   <li>
-                    Cliquez sur le bouton ci-dessous pour ouvrir directement la section <strong>Paramètres d'Authentification</strong> de votre projet Firebase (<code className="text-amber-300">elegant-hour-hf38q</code>).
+                    Cliquez sur le bouton ci-dessous pour ouvrir directement la section <strong>Paramètres d'Authentification</strong> de votre projet Firebase (<code className="text-amber-300">{FIREBASE_PROJECT_INFO.projectId}</code>).
                   </li>
                   <li>
                     Faites défiler jusqu'à la section <strong>Domaines autorisés</strong> (Authorized domains).
@@ -428,8 +430,8 @@ export const FirebaseGoogleConfigModal: React.FC<FirebaseGoogleConfigModalProps>
                       </button>
                     </div>
                     <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                      <span className="text-slate-300 truncate">Redirection : https://elegant-hour-hf38q.firebaseapp.com/__/auth/handler</span>
-                      <button onClick={() => copyToClipboard('https://elegant-hour-hf38q.firebaseapp.com/__/auth/handler', 'redir')} className="text-emerald-400 hover:underline shrink-0 text-xs font-sans">
+                      <span className="text-slate-300 truncate">Redirection : https://{FIREBASE_PROJECT_INFO.authDomain}/__/auth/handler</span>
+                      <button onClick={() => copyToClipboard(`https://${FIREBASE_PROJECT_INFO.authDomain}/__/auth/handler`, 'redir')} className="text-emerald-400 hover:underline shrink-0 text-xs font-sans">
                         {copiedKey === 'redir' ? 'Copié' : 'Copier'}
                       </button>
                     </div>
@@ -437,12 +439,12 @@ export const FirebaseGoogleConfigModal: React.FC<FirebaseGoogleConfigModalProps>
 
                   <div className="pt-2 flex flex-wrap gap-2">
                     <a
-                      href={`https://console.firebase.google.com/project/${FIREBASE_PROJECT_INFO.projectId}/authentication/providers`}
+                      href={FIREBASE_PROJECT_INFO.consoleProvidersUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors"
                     >
-                      <span>Sign-in method &gt; Google (Firebase)</span>
+                      <span>Sign-in method : Google & Email/Mot de passe (Firebase)</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                     <a

@@ -45,7 +45,13 @@ service cloud.firestore {
 
     function isValidCorporateEmail(data) {
       return data.keys().hasAll(['id', 'fromName', 'fromEmail', 'toEmail', 'subject', 'body', 'folder', 'read', 'starred', 'createdAt'])
-        && data.keys().hasOnly(['id', 'senderUid', 'fromName', 'fromEmail', 'toName', 'toEmail', 'ccEmail', 'subject', 'body', 'folder', 'category', 'read', 'starred', 'smtpMessageId', 'smtpPreviewUrl', 'createdAt'])
+        && data.keys().hasOnly([
+          'id', 'senderUid', 'fromName', 'fromEmail', 'toName', 'toEmail', 'ccEmail',
+          'subject', 'body', 'folder', 'category', 'read', 'starred',
+          'smtpMessageId', 'smtpPreviewUrl',
+          'externalSource', 'gmailMessageId', 'gmailThreadId', 'gmailForwarded',
+          'createdAt'
+        ])
         && data.id is string && data.id.size() >= 1 && data.id.size() <= 128
         && (!('senderUid' in data) || (data.senderUid is string && data.senderUid.size() <= 128))
         && data.fromName is string && data.fromName.size() >= 1 && data.fromName.size() <= 120
@@ -61,6 +67,10 @@ service cloud.firestore {
         && data.starred is bool
         && (!('smtpMessageId' in data) || (data.smtpMessageId is string && data.smtpMessageId.size() <= 250))
         && (!('smtpPreviewUrl' in data) || (data.smtpPreviewUrl is string && data.smtpPreviewUrl.size() <= 500))
+        && (!('externalSource' in data) || data.externalSource in ['platform', 'gmail', 'smtp'])
+        && (!('gmailMessageId' in data) || (data.gmailMessageId is string && data.gmailMessageId.size() <= 128))
+        && (!('gmailThreadId' in data) || (data.gmailThreadId is string && data.gmailThreadId.size() <= 128))
+        && (!('gmailForwarded' in data) || data.gmailForwarded is bool)
         && data.createdAt is string && data.createdAt.size() >= 1 && data.createdAt.size() <= 50;
     }
 

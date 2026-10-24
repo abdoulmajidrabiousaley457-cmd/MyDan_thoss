@@ -328,6 +328,26 @@
           "description": "Verification URL if sent via SMTP test relay",
           "maxLength": 500
         },
+        "externalSource": {
+          "type": "string",
+          "description": "Origin of message: platform, gmail, or smtp",
+          "enum": ["platform", "gmail", "smtp"],
+          "maxLength": 30
+        },
+        "gmailMessageId": {
+          "type": "string",
+          "description": "External Gmail message identifier if synced or delivered via Gmail API",
+          "maxLength": 128
+        },
+        "gmailThreadId": {
+          "type": "string",
+          "description": "External Gmail thread identifier for conversation continuity",
+          "maxLength": 128
+        },
+        "gmailForwarded": {
+          "type": "boolean",
+          "description": "Whether a platform message has been forwarded to abdoulmajidrabiousaley457@gmail.com"
+        },
         "createdAt": {
           "type": "string",
           "description": "ISO timestamp of message creation",
